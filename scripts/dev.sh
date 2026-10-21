@@ -3,12 +3,17 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-  exec docker compose up --build "$@"
+export PATH="${HOME}/.dotnet:${PATH}"
+export DOTNET_ROOT="${HOME}/.dotnet"
+
+if command -v docker >/dev/null 2>&1 && command -v dotnet >/dev/null 2>&1; then
+  echo "Starting the Aspire AppHost (API, Postgres, object storage, web, Temporal)."
+  echo "The Aspire dashboard shows logs and traces. Alternative: docker compose up --build"
+  exec dotnet run --project "$root/src/aspire/D2DAudit.AppHost"
 fi
 
-echo "Docker is not available. Starting Postgres, the API, and Vite on this machine."
-echo "The published one-command path is: docker compose up --build"
+echo "Docker is not available. Starting the API and Vite against Postgres on this machine."
+echo "Alternative when Docker is installed: docker compose up --build"
 
 if command -v pg_isready >/dev/null 2>&1; then
   pg_isready -h localhost -p 5432 -U d2d -d d2d_control >/dev/null 2>&1 || {
@@ -17,8 +22,6 @@ if command -v pg_isready >/dev/null 2>&1; then
   }
 fi
 
-export PATH="${HOME}/.dotnet:${PATH}"
-export DOTNET_ROOT="${HOME}/.dotnet"
 export ASPNETCORE_ENVIRONMENT=Development
 export ConnectionStrings__ControlPlane="${ConnectionStrings__ControlPlane:-Host=localhost;Port=5432;Database=d2d_control;Username=d2d;Password=d2d_dev_password}"
 

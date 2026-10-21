@@ -6,30 +6,44 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:8080/"
+      "url": "http://localhost:8080/"
     }
   ],
   "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "HealthEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/auth/mode": {
       "get": {
         "tags": [
-          "Auth"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthModeResponse"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthModeResponse"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthModeResponse"
                 }
@@ -42,21 +56,11 @@
     "/api/v1/auth/login": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordLoginBody"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PasswordLoginBody"
-              }
-            },
-            "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordLoginBody"
               }
@@ -68,17 +72,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthBody"
                 }
@@ -91,21 +85,11 @@
     "/api/v1/auth/mfa": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MfaBody"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MfaBody"
-              }
-            },
-            "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/MfaBody"
               }
@@ -117,17 +101,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthBody"
                 }
@@ -140,21 +114,11 @@
     "/api/v1/auth/authorize": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AuthorizeBody"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AuthorizeBody"
-              }
-            },
-            "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/AuthorizeBody"
               }
@@ -172,21 +136,11 @@
     "/api/v1/auth/callback": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CallbackBody"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CallbackBody"
-              }
-            },
-            "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/CallbackBody"
               }
@@ -198,17 +152,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthBody"
                 }
@@ -221,23 +165,13 @@
     "/api/v1/auth/refresh": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthBody"
                 }
@@ -250,21 +184,11 @@
     "/api/v1/auth/forgot": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ForgotBody"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ForgotBody"
-              }
-            },
-            "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/ForgotBody"
               }
@@ -282,7 +206,7 @@
     "/api/v1/auth/logout": {
       "post": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "responses": {
           "200": {
@@ -294,23 +218,13 @@
     "/api/v1/me": {
       "get": {
         "tags": [
-          "Auth"
+          "AuthEndpoints"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthBody"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthBody"
                 }
@@ -323,23 +237,13 @@
     "/api/v1/workspace": {
       "get": {
         "tags": [
-          "Workspace"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkspaceResponse"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkspaceResponse"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceResponse"
                 }
@@ -352,23 +256,13 @@
     "/api/v1/dashboard": {
       "get": {
         "tags": [
-          "Workspace"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardResponse"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DashboardResponse"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DashboardResponse"
                 }
@@ -381,29 +275,13 @@
     "/api/v1/frameworks": {
       "get": {
         "tags": [
-          "Workspace"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/FrameworkListItem"
-                  }
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/FrameworkListItem"
-                  }
-                }
-              },
-              "text/json": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -419,7 +297,7 @@
     "/api/v1/frameworks/{key}": {
       "get": {
         "tags": [
-          "Workspace"
+          "WorkspaceEndpoints"
         ],
         "parameters": [
           {
@@ -435,17 +313,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/FrameworkDetail"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FrameworkDetail"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FrameworkDetail"
                 }
@@ -458,7 +326,7 @@
     "/api/v1/controls": {
       "get": {
         "tags": [
-          "Workspace"
+          "WorkspaceEndpoints"
         ],
         "parameters": [
           {
@@ -487,23 +355,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ControlListItem"
-                  }
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ControlListItem"
-                  }
-                }
-              },
-              "text/json": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -519,7 +371,7 @@
     "/api/v1/controls/{code}": {
       "get": {
         "tags": [
-          "Workspace"
+          "WorkspaceEndpoints"
         ],
         "parameters": [
           {
@@ -535,17 +387,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ControlDetail"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ControlDetail"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ControlDetail"
                 }
@@ -558,7 +400,7 @@
     "/api/v1/controls/{code}/owner": {
       "put": {
         "tags": [
-          "Workspace"
+          "WorkspaceEndpoints"
         ],
         "parameters": [
           {
@@ -576,16 +418,6 @@
               "schema": {
                 "$ref": "#/components/schemas/AssignOwnerRequest"
               }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssignOwnerRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssignOwnerRequest"
-              }
             }
           },
           "required": true
@@ -594,17 +426,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ControlDetail"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ControlDetail"
-                }
-              },
-              "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ControlDetail"
                 }
@@ -617,29 +439,13 @@
     "/api/v1/jobs": {
       "get": {
         "tags": [
-          "Workspace"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/JobDto"
-                  }
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/JobDto"
-                  }
-                }
-              },
-              "text/json": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -655,29 +461,13 @@
     "/api/v1/activity": {
       "get": {
         "tags": [
-          "Workspace"
+          "WorkspaceEndpoints"
         ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityDto"
-                  }
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityDto"
-                  }
-                }
-              },
-              "text/json": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -690,26 +480,202 @@
         }
       }
     },
-    "/health": {
+    "/api/v1/integrations": {
       "get": {
         "tags": [
-          "Health"
+          "D2DAudit.Api"
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
-    "/health/ready": {
-      "get": {
+    "/api/v1/integrations/{provider}/connect": {
+      "post": {
         "tags": [
-          "Health"
+          "IntegrationEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectIntegrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/example": {
+      "post": {
+        "tags": [
+          "IntegrationEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExampleFixtureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/collect": {
+      "post": {
+        "tags": [
+          "IntegrationEndpoints"
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tests": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AutomatedTestDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "IntegrationEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadEvidenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceListItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/verify": {
+      "post": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyReport"
+                }
+              }
+            }
           }
         }
       }
@@ -936,6 +902,52 @@
           }
         }
       },
+      "AutomatedTestDto": {
+        "required": [
+          "id",
+          "key",
+          "name",
+          "controlCode",
+          "outcome",
+          "detail",
+          "remediation",
+          "requirements"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "controlCode": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "remediation": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "CallbackBody": {
         "required": [
           "code",
@@ -948,6 +960,87 @@
           },
           "redirectUri": {
             "type": "string"
+          }
+        }
+      },
+      "ConnectIntegrationRequest": {
+        "required": [
+          "roleArn",
+          "domain",
+          "installationId",
+          "code",
+          "state",
+          "redirectUri"
+        ],
+        "type": "object",
+        "properties": {
+          "roleArn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "installationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "redirectUri": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ConnectResponse": {
+        "required": [
+          "integration",
+          "authorizationUrl",
+          "trustPolicy",
+          "permissionPolicy"
+        ],
+        "type": "object",
+        "properties": {
+          "integration": {
+            "$ref": "#/components/schemas/IntegrationDto"
+          },
+          "authorizationUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "trustPolicy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permissionPolicy": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1169,7 +1262,8 @@
           "name",
           "kind",
           "outcome",
-          "detail"
+          "detail",
+          "remediation"
         ],
         "type": "object",
         "properties": {
@@ -1187,6 +1281,12 @@
             "type": "string"
           },
           "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "remediation": {
             "type": [
               "null",
               "string"
@@ -1270,7 +1370,9 @@
           "title",
           "source",
           "collectedAt",
-          "integrity"
+          "integrity",
+          "sha256",
+          "lockedUntil"
         ],
         "type": "object",
         "properties": {
@@ -1292,6 +1394,162 @@
             "format": "date-time"
           },
           "integrity": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lockedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "EvidenceListItem": {
+        "required": [
+          "id",
+          "title",
+          "controlCode",
+          "source",
+          "collectedAt",
+          "integrity",
+          "sha256",
+          "lockedUntil",
+          "objectKey"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "controlCode": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "collectedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "integrity": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lockedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "objectKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "EvidencePage": {
+        "required": [
+          "summary",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/EvidenceSummary"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvidenceListItem"
+            }
+          }
+        }
+      },
+      "EvidenceSummary": {
+        "required": [
+          "total",
+          "automated",
+          "manual",
+          "verified",
+          "retentionYears",
+          "chainIntact"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "automated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "manual": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "verified": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "retentionYears": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "chainIntact": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ExampleFixtureBody": {
+        "required": [
+          "fixture"
+        ],
+        "type": "object",
+        "properties": {
+          "fixture": {
             "type": "string"
           }
         }
@@ -1469,6 +1727,77 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "IntegrationDto": {
+        "required": [
+          "id",
+          "provider",
+          "displayName",
+          "status",
+          "example",
+          "accountLabel",
+          "externalId",
+          "roleArn",
+          "domain",
+          "setupHint",
+          "lastCollectedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "example": {
+            "type": "boolean"
+          },
+          "accountLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "externalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roleArn": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "setupHint": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastCollectedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -1676,6 +2005,25 @@
           }
         }
       },
+      "UploadEvidenceRequest": {
+        "required": [
+          "controlCode",
+          "title",
+          "contentBase64"
+        ],
+        "type": "object",
+        "properties": {
+          "controlCode": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "contentBase64": {
+            "type": "string"
+          }
+        }
+      },
       "UserSummary": {
         "required": [
           "id",
@@ -1693,6 +2041,40 @@
           },
           "displayName": {
             "type": "string"
+          }
+        }
+      },
+      "VerifyReport": {
+        "required": [
+          "intact",
+          "checked",
+          "objectKey",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "intact": {
+            "type": "boolean"
+          },
+          "checked": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "objectKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1749,13 +2131,19 @@
   },
   "tags": [
     {
-      "name": "Auth"
+      "name": "D2DAudit.Api"
     },
     {
-      "name": "Workspace"
+      "name": "HealthEndpoints"
     },
     {
-      "name": "Health"
+      "name": "AuthEndpoints"
+    },
+    {
+      "name": "WorkspaceEndpoints"
+    },
+    {
+      "name": "IntegrationEndpoints"
     }
   ]
 }

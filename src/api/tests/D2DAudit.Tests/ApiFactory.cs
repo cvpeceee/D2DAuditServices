@@ -11,6 +11,8 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
 
     public string DatabaseName { get; } = "cp_" + Guid.NewGuid().ToString("N");
 
+    public string StorageRoot { get; } = Path.Combine(Path.GetTempPath(), "d2d-evidence-" + Guid.NewGuid().ToString("N"));
+
     public ApiFactory(string environment = "Testing", string? adminConnection = null)
     {
         _environment = environment;
@@ -22,6 +24,7 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
             throw new InvalidOperationException("Test database name failed the safety check.");
         }
 
+        Directory.CreateDirectory(StorageRoot);
         Execute(_adminConnection, $"CREATE DATABASE {DatabaseName}");
     }
 
@@ -37,6 +40,7 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:ControlPlane", ControlConnection);
+        builder.UseSetting("Storage:Root", StorageRoot);
         builder.UseSetting(WebHostDefaults.EnvironmentKey, _environment);
     }
 
@@ -77,6 +81,10 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
         }
 
         Drop(DatabaseName);
+        if (Directory.Exists(StorageRoot))
+        {
+            Directory.Delete(StorageRoot, recursive: true);
+        }
     }
 
     private void Drop(string name)

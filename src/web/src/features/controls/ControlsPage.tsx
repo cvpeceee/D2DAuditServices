@@ -309,6 +309,11 @@ export function ControlsPage() {
                   <div className="row" key={item.id} style={{ marginTop: 8 }}>
                     <span className="t">{item.title}</span>
                     <span className="m">{item.source}</span>
+                    {item.sha256 ? (
+                      <span className="m">
+                        sha256 {item.sha256.slice(0, 8)}…{item.sha256.slice(-4)}
+                      </span>
+                    ) : null}
                   </div>
                 ))}
               </div>

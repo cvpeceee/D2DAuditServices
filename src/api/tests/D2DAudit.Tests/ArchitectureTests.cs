@@ -1,5 +1,5 @@
 using System.Reflection;
-using D2DAudit.Api.Controllers;
+using D2DAudit.Api.Hubs;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure;
@@ -51,7 +51,7 @@ public sealed class ArchitectureTests
     [Fact]
     public void Api_types_do_not_use_entity_framework()
     {
-        var result = Types.InAssembly(typeof(HealthController).Assembly)
+        var result = Types.InAssembly(typeof(JobsHub).Assembly)
             .Should()
             .NotHaveDependencyOnAny("Microsoft.EntityFrameworkCore", "D2DAudit.Infrastructure.Persistence")
             .GetResult();
@@ -66,7 +66,7 @@ public sealed class ArchitectureTests
             typeof(Tenant).Assembly,
             typeof(Result<>).Assembly,
             typeof(DependencyInjection).Assembly,
-            typeof(HealthController).Assembly,
+            typeof(JobsHub).Assembly,
         };
         var mutable = assemblies
             .SelectMany(assembly => assembly.GetTypes())

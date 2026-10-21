@@ -9,7 +9,10 @@ import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { FrameworkDetailPage } from "./features/frameworks/FrameworkDetailPage";
 import { FrameworksPage } from "./features/frameworks/FrameworksPage";
 import { LoginPage } from "./features/auth/LoginPage";
+import { EvidencePage } from "./features/evidence/EvidencePage";
+import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
 import { PlaceholderPage } from "./features/shell/PlaceholderPage";
+import { TestsPage } from "./features/tests/TestsPage";
 import { AppShell } from "./features/shell/AppShell";
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -68,14 +71,14 @@ export function App() {
         <Route path="frameworks/:key" element={<FrameworkDetailPage />} />
         <Route path="controls" element={<ControlsPage />} />
         <Route path="activity" element={<ActivityPage />} />
-        <Route path="tests" element={<PlaceholderPage />} />
-        <Route path="evidence" element={<PlaceholderPage />} />
+        <Route path="tests" element={<TestsPage />} />
+        <Route path="evidence" element={<EvidencePage />} />
         <Route path="policies" element={<PlaceholderPage />} />
         <Route path="risks" element={<PlaceholderPage />} />
         <Route path="vendors" element={<PlaceholderPage />} />
         <Route path="people" element={<PlaceholderPage />} />
         <Route path="auditor" element={<PlaceholderPage />} />
-        <Route path="integrations" element={<PlaceholderPage />} />
+        <Route path="integrations" element={<IntegrationsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

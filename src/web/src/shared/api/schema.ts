@@ -4,6 +4,72 @@
  */
 
 export interface paths {
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/mode": {
         parameters: {
             query?: never;
@@ -26,9 +92,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthModeResponse"];
                         "application/json": components["schemas"]["AuthModeResponse"];
-                        "text/json": components["schemas"]["AuthModeResponse"];
                     };
                 };
             };
@@ -60,8 +124,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["PasswordLoginBody"];
-                    "text/json": components["schemas"]["PasswordLoginBody"];
-                    "application/*+json": components["schemas"]["PasswordLoginBody"];
                 };
             };
             responses: {
@@ -71,9 +133,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthBody"];
                         "application/json": components["schemas"]["AuthBody"];
-                        "text/json": components["schemas"]["AuthBody"];
                     };
                 };
             };
@@ -103,8 +163,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["MfaBody"];
-                    "text/json": components["schemas"]["MfaBody"];
-                    "application/*+json": components["schemas"]["MfaBody"];
                 };
             };
             responses: {
@@ -114,9 +172,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthBody"];
                         "application/json": components["schemas"]["AuthBody"];
-                        "text/json": components["schemas"]["AuthBody"];
                     };
                 };
             };
@@ -146,8 +202,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["AuthorizeBody"];
-                    "text/json": components["schemas"]["AuthorizeBody"];
-                    "application/*+json": components["schemas"]["AuthorizeBody"];
                 };
             };
             responses: {
@@ -185,8 +239,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["CallbackBody"];
-                    "text/json": components["schemas"]["CallbackBody"];
-                    "application/*+json": components["schemas"]["CallbackBody"];
                 };
             };
             responses: {
@@ -196,9 +248,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthBody"];
                         "application/json": components["schemas"]["AuthBody"];
-                        "text/json": components["schemas"]["AuthBody"];
                     };
                 };
             };
@@ -233,9 +283,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthBody"];
                         "application/json": components["schemas"]["AuthBody"];
-                        "text/json": components["schemas"]["AuthBody"];
                     };
                 };
             };
@@ -265,8 +313,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["ForgotBody"];
-                    "text/json": components["schemas"]["ForgotBody"];
-                    "application/*+json": components["schemas"]["ForgotBody"];
                 };
             };
             responses: {
@@ -340,9 +386,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["AuthBody"];
                         "application/json": components["schemas"]["AuthBody"];
-                        "text/json": components["schemas"]["AuthBody"];
                     };
                 };
             };
@@ -377,9 +421,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["WorkspaceResponse"];
                         "application/json": components["schemas"]["WorkspaceResponse"];
-                        "text/json": components["schemas"]["WorkspaceResponse"];
                     };
                 };
             };
@@ -414,9 +456,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["DashboardResponse"];
                         "application/json": components["schemas"]["DashboardResponse"];
-                        "text/json": components["schemas"]["DashboardResponse"];
                     };
                 };
             };
@@ -451,9 +491,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["FrameworkListItem"][];
                         "application/json": components["schemas"]["FrameworkListItem"][];
-                        "text/json": components["schemas"]["FrameworkListItem"][];
                     };
                 };
             };
@@ -490,9 +528,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["FrameworkDetail"];
                         "application/json": components["schemas"]["FrameworkDetail"];
-                        "text/json": components["schemas"]["FrameworkDetail"];
                     };
                 };
             };
@@ -531,9 +567,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ControlListItem"][];
                         "application/json": components["schemas"]["ControlListItem"][];
-                        "text/json": components["schemas"]["ControlListItem"][];
                     };
                 };
             };
@@ -570,9 +604,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ControlDetail"];
                         "application/json": components["schemas"]["ControlDetail"];
-                        "text/json": components["schemas"]["ControlDetail"];
                     };
                 };
             };
@@ -605,8 +637,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["AssignOwnerRequest"];
-                    "text/json": components["schemas"]["AssignOwnerRequest"];
-                    "application/*+json": components["schemas"]["AssignOwnerRequest"];
                 };
             };
             responses: {
@@ -616,9 +646,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ControlDetail"];
                         "application/json": components["schemas"]["ControlDetail"];
-                        "text/json": components["schemas"]["ControlDetail"];
                     };
                 };
             };
@@ -652,9 +680,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["JobDto"][];
                         "application/json": components["schemas"]["JobDto"][];
-                        "text/json": components["schemas"]["JobDto"][];
                     };
                 };
             };
@@ -689,9 +715,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["ActivityDto"][];
                         "application/json": components["schemas"]["ActivityDto"][];
-                        "text/json": components["schemas"]["ActivityDto"][];
                     };
                 };
             };
@@ -704,7 +728,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/health": {
+    "/api/v1/integrations": {
         parameters: {
             query?: never;
             header?: never;
@@ -725,7 +749,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["IntegrationDto"][];
+                    };
                 };
             };
         };
@@ -737,7 +763,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/health/ready": {
+    "/api/v1/integrations/{provider}/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    provider: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConnectIntegrationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConnectResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/example": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExampleFixtureBody"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrationDto"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/collect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tests": {
         parameters: {
             query?: never;
             header?: never;
@@ -758,12 +899,107 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AutomatedTestDto"][];
+                    };
                 };
             };
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EvidencePage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UploadEvidenceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EvidenceListItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/evidence/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VerifyReport"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -819,9 +1055,34 @@ export interface components {
             state: string;
             email: null | string;
         };
+        AutomatedTestDto: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            controlCode: string;
+            outcome: string;
+            detail: null | string;
+            remediation: string;
+            requirements: string[];
+        };
         CallbackBody: {
             code: string;
             redirectUri: string;
+        };
+        ConnectIntegrationRequest: {
+            roleArn: null | string;
+            domain: null | string;
+            installationId: null | string;
+            code: null | string;
+            state: null | string;
+            redirectUri: null | string;
+        };
+        ConnectResponse: {
+            integration: components["schemas"]["IntegrationDto"];
+            authorizationUrl: null | string;
+            trustPolicy: null | string;
+            permissionPolicy: null | string;
         };
         ControlDetail: {
             code: string;
@@ -876,6 +1137,7 @@ export interface components {
             kind: string;
             outcome: string;
             detail: null | string;
+            remediation: null | string;
         };
         DashboardResponse: {
             displayName: string;
@@ -899,6 +1161,43 @@ export interface components {
             /** Format: date-time */
             collectedAt: null | string;
             integrity: string;
+            sha256: null | string;
+            /** Format: date-time */
+            lockedUntil: null | string;
+        };
+        EvidenceListItem: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            controlCode: string;
+            source: string;
+            /** Format: date-time */
+            collectedAt: null | string;
+            integrity: string;
+            sha256: null | string;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            objectKey: null | string;
+        };
+        EvidencePage: {
+            summary: components["schemas"]["EvidenceSummary"];
+            items: components["schemas"]["EvidenceListItem"][];
+        };
+        EvidenceSummary: {
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            automated: number | string;
+            /** Format: int32 */
+            manual: number | string;
+            /** Format: int32 */
+            verified: number | string;
+            /** Format: int32 */
+            retentionYears: number | string;
+            chainIntact: boolean;
+        };
+        ExampleFixtureBody: {
+            fixture: string;
         };
         FailingTestRow: {
             /** Format: uuid */
@@ -941,6 +1240,21 @@ export interface components {
             total: number | string;
             /** Format: int32 */
             percent: number | string;
+        };
+        IntegrationDto: {
+            /** Format: uuid */
+            id: string;
+            provider: string;
+            displayName: string;
+            status: string;
+            example: boolean;
+            accountLabel: null | string;
+            externalId: null | string;
+            roleArn: null | string;
+            domain: null | string;
+            setupHint: null | string;
+            /** Format: date-time */
+            lastCollectedAt: null | string;
         };
         JobDto: {
             /** Format: uuid */
@@ -993,11 +1307,23 @@ export interface components {
             role: string;
             exampleData: boolean;
         };
+        UploadEvidenceRequest: {
+            controlCode: string;
+            title: string;
+            contentBase64: string;
+        };
         UserSummary: {
             /** Format: uuid */
             id: string;
             email: string;
             displayName: string;
+        };
+        VerifyReport: {
+            intact: boolean;
+            /** Format: int32 */
+            checked: number | string;
+            objectKey: null | string;
+            reason: null | string;
         };
         WorkspaceResponse: {
             /** Format: uuid */

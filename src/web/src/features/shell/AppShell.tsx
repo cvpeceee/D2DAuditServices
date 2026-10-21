@@ -52,15 +52,20 @@ export function AppShell() {
       .withUrl("/hubs/jobs", { headers: { "X-D2D-Request": "1" } })
       .withAutomaticReconnect()
       .build();
-    void connection
-      .start()
-      .then(() => connection.invoke("Subscribe", tenantId))
-      .catch(() => undefined);
     connection.on("job", (job: Job) => {
       setJobs((current) => [job, ...current.filter((item) => item.id !== job.id)].slice(0, 20));
     });
+    // Delay the handshake so a strict-mode remount does not abort it mid-negotiate.
+    const start = window.setTimeout(() => {
+      if (cancelled) return;
+      void connection
+        .start()
+        .then(() => (cancelled ? connection.stop() : connection.invoke("Subscribe", tenantId)))
+        .catch(() => undefined);
+    }, 0);
     return () => {
       cancelled = true;
+      window.clearTimeout(start);
       void connection.stop();
     };
   }, [tenantId]);
@@ -318,7 +323,7 @@ export function AppShell() {
                 </div>
               </div>
             )}
-            <Outlet context={{ workspace, tenantId }} />
+            <Outlet context={{ workspace, tenantId, jobs }} />
           </div>
           <aside className={`assist ${assist ? "open" : ""}`}>
             <div className="ah">

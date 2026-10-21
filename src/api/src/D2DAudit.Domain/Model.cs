@@ -60,6 +60,8 @@ public enum JobStatus
 public enum EvidenceIntegrity
 {
     NotStored,
+    Verified,
+    Broken,
 }
 
 public static partial class DatabaseNames
@@ -341,6 +343,12 @@ public sealed class ControlTest
     public TestOutcome Outcome { get; set; }
 
     public string? Detail { get; set; }
+
+    public string? TestKey { get; set; }
+
+    public string? Remediation { get; set; }
+
+    public string? Requirements { get; set; }
 }
 
 public sealed class EvidenceItem
@@ -360,6 +368,14 @@ public sealed class EvidenceItem
     public string? Sha256 { get; set; }
 
     public EvidenceIntegrity Integrity { get; set; } = EvidenceIntegrity.NotStored;
+
+    public string? ObjectKey { get; set; }
+
+    public string? PreviousHead { get; set; }
+
+    public string? ChainHead { get; set; }
+
+    public DateTimeOffset? LockedUntil { get; set; }
 }
 
 public sealed class AuditEngagement

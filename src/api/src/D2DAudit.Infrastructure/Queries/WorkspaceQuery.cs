@@ -362,11 +362,11 @@ public sealed class WorkspaceQuery(
             .ToArray();
         var tests = controlItem.Tests
             .OrderBy(test => test.Name, StringComparer.Ordinal)
-            .Select(test => new ControlTestDto(test.Id, test.Name, ApiName(test.Kind), ApiName(test.Outcome), test.Detail))
+            .Select(test => new ControlTestDto(test.Id, test.Name, ApiName(test.Kind), ApiName(test.Outcome), test.Detail, test.Remediation))
             .ToArray();
         var evidence = controlItem.Evidence
             .OrderByDescending(item => item.CollectedAt)
-            .Select(item => new EvidenceDto(item.Id, item.Title, item.Source, item.CollectedAt, "notStored"))
+            .Select(item => new EvidenceDto(item.Id, item.Title, item.Source, item.CollectedAt, ApiName(item.Integrity), item.Sha256, item.LockedUntil))
             .ToArray();
         return new ControlDetail(
             controlItem.Code,

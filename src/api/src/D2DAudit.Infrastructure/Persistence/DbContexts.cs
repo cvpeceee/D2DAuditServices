@@ -108,6 +108,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<AuditEngagement> Audits => Set<AuditEngagement>();
 
+    public DbSet<IntegrationConnection> Integrations => Set<IntegrationConnection>();
+
+    public DbSet<ChainEntry> Chain => Set<ChainEntry>();
+
+    public DbSet<ResourceSnapshot> Resources => Set<ResourceSnapshot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -155,6 +161,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         test.Property(x => x.Detail).HasMaxLength(2000);
         test.Property(x => x.Kind).HasConversion<string>().HasMaxLength(32);
         test.Property(x => x.Outcome).HasConversion<string>().HasMaxLength(32);
+        test.Property(x => x.TestKey).HasMaxLength(64);
+        test.Property(x => x.Remediation).HasMaxLength(2000);
+        test.Property(x => x.Requirements).HasMaxLength(400);
+        test.HasIndex(x => new { x.ControlId, x.TestKey });
         test.HasOne<Control>().WithMany(x => x.Tests).HasForeignKey(x => x.ControlId).OnDelete(DeleteBehavior.Cascade);
 
         var evidence = modelBuilder.Entity<EvidenceItem>();
@@ -163,8 +173,48 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         evidence.Property(x => x.Title).HasMaxLength(300).IsRequired();
         evidence.Property(x => x.Source).HasMaxLength(200).IsRequired();
         evidence.Property(x => x.Sha256).HasMaxLength(64);
+        evidence.Property(x => x.ObjectKey).HasMaxLength(200);
+        evidence.Property(x => x.PreviousHead).HasMaxLength(64);
+        evidence.Property(x => x.ChainHead).HasMaxLength(64);
         evidence.Property(x => x.Integrity).HasConversion<string>().HasMaxLength(32);
         evidence.HasOne<Control>().WithMany(x => x.Evidence).HasForeignKey(x => x.ControlId).OnDelete(DeleteBehavior.Cascade);
+
+        var integration = modelBuilder.Entity<IntegrationConnection>();
+        integration.ToTable("integration_connections");
+        integration.HasKey(x => x.Id);
+        integration.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        integration.Property(x => x.DisplayName).HasMaxLength(100).IsRequired();
+        integration.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        integration.Property(x => x.Fixture).HasMaxLength(32).IsRequired();
+        integration.Property(x => x.ExternalId).HasMaxLength(80);
+        integration.Property(x => x.RoleArn).HasMaxLength(300);
+        integration.Property(x => x.InstallationId).HasMaxLength(40);
+        integration.Property(x => x.AccountLabel).HasMaxLength(200);
+        integration.Property(x => x.Domain).HasMaxLength(253);
+        integration.Property(x => x.Secret).HasMaxLength(4000);
+        integration.Property(x => x.SetupHint).HasMaxLength(500);
+        integration.Property(x => x.LastError).HasMaxLength(300);
+        integration.HasIndex(x => x.Provider).IsUnique();
+
+        var chain = modelBuilder.Entity<ChainEntry>();
+        chain.ToTable("evidence_chain");
+        chain.HasKey(x => x.Id);
+        chain.Property(x => x.ObjectKey).HasMaxLength(200).IsRequired();
+        chain.Property(x => x.ContentHash).HasMaxLength(64).IsRequired();
+        chain.Property(x => x.PreviousHead).HasMaxLength(64);
+        chain.Property(x => x.Head).HasMaxLength(64).IsRequired();
+        chain.Property(x => x.Canonical).HasMaxLength(600).IsRequired();
+        chain.HasIndex(x => x.Sequence).IsUnique();
+
+        var snapshot = modelBuilder.Entity<ResourceSnapshot>();
+        snapshot.ToTable("resource_snapshots");
+        snapshot.HasKey(x => x.Id);
+        snapshot.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        snapshot.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        snapshot.Property(x => x.ExternalId).HasMaxLength(200).IsRequired();
+        snapshot.Property(x => x.Name).HasMaxLength(300).IsRequired();
+        snapshot.Property(x => x.AttributesJson).HasMaxLength(4000).IsRequired();
+        snapshot.HasIndex(x => new { x.Provider, x.Kind, x.ExternalId }).IsUnique();
 
         var audit = modelBuilder.Entity<AuditEngagement>();
         audit.ToTable("audit_engagements");
