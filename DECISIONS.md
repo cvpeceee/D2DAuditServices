@@ -34,4 +34,8 @@
 
 17. **We hold SOC 2 and ISO 27001 before launch.** SOC 2 Type II requires an observation period, so the pre-launch target is SOC 2 Type I plus ISO 27001 certification, and the Type II observation window starts as early as possible. An independent auditor or certification body performs the audit, with no related party involved, so the result stays credible.
 
-Next: UI and UX design.
+18. **Light, dark, follow-system, and high-contrast themes ship at launch.** All colors, spacing, and typography come from named design tokens, so component code never hardcodes those values. Charts and status colors are tested in both light and dark.
+
+19. **An assistant ships at launch on a hosted model, with no custom model of our own.** It retrieves over product docs, framework guidance, and help content, and calls tools against a shared action and route registry that also powers the Ctrl+K command palette. Every page and key action registers a name, description, route, and required permission, so the assistant can navigate or highlight the UI and stays inside the user's role. Help content is data (guidance per screen, control, and requirement, written with domain-expert input), the layout reserves an assistant side panel, and `IAssistantProvider` lets us swap model vendors. Context is tenant- and permission-scoped, the assistant suggests actions and asks before it changes anything, customer data stays out of model training, and vendors must offer zero data retention plus a BAA for HIPAA tenants.
+
+Next: main screens and navigation (dashboard, controls, evidence, auditor portal).
