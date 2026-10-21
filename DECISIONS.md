@@ -18,4 +18,8 @@
 
 9. **Encryption keys are per tenant.** A cloud KMS key covers the tenant database, evidence, and any stored credentials, limiting blast radius to one tenant. Customer cloud access uses assumed read-only roles wherever the provider allows it, with stored secrets only as the fallback. Bring-your-own-key is part of the key boundary now and turns on later as an enterprise feature.
 
-Next: tenant provisioning and migrations, then middleware, then UI.
+10. **Signup and offboarding are durable Temporal workflows.** They create or remove the tenant database, KMS key, and storage prefix, run migrations, and load frameworks, with retry and rollback so a failed run never leaves a half-built tenant. A control-plane registry records region, database location, schema version, key, and status and routes every request; customers choose a US or EU region at signup, with more regions later. Schema changes roll out in waves (internal, canary, all) and pause on errors, using expand/contract steps so the app runs on mixed schema versions. Offboarding exports the data, waits out a grace period, and drops the database; the tenant key stays disabled until the last evidence retention lock expires, then is deleted.
+
+11. **v1 eventing is a simple queue beside Temporal.** Collectors publish evidence events through an `IEventBus`; IT evidence is collected in batches on a schedule, so minutes of latency are acceptable and Kafka and Flink stay deferred. In the IoT and manufacturing phase the same interface swaps in Kafka (or Redpanda) for continuous telemetry and Flink for windowed streaming control checks, leaving collectors and the control engine unchanged.
+
+Next: middleware (APIs, job orchestration, collectors), then UI.
