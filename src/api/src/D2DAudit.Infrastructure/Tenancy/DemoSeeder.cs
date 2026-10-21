@@ -49,6 +49,7 @@ public sealed class DemoSeeder(
         await EnsureSsoDomainAsync(acme.Id, cancellationToken);
         await EnsureExamplesAndCollectAsync(acme, "acme", cancellationToken);
         await EnsureExamplesAndCollectAsync(northwind, "northwind", cancellationToken);
+        await DemoPortal.SeedAsync(databases, acme, time.GetUtcNow(), cancellationToken);
     }
 
     private async Task EnsureExamplesAndCollectAsync(Tenant tenant, string fixture, CancellationToken cancellationToken)

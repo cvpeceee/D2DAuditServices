@@ -108,6 +108,20 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<AuditEngagement> Audits => Set<AuditEngagement>();
 
+    public DbSet<PolicyDocument> Policies => Set<PolicyDocument>();
+
+    public DbSet<PolicyVersion> PolicyVersions => Set<PolicyVersion>();
+
+    public DbSet<PolicyControlLink> PolicyControls => Set<PolicyControlLink>();
+
+    public DbSet<PolicyAcknowledgement> Acknowledgements => Set<PolicyAcknowledgement>();
+
+    public DbSet<SampleRequest> SampleRequests => Set<SampleRequest>();
+
+    public DbSet<SampleResponse> SampleResponses => Set<SampleResponse>();
+
+    public DbSet<Finding> Findings => Set<Finding>();
+
     public DbSet<IntegrationConnection> Integrations => Set<IntegrationConnection>();
 
     public DbSet<ChainEntry> Chain => Set<ChainEntry>();
@@ -222,6 +236,68 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         audit.Property(x => x.Name).HasMaxLength(200).IsRequired();
         audit.Property(x => x.FirmName).HasMaxLength(200).IsRequired();
         audit.Property(x => x.FrameworkKey).HasMaxLength(64).IsRequired();
+        audit.Property(x => x.Scope).HasMaxLength(1000).IsRequired();
+
+        var policy = modelBuilder.Entity<PolicyDocument>();
+        policy.ToTable("policies");
+        policy.HasKey(x => x.Id);
+        policy.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        policy.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        policy.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        policy.HasIndex(x => x.Code).IsUnique();
+
+        var version = modelBuilder.Entity<PolicyVersion>();
+        version.ToTable("policy_versions");
+        version.HasKey(x => x.Id);
+        version.Property(x => x.Body).HasMaxLength(4000).IsRequired();
+        version.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
+        version.Property(x => x.ApprovedByName).HasMaxLength(200);
+        version.HasIndex(x => new { x.PolicyId, x.Number }).IsUnique();
+        version.HasOne(x => x.Policy).WithMany(x => x.Versions).HasForeignKey(x => x.PolicyId).OnDelete(DeleteBehavior.Cascade);
+
+        var link = modelBuilder.Entity<PolicyControlLink>();
+        link.ToTable("policy_controls");
+        link.HasKey(x => new { x.PolicyId, x.ControlCode });
+        link.Property(x => x.ControlCode).HasMaxLength(32);
+        link.HasOne(x => x.Policy).WithMany(x => x.Controls).HasForeignKey(x => x.PolicyId).OnDelete(DeleteBehavior.Cascade);
+
+        var acknowledgement = modelBuilder.Entity<PolicyAcknowledgement>();
+        acknowledgement.ToTable("policy_acknowledgements");
+        acknowledgement.HasKey(x => x.Id);
+        acknowledgement.Property(x => x.PersonName).HasMaxLength(200).IsRequired();
+        acknowledgement.Property(x => x.PersonEmail).HasMaxLength(320).IsRequired();
+        acknowledgement.HasIndex(x => new { x.PolicyVersionId, x.PersonEmail }).IsUnique();
+        acknowledgement.HasOne(x => x.Version).WithMany(x => x.Acknowledgements).HasForeignKey(x => x.PolicyVersionId).OnDelete(DeleteBehavior.Cascade);
+
+        var sample = modelBuilder.Entity<SampleRequest>();
+        sample.ToTable("sample_requests");
+        sample.HasKey(x => x.Id);
+        sample.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        sample.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        sample.Property(x => x.Population).HasMaxLength(200).IsRequired();
+        sample.Property(x => x.Source).HasMaxLength(100).IsRequired();
+        sample.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
+        sample.HasIndex(x => x.Code).IsUnique();
+
+        var response = modelBuilder.Entity<SampleResponse>();
+        response.ToTable("sample_responses");
+        response.HasKey(x => x.Id);
+        response.Property(x => x.Body).HasMaxLength(4000).IsRequired();
+        response.Property(x => x.RespondedByName).HasMaxLength(200).IsRequired();
+        response.HasIndex(x => x.RequestId).IsUnique();
+        response.HasOne(x => x.Request).WithOne(x => x.Response).HasForeignKey<SampleResponse>(x => x.RequestId).OnDelete(DeleteBehavior.Cascade);
+
+        var finding = modelBuilder.Entity<Finding>();
+        finding.ToTable("findings");
+        finding.HasKey(x => x.Id);
+        finding.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        finding.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        finding.Property(x => x.Detail).HasMaxLength(2000).IsRequired();
+        finding.Property(x => x.RequirementCode).HasMaxLength(64).IsRequired();
+        finding.Property(x => x.ManagementResponse).HasMaxLength(2000);
+        finding.Property(x => x.ResponseByName).HasMaxLength(200);
+        finding.Property(x => x.Severity).HasConversion<string>().HasMaxLength(32);
+        finding.HasIndex(x => x.Code).IsUnique();
     }
 }
 

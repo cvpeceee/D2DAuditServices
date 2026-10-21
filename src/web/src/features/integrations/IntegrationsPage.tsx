@@ -136,7 +136,7 @@ export function IntegrationsPage() {
           <div className="sub">{t("integrations.sub")}</div>
         </div>
         <div className="act">
-          {workspace?.exampleData && (
+          {workspace?.exampleData && workspace.canWrite && (
             <button
               className="btn"
               type="button"

@@ -679,10 +679,531 @@
           }
         }
       }
+    },
+    "/api/v1/policies": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PolicyListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/library": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/reminders": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}": {
+      "get": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}/draft": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}/submit": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}/approve": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}/acknowledgements": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignAcknowledgementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{code}/acknowledge": {
+      "post": {
+        "tags": [
+          "PolicyEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPortalPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/requests": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSampleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/requests/{code}/respond": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondSampleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/requests/{code}/accept": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleRequestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/findings": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFindingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/findings/{code}/response": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/package": {
+      "post": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audits/packages/{id}": {
+      "get": {
+        "tags": [
+          "AuditEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AcknowledgementDto": {
+        "required": [
+          "personName",
+          "personEmail",
+          "dueOn",
+          "acknowledgedAt",
+          "remindedAt",
+          "reminderDue"
+        ],
+        "type": "object",
+        "properties": {
+          "personName": {
+            "type": "string"
+          },
+          "personEmail": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "acknowledgedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "remindedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "reminderDue": {
+            "type": "boolean"
+          }
+        }
+      },
       "ActivityDto": {
         "required": [
           "at",
@@ -724,6 +1245,26 @@
           }
         }
       },
+      "AssignAcknowledgementRequest": {
+        "required": [
+          "personName",
+          "personEmail",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "personName": {
+            "type": "string"
+          },
+          "personEmail": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "AssignOwnerRequest": {
         "required": [
           "ownerName",
@@ -742,6 +1283,147 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AuditEngagementDto": {
+        "required": [
+          "name",
+          "firmName",
+          "frameworkKey",
+          "scope",
+          "periodStart",
+          "periodEnd",
+          "fieldworkOn",
+          "controlsPassing",
+          "controlsTotal",
+          "requestsOpen",
+          "requestsTotal",
+          "findingsTotal",
+          "exceptions",
+          "averageResponseHours"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "firmName": {
+            "type": "string"
+          },
+          "frameworkKey": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "fieldworkOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "controlsPassing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "requestsOpen": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "requestsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "findingsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "exceptions": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "averageResponseHours": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "AuditPortalPage": {
+        "required": [
+          "engagement",
+          "requests",
+          "findings",
+          "evidence"
+        ],
+        "type": "object",
+        "properties": {
+          "engagement": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AuditEngagementDto"
+              }
+            ]
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SampleRequestDto"
+            }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindingDto"
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvidenceChoiceDto"
+            }
           }
         }
       },
@@ -1294,6 +1976,63 @@
           }
         }
       },
+      "CreateFindingRequest": {
+        "required": [
+          "title",
+          "severity",
+          "detail",
+          "requirementCode"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "requirementCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateSampleRequest": {
+        "required": [
+          "title",
+          "population",
+          "sampleSize",
+          "source",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "population": {
+            "type": "string"
+          },
+          "sampleSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "source": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "DashboardResponse": {
         "required": [
           "displayName",
@@ -1361,6 +2100,26 @@
           },
           "health": {
             "$ref": "#/components/schemas/ControlHealth"
+          }
+        }
+      },
+      "EvidenceChoiceDto": {
+        "required": [
+          "id",
+          "title",
+          "controlCode"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "controlCode": {
+            "type": "string"
           }
         }
       },
@@ -1585,6 +2344,47 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "FindingDto": {
+        "required": [
+          "code",
+          "title",
+          "severity",
+          "detail",
+          "requirementCode",
+          "managementResponse",
+          "responseByName"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "requirementCode": {
+            "type": "string"
+          },
+          "managementResponse": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "responseByName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1865,6 +2665,17 @@
           }
         }
       },
+      "ManagementResponseRequest": {
+        "required": [
+          "response"
+        ],
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string"
+          }
+        }
+      },
       "MappedControlDto": {
         "required": [
           "code",
@@ -1940,6 +2751,147 @@
           }
         }
       },
+      "PolicyDetail": {
+        "required": [
+          "code",
+          "title",
+          "ownerName",
+          "controlCodes",
+          "versions",
+          "acknowledgements"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "controlCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PolicyVersionDto"
+            }
+          },
+          "acknowledgements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AcknowledgementDto"
+            }
+          }
+        }
+      },
+      "PolicyListItem": {
+        "required": [
+          "code",
+          "title",
+          "ownerName",
+          "version",
+          "state",
+          "controlCodes",
+          "acknowledged",
+          "outstanding"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "state": {
+            "type": "string"
+          },
+          "controlCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acknowledged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "outstanding": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PolicyVersionDto": {
+        "required": [
+          "number",
+          "state",
+          "body",
+          "createdAt",
+          "approvedAt",
+          "approvedByName"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "state": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "approvedByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RequirementNodeDto": {
         "required": [
           "code",
@@ -1970,6 +2922,105 @@
             "items": {
               "$ref": "#/components/schemas/RequirementNodeDto"
             }
+          }
+        }
+      },
+      "RespondSampleRequest": {
+        "required": [
+          "body",
+          "evidenceId"
+        ],
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "SampleRequestDto": {
+        "required": [
+          "code",
+          "title",
+          "population",
+          "sampleSize",
+          "source",
+          "dueOn",
+          "status",
+          "response"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "population": {
+            "type": "string"
+          },
+          "sampleSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "source": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "response": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SampleResponseDto"
+              }
+            ]
+          }
+        }
+      },
+      "SampleResponseDto": {
+        "required": [
+          "body",
+          "respondedByName",
+          "respondedAt",
+          "evidenceTitle"
+        ],
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "respondedByName": {
+            "type": "string"
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidenceTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2144,6 +3195,12 @@
     },
     {
       "name": "IntegrationEndpoints"
+    },
+    {
+      "name": "PolicyEndpoints"
+    },
+    {
+      "name": "AuditEndpoints"
     }
   ]
 }

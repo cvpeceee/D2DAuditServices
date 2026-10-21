@@ -388,5 +388,11 @@ public sealed class AuditEngagement
 
     public string FrameworkKey { get; set; } = "";
 
+    public string Scope { get; set; } = "";
+
+    public DateOnly PeriodStart { get; set; }
+
+    public DateOnly PeriodEnd { get; set; }
+
     public DateOnly FieldworkOn { get; set; }
 }

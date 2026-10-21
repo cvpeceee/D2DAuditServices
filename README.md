@@ -109,6 +109,18 @@ Create a GitHub App. Permissions: repository administration read, metadata read,
 
 Automated checks write one Parquet object per check. Manual upload stores the original bytes. Each object is SHA-256 hashed and linked to the previous hash. Verify reads the objects back and does not change them. Local development uses a folder or MinIO. Production object storage must have Object Lock enabled.
 
+## Policies
+
+The example workspace installs six short original policy templates (information security, access control, change management, incident response, business continuity, and privacy). Privacy maps only to the ISO control, so a SOC 2 auditor does not see it. Versions move Draft → In review → Approved. A tenant admin approves. People acknowledge the approved version. Reminders are due when the date has passed, the person has not acknowledged, and they were not reminded today. Sending reminders is an explicit action. There is no background mailer.
+
+## Auditor portal
+
+An engagement has a scope, a period, and a framework. Auditors request samples (population, sample size, source, due date). A workspace member responds and can attach evidence. The auditor accepts the sample and records findings as an exception or an observation. Management writes the response. Auditors cannot change customer records: controls, policies, evidence, responses, or management replies. Creating a request, accepting a sample, recording a finding, and exporting the package are auditor actions. Every one of those actions is written to the activity log. Employees cannot create requests or export.
+
+## Audit package
+
+Download builds a zip in the background and reports the step over the same jobs hub as collection. The zip holds in-scope evidence, a hashes manifest, an integrity report for the full chain, and a control matrix as CSV and PDF. A broken chain still produces a package whose report says so. The job is the record of that check.
+
 ## Tests
 
 ```bash
@@ -144,6 +156,10 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 - TLS terminates at the edge later. Local HTTP is development only.
 - The development signing key, the example password, and `d2d_dev_password` are well known. They are refused as a production identity configuration.
 - The HTTP edge is ASP.NET Core minimal APIs, one `MapGroup` per feature. Progress is SignalR on `/hubs/jobs`.
+- Auditor read-only means customer records. Sample requests, accepting a submitted sample, findings, and the audit package are auditor actions and are allowed for an auditor, an admin, and a control owner. Approval of a policy is admin only.
+- Policy template text is original and short. It is not ISO or AICPA wording. The language lives on the template so a later translation does not fork the workflow.
+- The audit package runs on the same in-process job channel as local collection and reports five real steps. It is not a Temporal workflow. The PDF is a one-page Helvetica document so the export does not take a PDF library. The integrity report covers the whole chain, including evidence outside the auditor's framework, because skipping a link would report a false break. The zip itself contains only in-scope evidence.
+- Average response time is the mean of request creation to customer response. The mockup's comparison with last year is omitted because there is no prior year. The controls-tested card uses the in-scope passing and total counts.
 - Local orchestration prefers the Aspire AppHost. Docker Compose remains an alternative and includes MinIO and Temporal.
 - Logging is `Microsoft.Extensions.Logging`. Analyzers are the .NET SDK analyzers plus SonarAnalyzer. StyleCop is not enabled. See [docs/ENGINEERING.md](docs/ENGINEERING.md).
 - Session cookies are `Secure` outside Development and Testing. In Development, `Secure` follows HTTPS so local HTTP keeps the cookie.
