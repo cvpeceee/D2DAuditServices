@@ -27,10 +27,13 @@ public sealed class FoundationTests
     public void Retention_can_only_grow_and_stays_above_the_minimum()
     {
         var tenant = new Tenant { RetentionYears = 3 };
-        tenant.SetRetentionYears(6);
+        var grown = tenant.SetRetentionYears(6);
+        Assert.True(grown.Succeeded);
         Assert.Equal(6, tenant.RetentionYears);
-        Assert.Throws<InvalidOperationException>(() => tenant.SetRetentionYears(4));
-        Assert.Throws<InvalidOperationException>(() => tenant.SetRetentionYears(2));
+        Assert.Equal("cannot_shrink", tenant.SetRetentionYears(4).Error);
+        Assert.Equal(6, tenant.RetentionYears);
+        Assert.Equal("below_minimum", tenant.SetRetentionYears(2).Error);
+        Assert.Equal(6, tenant.RetentionYears);
     }
 
     [Theory]
@@ -54,7 +57,8 @@ public sealed class FoundationTests
     [Fact]
     public async Task Production_host_does_not_start_without_WorkOS()
     {
-        var factory = new ApiFactory("Production");
+        await using var postgres = await PostgresServer.StartAsync();
+        var factory = new ApiFactory("Production", postgres.ConnectionString);
         var rejected = false;
         try
         {

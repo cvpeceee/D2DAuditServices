@@ -7,10 +7,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
-import { AuthProvider } from "./auth/AuthContext";
-import "./i18n";
+import { AuthProvider } from "./features/auth/AuthContext";
+import "./shared/i18n";
 import "./styles/app.css";
-import { ThemeProvider } from "./theme/ThemeProvider";
+import { ThemeProvider } from "./shared/theme/ThemeProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

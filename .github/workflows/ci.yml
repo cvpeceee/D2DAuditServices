@@ -11,22 +11,7 @@ permissions:
 jobs:
   api:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: d2d
-          POSTGRES_PASSWORD: d2d_dev_password
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U d2d -d postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
     env:
-      TEST_POSTGRES: Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +46,12 @@ jobs:
       - name: Lint
         working-directory: src/web
         run: npm run lint
+      - name: Format
+        working-directory: src/web
+        run: npm run format:check
+      - name: Test
+        working-directory: src/web
+        run: npm test
       - name: Build
         working-directory: src/web
         run: npm run build

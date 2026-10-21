@@ -18,7 +18,13 @@
     "integrations": "Integrations",
     "activity": "Activity"
   },
-  "theme": { "light": "Light", "dark": "Dark", "system": "Auto", "contrast": "Contrast", "label": "Theme" },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Auto",
+    "contrast": "Contrast",
+    "label": "Theme"
+  },
   "shell": {
     "search": "Search controls, evidence, actions…",
     "jobs": "Jobs",

@@ -1,18 +1,19 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Tenancy;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace D2DAudit.Infrastructure.Queries;
 
-public sealed partial class WorkspaceQuery(
+public sealed class WorkspaceQuery(
     TenantContext tenant,
     TenantDatabases databases,
     ControlPlaneDbContext control,
-    IActivityWriter activity) : IWorkspaceQuery
+    IActivityWriter activity,
+    IValidator<AssignOwnerRequest> owners) : IWorkspaceQuery
 {
     public async Task<WorkspaceResponse> GetAsync(CancellationToken cancellationToken)
     {
@@ -207,25 +208,21 @@ public sealed partial class WorkspaceQuery(
         return controlItem is null ? null : ToDetail(controlItem);
     }
 
-    public async Task<ControlDetail?> AssignOwnerAsync(string code, AssignOwnerRequest request, CancellationToken cancellationToken)
+    public async Task<Result<ControlDetail>> AssignOwnerAsync(string code, AssignOwnerRequest request, CancellationToken cancellationToken)
     {
         if (!tenant.CanWrite)
         {
             await activity.WriteAsync(tenant.UserId, tenant.TenantId, "write_denied", "denied", tenant.Role.ToString(), null, cancellationToken);
-            throw new WriteForbiddenException();
+            return Result<ControlDetail>.Fail("forbidden");
+        }
+
+        if (!(await owners.ValidateAsync(request, cancellationToken)).IsValid)
+        {
+            return Result<ControlDetail>.Fail("invalid_owner");
         }
 
         var ownerName = request.OwnerName?.Trim();
         var ownerEmail = request.OwnerEmail?.Trim().ToLowerInvariant();
-        if (ownerName is { Length: > 200 } || ownerEmail is { Length: > 320 })
-        {
-            throw new ArgumentException("Owner details are too long.");
-        }
-
-        if (ownerEmail is not null && !Email().IsMatch(ownerEmail))
-        {
-            throw new ArgumentException("Owner email is not valid.");
-        }
 
         await using var db = databases.Create(RequiredDatabase());
         var controlItem = await db.Controls
@@ -235,14 +232,14 @@ public sealed partial class WorkspaceQuery(
             .FirstOrDefaultAsync(item => item.Code == code, cancellationToken);
         if (controlItem is null || !InScope(controlItem))
         {
-            return null;
+            return Result<ControlDetail>.Fail("not_found");
         }
 
         controlItem.OwnerName = string.IsNullOrWhiteSpace(ownerName) ? null : ownerName;
         controlItem.OwnerEmail = string.IsNullOrWhiteSpace(ownerEmail) ? null : ownerEmail;
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "control_owner_changed", "allowed", controlItem.Code, null, cancellationToken);
-        return ToDetail(controlItem);
+        return Result<ControlDetail>.Ok(ToDetail(controlItem));
     }
 
     public async Task<IReadOnlyList<JobDto>> JobsAsync(CancellationToken cancellationToken)
@@ -264,11 +261,11 @@ public sealed partial class WorkspaceQuery(
             job.UpdatedAt)).ToArray();
     }
 
-    public async Task<IReadOnlyList<ActivityDto>> ActivityAsync(CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<ActivityDto>>> ActivityAsync(CancellationToken cancellationToken)
     {
         if (!tenant.IsAdmin)
         {
-            throw new WriteForbiddenException();
+            return Result<IReadOnlyList<ActivityDto>>.Fail("forbidden");
         }
 
         var events = await control.Activity.AsNoTracking()
@@ -280,13 +277,13 @@ public sealed partial class WorkspaceQuery(
         var actors = await control.Users.AsNoTracking()
             .Where(user => actorIds.Contains(user.Id))
             .ToDictionaryAsync(user => user.Id, user => user.Email, cancellationToken);
-        return events.Select(item => new ActivityDto(
+        return Result<IReadOnlyList<ActivityDto>>.Ok(events.Select(item => new ActivityDto(
             item.At,
             item.Action,
             item.Result,
             item.Detail,
             item.ActorUserId is Guid actor && actors.TryGetValue(actor, out var email) ? email : null,
-            item.IpAddress)).ToArray();
+            item.IpAddress)).ToArray());
     }
 
     private async Task<List<Control>> LoadControlsAsync(CancellationToken cancellationToken)
@@ -399,7 +396,4 @@ public sealed partial class WorkspaceQuery(
 
     private static string ApiName<TEnum>(TEnum value) where TEnum : struct, Enum =>
         JsonNamingPolicy.CamelCase.ConvertName(value.ToString());
-
-    [GeneratedRegex("^[^\r\n@\\s]+@[^\r\n@\\s]+\\.[^\r\n@\\s]+$")]
-    private static partial Regex Email();
 }

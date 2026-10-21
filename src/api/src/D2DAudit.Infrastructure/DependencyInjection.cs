@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,8 @@ public static class DependencyInjection
         services.AddScoped<TenantDatabases>();
         services.TryAddSingleton<IJobNotifier, NullJobNotifier>();
         services.AddScoped<IActivityWriter, ActivityWriter>();
+        services.AddValidatorsFromAssemblyContaining<CreateTenantValidator>();
+        services.AddScoped<IControlPlaneDirectory, ControlPlaneDirectory>();
         services.AddScoped<ITenantProvisioner, TenantProvisioner>();
         services.AddScoped<IDemoSeeder, DemoSeeder>();
         services.AddScoped<IAuthService, AuthService>();
@@ -98,14 +101,14 @@ public sealed class ActivityWriter(ControlPlaneDbContext db, TimeProvider time) 
 }
 
 public sealed class StartupInitializer(
-    IServiceProvider services,
+    IServiceScopeFactory scopes,
     IHostEnvironment environment,
     IConfiguration configuration,
     Microsoft.Extensions.Logging.ILogger<StartupInitializer> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await using var scope = services.CreateAsyncScope();
+        await using var scope = scopes.CreateAsyncScope();
         var control = scope.ServiceProvider.GetRequiredService<ControlPlaneDbContext>();
         await control.Database.MigrateAsync(cancellationToken);
         if (environment.IsDevelopment() && configuration.GetValue("Seed:Demo", true))

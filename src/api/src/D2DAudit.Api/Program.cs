@@ -6,6 +6,9 @@ using D2DAudit.Application;
 using D2DAudit.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +43,25 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddOpenApi();
+var otelEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("d2d-api"))
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation();
+        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+        {
+            tracing.AddOtlpExporter();
+        }
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddRuntimeInstrumentation();
+        if (!string.IsNullOrWhiteSpace(otelEndpoint))
+        {
+            metrics.AddOtlpExporter();
+        }
+    });
 var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
@@ -51,21 +73,16 @@ app.UseExceptionHandler(handler => handler.Run(async context =>
 {
     var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
     var environment = context.RequestServices.GetRequiredService<IHostEnvironment>();
-    var (status, title) = error switch
-    {
-        WriteForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden."),
-        ArgumentException argument => (StatusCodes.Status400BadRequest, argument.Message),
-        _ => (StatusCodes.Status500InternalServerError, "Something went wrong."),
-    };
+    const int status = StatusCodes.Status500InternalServerError;
     context.Response.StatusCode = status;
-    await context.Response.WriteAsJsonAsync(new
-    {
-        title,
-        status,
-        detail = status == StatusCodes.Status500InternalServerError && (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
-            ? error?.Message
-            : null,
-    });
+    await context.Response.WriteAsJsonAsync(
+        new
+        {
+            title = "Something went wrong.",
+            status,
+            detail = environment.IsDevelopment() || environment.IsEnvironment("Testing") ? error?.Message : null,
+        },
+        context.RequestAborted);
 }));
 
 app.Use(async (context, next) =>
@@ -87,6 +104,11 @@ app.MapControllers();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 
-app.Run();
+await app.RunAsync();
 
-public partial class Program;
+public partial class Program
+{
+    protected Program()
+    {
+    }
+}

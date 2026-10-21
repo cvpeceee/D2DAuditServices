@@ -1,5 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, type TenantMembership, type User } from "../api/client";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { api, type TenantMembership, type User } from "../../shared/api/client";
 
 interface AuthState {
   ready: boolean;
@@ -17,11 +25,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [tenants, setTenants] = useState<TenantMembership[]>([]);
-  const [tenantId, setTenantIdState] = useState<string | null>(sessionStorage.getItem("d2d-tenant"));
+  const [tenantId, setTenantIdState] = useState<string | null>(
+    sessionStorage.getItem("d2d-tenant"),
+  );
 
   const refresh = useCallback(async () => {
     try {
-      const me = await api<{ user?: User | null; tenants?: TenantMembership[] | null }>("/api/v1/me", { skipRefresh: true });
+      const me = await api<{ user?: User | null; tenants?: TenantMembership[] | null }>(
+        "/api/v1/me",
+        { skipRefresh: true },
+      );
       setUser(me.user ?? null);
       const next = me.tenants ?? [];
       setTenants(next);

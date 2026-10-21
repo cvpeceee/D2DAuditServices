@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ApiError, api, type AuthResponse } from "../api/client";
-import { useAuth } from "../auth/AuthContext";
+import { ApiError, api, type AuthResponse } from "../../shared/api/client";
+import { useAuth } from "./AuthContext";
 
 export function AuthCallbackPage() {
   const { t } = useTranslation();
@@ -50,12 +50,21 @@ export function AuthCallbackPage() {
   return (
     <div className="login-stage">
       <section className="login-card">
-        <div className="brand"><div className="mark">D2D</div><span>{t("productName")}</span></div>
+        <div className="brand">
+          <div className="mark">D2D</div>
+          <span>{t("productName")}</span>
+        </div>
         <h1>{t("login.title")}</h1>
-        {error ? <div className="error" role="alert">{error}</div> : (
+        {error ? (
+          <div className="error" role="alert">
+            {error}
+          </div>
+        ) : (
           <>
             <div className="sub">{t("login.checking")}</div>
-            <div className="busy" role="progressbar" aria-label={t("login.checking")}><i /></div>
+            <div className="busy" role="progressbar" aria-label={t("login.checking")}>
+              <i />
+            </div>
           </>
         )}
       </section>

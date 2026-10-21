@@ -89,13 +89,11 @@ public sealed class LocalIdentityProvider(
     public Task<AccessTokenIdentity?> ValidateAccessTokenAsync(string token, CancellationToken cancellationToken) =>
         SignedTokenValidator.ValidateAsync(token, SignedTokenValidator.LocalParameters(_signingKey));
 
-    public Task RequestPasswordResetAsync(string email, CancellationToken cancellationToken) =>
-        Task.FromException(new LocalPasswordResetException());
+    public Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken) =>
+        Task.FromResult(false);
 
     internal static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }
-
-public sealed class LocalPasswordResetException : Exception;
 
 public sealed partial class WorkOsIdentityProvider(
     HttpClient http,
@@ -226,7 +224,7 @@ public sealed partial class WorkOsIdentityProvider(
             query["login_hint"] = start.Email.Trim();
         }
 
-        var builder = new StringBuilder("https://api.workos.com/user_management/authorize?");
+        var builder = new StringBuilder(Endpoint("/user_management/authorize?"));
         var first = true;
         foreach (var pair in query)
         {
@@ -303,14 +301,15 @@ public sealed partial class WorkOsIdentityProvider(
         return await ValidateWithKeysAsync(token, keys);
     }
 
-    public async Task RequestPasswordResetAsync(string email, CancellationToken cancellationToken)
+    public async Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.workos.com/user_management/password_reset");
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint("/user_management/password_reset"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
         request.Content = new StringContent(JsonSerializer.Serialize(new { email = email.Trim() }), Encoding.UTF8, "application/json");
         using var response = await http.SendAsync(request, cancellationToken);
-        // The caller always shows the same message. A miss or a WorkOS rejection must not reveal whether the mailbox exists.
+        // A miss or a rejection must not reveal whether the mailbox exists. The caller shows one message.
         _ = response.IsSuccessStatusCode;
+        return true;
     }
 
     private Task<AccessTokenIdentity?> ValidateWithKeysAsync(string token, IReadOnlyCollection<SecurityKey> keys)
@@ -347,7 +346,7 @@ public sealed partial class WorkOsIdentityProvider(
             }
 
             using var response = await http.GetAsync(
-                $"https://api.workos.com/sso/jwks/{Uri.EscapeDataString(_options.ClientId)}",
+                Endpoint($"/sso/jwks/{Uri.EscapeDataString(_options.ClientId)}"),
                 cancellationToken);
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -364,7 +363,7 @@ public sealed partial class WorkOsIdentityProvider(
 
     private async Task<IdentityLoginResult> AuthenticateAsync(Dictionary<string, string> payload, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.workos.com/user_management/authenticate");
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint("/user_management/authenticate"));
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         using var response = await http.SendAsync(request, cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -437,7 +436,7 @@ public sealed partial class WorkOsIdentityProvider(
             return null;
         }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.workos.com/auth/factors/{factorId}/challenge");
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint($"/auth/factors/{factorId}/challenge"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
         request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
         using var response = await http.SendAsync(request, cancellationToken);
@@ -473,44 +472,15 @@ public sealed partial class WorkOsIdentityProvider(
     [GeneratedRegex("^[A-Za-z0-9_]+$")]
     private static partial Regex FactorId();
 
-    private sealed class WorkOsAuthOk
-    {
-        public WorkOsUser? User { get; set; }
+    private string Endpoint(string path) => _options.Issuer.TrimEnd('/') + path;
 
-        public string? AccessToken { get; set; }
+    private sealed record WorkOsAuthOk(WorkOsUser? User, string? AccessToken, string? RefreshToken);
 
-        public string? RefreshToken { get; set; }
-    }
+    private sealed record WorkOsUser(string? Id, string? Email, string? FirstName, string? LastName);
 
-    private sealed class WorkOsUser
-    {
-        public string? Id { get; set; }
+    private sealed record WorkOsError(string? Code, string? PendingAuthenticationToken, List<WorkOsFactor>? AuthenticationFactors);
 
-        public string? Email { get; set; }
+    private sealed record WorkOsFactor(string? Id, string? Type);
 
-        public string? FirstName { get; set; }
-
-        public string? LastName { get; set; }
-    }
-
-    private sealed class WorkOsError
-    {
-        public string? Code { get; set; }
-
-        public string? PendingAuthenticationToken { get; set; }
-
-        public List<WorkOsFactor>? AuthenticationFactors { get; set; }
-    }
-
-    private sealed class WorkOsFactor
-    {
-        public string? Id { get; set; }
-
-        public string? Type { get; set; }
-    }
-
-    private sealed class WorkOsChallenge
-    {
-        public string? Id { get; set; }
-    }
+    private sealed record WorkOsChallenge(string? Id);
 }

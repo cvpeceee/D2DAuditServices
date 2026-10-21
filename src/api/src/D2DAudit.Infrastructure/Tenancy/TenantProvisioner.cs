@@ -1,40 +1,37 @@
-using System.Text.RegularExpressions;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Persistence;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace D2DAudit.Infrastructure.Tenancy;
 
-public sealed partial class TenantProvisioner(
+public sealed class TenantProvisioner(
     ControlPlaneDbContext control,
     TenantDatabases databases,
     IFrameworkCatalog catalog,
+    IValidator<CreateTenantRequest> tenants,
     IJobNotifier jobs,
     TimeProvider time,
     ILogger<TenantProvisioner> logger) : ITenantProvisioner
 {
     public const int SchemaVersion = 1;
 
-    public async Task<Tenant> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
+    public async Task<Result<Tenant>> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
-        if (!Slug().IsMatch(request.Slug))
+        var validation = await tenants.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
         {
-            throw new ArgumentException("Tenant slug must be a lowercase identifier.");
-        }
-
-        if (request.Region is not ("US" or "EU"))
-        {
-            throw new ArgumentException("Region must be US or EU.");
+            return Result<Tenant>.Fail("invalid_tenant");
         }
 
         var existing = await control.Tenants.FirstOrDefaultAsync(tenant => tenant.Slug == request.Slug, cancellationToken);
         if (existing is not null)
         {
             await EnsureReadyAsync(existing, cancellationToken);
-            return existing;
+            return Result<Tenant>.Ok(existing);
         }
 
         var id = Guid.NewGuid();
@@ -54,7 +51,7 @@ public sealed partial class TenantProvisioner(
         control.Tenants.Add(tenant);
         await control.SaveChangesAsync(cancellationToken);
         await EnsureReadyAsync(tenant, cancellationToken);
-        return tenant;
+        return Result<Tenant>.Ok(tenant);
     }
 
     public async Task MigrateExistingAsync(Guid tenantId, CancellationToken cancellationToken)
@@ -248,6 +245,25 @@ public sealed partial class TenantProvisioner(
         }
 
         var sort = 0;
+        void AddNodes(IReadOnlyList<RequirementNode> nodes, Guid frameworkId, Guid? parentId)
+        {
+            foreach (var node in nodes)
+            {
+                var requirement = new Requirement
+                {
+                    Id = Guid.NewGuid(),
+                    FrameworkId = frameworkId,
+                    ParentId = parentId,
+                    Code = node.Code,
+                    Title = node.Title,
+                    Summary = node.Summary,
+                    SortOrder = sort++,
+                };
+                db.Requirements.Add(requirement);
+                AddNodes(node.Children, frameworkId, requirement.Id);
+            }
+        }
+
         foreach (var document in catalog.Frameworks)
         {
             var framework = new FrameworkRecord
@@ -260,31 +276,8 @@ public sealed partial class TenantProvisioner(
             };
             db.Frameworks.Add(framework);
             AddNodes(document.Requirements, framework.Id, null);
-            continue;
-
-            void AddNodes(IReadOnlyList<RequirementNode> nodes, Guid frameworkId, Guid? parentId)
-            {
-                foreach (var node in nodes)
-                {
-                    var requirement = new Requirement
-                    {
-                        Id = Guid.NewGuid(),
-                        FrameworkId = frameworkId,
-                        ParentId = parentId,
-                        Code = node.Code,
-                        Title = node.Title,
-                        Summary = node.Summary,
-                        SortOrder = sort++,
-                    };
-                    db.Requirements.Add(requirement);
-                    AddNodes(node.Children, frameworkId, requirement.Id);
-                }
-            }
         }
 
         await db.SaveChangesAsync(cancellationToken);
     }
-
-    [GeneratedRegex("^[a-z][a-z0-9-]{1,62}$")]
-    private static partial Regex Slug();
 }

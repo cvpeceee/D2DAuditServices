@@ -2,10 +2,8 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using D2DAudit.Application;
 using D2DAudit.Domain;
-using D2DAudit.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace D2DAudit.Api.Security;
@@ -19,6 +17,7 @@ public static class SessionCookies
     public static void Write(HttpContext http, bool alwaysSecure, string accessToken, DateTimeOffset expires, string? refreshToken)
     {
         var secure = alwaysSecure || http.Request.IsHttps;
+#pragma warning disable S2092 // Production always passes alwaysSecure. Local HTTP cannot set Secure or the browser drops the cookie.
         http.Response.Cookies.Append(Access, accessToken, AccessOptions(secure, expires));
         if (!string.IsNullOrEmpty(refreshToken))
         {
@@ -32,15 +31,19 @@ public static class SessionCookies
                 IsEssential = true,
             });
         }
+#pragma warning restore S2092
     }
 
     public static void Clear(HttpContext http, bool alwaysSecure)
     {
         var secure = alwaysSecure || http.Request.IsHttps;
+#pragma warning disable S2092 // Same Secure rule as Write: false only for local HTTP.
         http.Response.Cookies.Delete(Access, new CookieOptions { Path = "/", Secure = secure, HttpOnly = true, SameSite = SameSiteMode.Lax });
         http.Response.Cookies.Delete(Refresh, new CookieOptions { Path = "/api/v1/auth", Secure = secure, HttpOnly = true, SameSite = SameSiteMode.Strict });
+#pragma warning restore S2092
     }
 
+#pragma warning disable S2092 // Secure is true outside local HTTP. See Write.
     private static CookieOptions AccessOptions(bool secure, DateTimeOffset expires) => new()
     {
         HttpOnly = true,
@@ -50,6 +53,7 @@ public static class SessionCookies
         Expires = expires,
         IsEssential = true,
     };
+#pragma warning restore S2092
 }
 
 public sealed class SessionAuthenticationHandler(
@@ -112,7 +116,9 @@ public sealed class CsrfMiddleware(RequestDelegate next)
         if (context.Request.Headers["X-D2D-Request"] != "1")
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await context.Response.WriteAsJsonAsync(new { title = "Missing request header.", status = 400, code = "csrf" });
+            await context.Response.WriteAsJsonAsync(
+                new { title = "Missing request header.", status = 400, code = "csrf" },
+                context.RequestAborted);
             return;
         }
 
@@ -128,7 +134,7 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
     public async Task InvokeAsync(
         HttpContext context,
         TenantContext tenant,
-        ControlPlaneDbContext control,
+        IControlPlaneDirectory directory,
         IActivityWriter activity,
         TimeProvider time)
     {
@@ -146,9 +152,7 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
         }
 
         var subject = context.User.FindFirst("sub")?.Value;
-        var user = subject is null
-            ? null
-            : await control.Users.AsNoTracking().FirstOrDefaultAsync(account => account.Subject == subject, context.RequestAborted);
+        var user = subject is null ? null : await directory.FindUserBySubjectAsync(subject, context.RequestAborted);
         if (user is null)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -156,16 +160,12 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
         }
 
         var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
-        var memberships = await control.Memberships.AsNoTracking()
-            .Include(membership => membership.Tenant)
-            .Where(membership => membership.UserId == user.Id && membership.Tenant!.Status == TenantStatus.Active)
-            .ToListAsync(context.RequestAborted);
-        var grants = await control.AuditorGrants.AsNoTracking()
-            .Include(grant => grant.Frameworks)
-            .Where(grant => grant.UserId == user.Id)
-            .ToListAsync(context.RequestAborted);
+        var memberships = (await directory.MembershipsAsync(user.Id, context.RequestAborted))
+            .Where(membership => membership.Status == TenantStatus.Active)
+            .ToList();
+        var grants = await directory.ActiveGrantsAsync(user.Id, today, context.RequestAborted);
 
-        bool GrantOk(Membership membership, out AuditorGrant? grant)
+        bool GrantOk(DirectoryMembership membership, out DirectoryGrant? grant)
         {
             grant = null;
             if (membership.Role != TenantRole.Auditor)
@@ -173,12 +173,12 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
                 return true;
             }
 
-            grant = grants.FirstOrDefault(item => item.TenantId == membership.TenantId && item.IsActiveOn(today));
+            grant = grants.FirstOrDefault(item => item.TenantId == membership.TenantId);
             return grant is not null;
         }
 
         var usable = memberships.Where(membership => GrantOk(membership, out _)).ToList();
-        Membership? selected = null;
+        DirectoryMembership? selected = null;
         if (context.Request.Headers.TryGetValue("X-Tenant-Id", out var header) && !string.IsNullOrWhiteSpace(header))
         {
             if (!Guid.TryParse(header.ToString(), out var tenantId))
@@ -207,7 +207,7 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
         }
 
         GrantOk(selected, out var activeGrant);
-        var databaseName = selected.Tenant?.DatabaseName;
+        var databaseName = selected.DatabaseName;
         if (databaseName is null || !DatabaseNames.IsSafe(databaseName))
         {
             await WriteProblem(context, StatusCodes.Status503ServiceUnavailable, "tenant_unavailable");
@@ -216,14 +216,14 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
 
         tenant.Resolve(
             selected.TenantId,
-            selected.Tenant!.Name,
-            selected.Tenant.Region,
-            selected.Tenant.IsExample,
+            selected.TenantName,
+            selected.Region,
+            selected.IsExample,
             user.Id,
             user.Email,
             user.DisplayName,
             selected.Role,
-            activeGrant?.Frameworks.Select(framework => framework.FrameworkKey).ToArray() ?? [],
+            activeGrant?.FrameworkKeys ?? [],
             databaseName);
         await next(context);
     }
@@ -231,7 +231,7 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
     private static Task WriteProblem(HttpContext context, int status, string code)
     {
         context.Response.StatusCode = status;
-        return context.Response.WriteAsJsonAsync(new { title = code, status, code });
+        return context.Response.WriteAsJsonAsync(new { title = code, status, code }, context.RequestAborted);
     }
 }
 
@@ -258,7 +258,7 @@ public sealed class TenantWriteHandler(TenantContext tenant, IActivityWriter act
                 "denied",
                 tenant.Role.ToString(),
                 http.HttpContext?.Connection.RemoteIpAddress?.ToString(),
-                CancellationToken.None);
+                http.HttpContext?.RequestAborted ?? CancellationToken.None);
         }
     }
 }
@@ -282,7 +282,7 @@ public sealed class TenantAdminHandler(TenantContext tenant, IActivityWriter act
                 "denied",
                 tenant.Role.ToString(),
                 http.HttpContext?.Connection.RemoteIpAddress?.ToString(),
-                CancellationToken.None);
+                http.HttpContext?.RequestAborted ?? CancellationToken.None);
         }
     }
 }

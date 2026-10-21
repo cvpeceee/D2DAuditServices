@@ -13,7 +13,9 @@ namespace D2DAudit.Tests;
 
 public sealed class SecurityFixture : IAsyncLifetime
 {
-    public ApiFactory Factory { get; } = new();
+    public ApiFactory Factory { get; private set; } = null!;
+
+    private PostgresServer? _postgres;
 
     public Guid AcmeId { get; private set; }
 
@@ -29,14 +31,16 @@ public sealed class SecurityFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        _postgres = await PostgresServer.StartAsync();
+        Factory = new ApiFactory(adminConnection: _postgres.ConnectionString);
         using var scope = Factory.Services.CreateScope();
         var provisioner = scope.ServiceProvider.GetRequiredService<ITenantProvisioner>();
         var control = scope.ServiceProvider.GetRequiredService<ControlPlaneDbContext>();
         var databases = scope.ServiceProvider.GetRequiredService<TenantDatabases>();
         var hasher = scope.ServiceProvider.GetRequiredService<PasswordHasher<UserAccount>>();
 
-        var acme = await provisioner.CreateAsync(new CreateTenantRequest("acme", "Acme Robotics", "US", true), CancellationToken.None);
-        var other = await provisioner.CreateAsync(new CreateTenantRequest("other", "Other Co", "EU", false), CancellationToken.None);
+        var acme = await CreatedAsync(provisioner, new CreateTenantRequest("acme", "Acme Robotics", "US", true));
+        var other = await CreatedAsync(provisioner, new CreateTenantRequest("other", "Other Co", "EU", false));
         AcmeId = acme.Id;
         OtherId = other.Id;
 
@@ -62,7 +66,25 @@ public sealed class SecurityFixture : IAsyncLifetime
         await control.SaveChangesAsync();
     }
 
-    public Task DisposeAsync() => Factory.DisposeAsync().AsTask();
+    public async Task DisposeAsync()
+    {
+        if (Factory is not null)
+        {
+            await Factory.DisposeAsync();
+        }
+
+        if (_postgres is not null)
+        {
+            await _postgres.DisposeAsync();
+        }
+    }
+
+    private static async Task<Tenant> CreatedAsync(ITenantProvisioner provisioner, CreateTenantRequest request)
+    {
+        var result = await provisioner.CreateAsync(request, CancellationToken.None);
+        Assert.True(result.IsSuccess, result.Error);
+        return result.Value!;
+    }
 
     public HttpClient Client() => Factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
 

@@ -1,14 +1,12 @@
 using D2DAudit.Application;
 using D2DAudit.Domain;
-using D2DAudit.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace D2DAudit.Api.Hubs;
 
 [Authorize]
-public sealed class JobsHub(ControlPlaneDbContext db, TimeProvider time) : Hub
+public sealed class JobsHub(IControlPlaneDirectory directory, TimeProvider time) : Hub
 {
     public async Task Subscribe(string tenantId)
     {
@@ -23,10 +21,11 @@ public sealed class JobsHub(ControlPlaneDbContext db, TimeProvider time) : Hub
             throw new HubException("forbidden");
         }
 
-        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(account => account.Subject == subject);
-        var membership = user is null
-            ? null
-            : await db.Memberships.AsNoTracking().FirstOrDefaultAsync(item => item.UserId == user.Id && item.TenantId == id);
+        var user = await directory.FindUserBySubjectAsync(subject, Context.ConnectionAborted);
+        var memberships = user is null
+            ? []
+            : await directory.MembershipsAsync(user.Id, Context.ConnectionAborted);
+        var membership = memberships.FirstOrDefault(item => item.TenantId == id && item.Status == TenantStatus.Active);
         if (user is null || membership is null)
         {
             throw new HubException("forbidden");
@@ -35,8 +34,8 @@ public sealed class JobsHub(ControlPlaneDbContext db, TimeProvider time) : Hub
         if (membership.Role == TenantRole.Auditor)
         {
             var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
-            var grant = await db.AuditorGrants.AsNoTracking().FirstOrDefaultAsync(item => item.UserId == user.Id && item.TenantId == id);
-            if (grant is null || !grant.IsActiveOn(today))
+            var grants = await directory.ActiveGrantsAsync(user.Id, today, Context.ConnectionAborted);
+            if (grants.All(grant => grant.TenantId != id))
             {
                 throw new HubException("forbidden");
             }

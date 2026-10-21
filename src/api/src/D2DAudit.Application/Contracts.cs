@@ -96,10 +96,9 @@ public interface IIdentityProvider
 
     Task<AccessTokenIdentity?> ValidateAccessTokenAsync(string token, CancellationToken cancellationToken);
 
-    Task RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
+    /// <summary>True when the provider accepted the request. False when this mode has no reset.</summary>
+    Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
 }
-
-public sealed class WriteForbiddenException : Exception;
 
 public static class IdentityModeResolver
 {
@@ -198,7 +197,7 @@ public sealed record CreateTenantRequest(string Slug, string Name, string Region
 
 public interface ITenantProvisioner
 {
-    Task<Tenant> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken);
+    Task<Result<Tenant>> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken);
 
     Task MigrateExistingAsync(Guid tenantId, CancellationToken cancellationToken);
 
@@ -208,6 +207,30 @@ public interface ITenantProvisioner
 public interface IDemoSeeder
 {
     Task SeedAsync(CancellationToken cancellationToken);
+}
+
+public sealed record DirectoryUser(Guid Id, string Email, string DisplayName);
+
+public sealed record DirectoryMembership(
+    Guid TenantId,
+    string TenantName,
+    string Region,
+    bool IsExample,
+    TenantStatus Status,
+    TenantRole Role,
+    string? DatabaseName);
+
+public sealed record DirectoryGrant(Guid TenantId, IReadOnlyList<string> FrameworkKeys);
+
+public interface IControlPlaneDirectory
+{
+    Task<bool> CanConnectAsync(CancellationToken cancellationToken);
+
+    Task<DirectoryUser?> FindUserBySubjectAsync(string subject, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<DirectoryMembership>> MembershipsAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<DirectoryGrant>> ActiveGrantsAsync(Guid userId, DateOnly today, CancellationToken cancellationToken);
 }
 
 public interface IActivityWriter
@@ -402,11 +425,11 @@ public interface IWorkspaceQuery
 
     Task<ControlDetail?> ControlAsync(string code, CancellationToken cancellationToken);
 
-    Task<ControlDetail?> AssignOwnerAsync(string code, AssignOwnerRequest request, CancellationToken cancellationToken);
+    Task<Result<ControlDetail>> AssignOwnerAsync(string code, AssignOwnerRequest request, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<JobDto>> JobsAsync(CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<ActivityDto>> ActivityAsync(CancellationToken cancellationToken);
+    Task<Result<IReadOnlyList<ActivityDto>>> ActivityAsync(CancellationToken cancellationToken);
 }
 
 public sealed class RequirementNode

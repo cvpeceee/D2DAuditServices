@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ApiError, api, type ActivityEvent } from "../api/client";
+import { ApiError, api, type ActivityEvent } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
-import { formatWhen, Skeleton } from "../components/ui";
+import { formatWhen, Skeleton } from "../../shared/ui/ui";
 
 export function ActivityPage() {
   const { t } = useTranslation();
@@ -14,9 +14,16 @@ export function ActivityPage() {
     if (!tenantId) return;
     let cancelled = false;
     void api<ActivityEvent[]>("/api/v1/activity", { tenantId })
-      .then((value) => { if (!cancelled) setRows(value); })
-      .catch((caught: unknown) => { if (!cancelled) setError(caught instanceof ApiError && caught.status === 403 ? "forbidden" : "load"); });
-    return () => { cancelled = true; };
+      .then((value) => {
+        if (!cancelled) setRows(value);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled)
+          setError(caught instanceof ApiError && caught.status === 403 ? "forbidden" : "load");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [tenantId]);
 
   return (
@@ -27,7 +34,11 @@ export function ActivityPage() {
           <div className="sub">{t("activity.sub")}</div>
         </div>
       </div>
-      {error && <div className="error" role="alert">{t(error === "forbidden" ? "errors.forbidden" : "errors.load")}</div>}
+      {error && (
+        <div className="error" role="alert">
+          {t(error === "forbidden" ? "errors.forbidden" : "errors.load")}
+        </div>
+      )}
       {!rows && !error && <Skeleton className="lg" />}
       {rows && (
         <div className="card" style={{ padding: "4px 8px" }}>
@@ -43,7 +54,13 @@ export function ActivityPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 && <tr><td colSpan={5} className="empty">{t("activity.empty")}</td></tr>}
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="empty">
+                      {t("activity.empty")}
+                    </td>
+                  </tr>
+                )}
                 {rows.map((row, index) => (
                   <tr key={`${row.at}-${index}`}>
                     <td className="m">{formatWhen(row.at)}</td>

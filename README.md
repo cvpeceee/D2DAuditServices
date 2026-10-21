@@ -1,6 +1,6 @@
 # D2D Audit Services
 
-D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md).
+D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
@@ -77,15 +77,15 @@ There is no public signup endpoint. Tenants are created by the provisioner (the 
 
 ```bash
 dotnet test src/api/D2DAudit.slnx
-cd src/web && npm run lint && npm run build
+cd src/web && npm test && npm run lint && npm run format:check && npm run build
 ```
 
-API tests need Postgres. `TEST_POSTGRES` overrides the admin connection. The default is `Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres`. The role needs `CREATEDB`.
+Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an existing admin connection when Docker is not available, for example `Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres`. The role needs `CREATEDB`. Unit tests do not need a database.
 
 ## Layout
 
-- `src/api` — C# solution. Domain, Application, Infrastructure, Api, and tests.
-- `src/web` — React, TypeScript, Vite. All visible strings are in `src/web/src/i18n/locales/en.json`.
+- `src/api` — C# solution. Domain, Application, Infrastructure, Api, unit tests, and integration tests.
+- `src/web` — React, TypeScript, Vite. Features live under `src/web/src/features`. Visible strings are in `src/web/src/shared/i18n/locales/en.json`.
 - `infra/terraform` — placeholder. Nothing is applied.
 - `docs/` — the GitHub Pages review site, including the mockups.
 
@@ -106,3 +106,5 @@ API tests need Postgres. `TEST_POSTGRES` overrides the admin connection. The def
 - Password reset calls WorkOS and always shows a generic result. The confirm-reset page is not in this milestone.
 - TLS terminates at the edge later. Local HTTP is development only.
 - The development signing key, the example password, and `d2d_dev_password` are well known. They are refused as a production identity configuration.
+- Logging is `Microsoft.Extensions.Logging`. Analyzers are the .NET SDK analyzers plus SonarAnalyzer. StyleCop is not enabled. See [docs/ENGINEERING.md](docs/ENGINEERING.md).
+- Session cookies are `Secure` outside Development and Testing. In Development, `Secure` follows HTTPS so local HTTP keeps the cookie.

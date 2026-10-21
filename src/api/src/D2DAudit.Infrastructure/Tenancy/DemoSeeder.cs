@@ -16,8 +16,8 @@ public sealed class DemoSeeder(
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
-        var acme = await provisioner.CreateAsync(new CreateTenantRequest("acme-robotics", "Acme Robotics", "US", true), cancellationToken);
-        var northwind = await provisioner.CreateAsync(new CreateTenantRequest("northwind-labs", "Northwind Labs", "EU", true), cancellationToken);
+        var acme = await RequiredTenantAsync(provisioner, new CreateTenantRequest("acme-robotics", "Acme Robotics", "US", true), cancellationToken);
+        var northwind = await RequiredTenantAsync(provisioner, new CreateTenantRequest("northwind-labs", "Northwind Labs", "EU", true), cancellationToken);
         await provisioner.SeedExampleControlsAsync(acme.Id, cancellationToken);
         await EnsureNorthwindMarkerAsync(northwind, cancellationToken);
         await EnsureAuditAsync(acme.Id, cancellationToken);
@@ -180,5 +180,16 @@ public sealed class DemoSeeder(
         }
 
         await control.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task<Tenant> RequiredTenantAsync(ITenantProvisioner provisioner, CreateTenantRequest request, CancellationToken cancellationToken)
+    {
+        var result = await provisioner.CreateAsync(request, cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            throw new InvalidOperationException(result.Error ?? "invalid_tenant");
+        }
+
+        return result.Value;
     }
 }

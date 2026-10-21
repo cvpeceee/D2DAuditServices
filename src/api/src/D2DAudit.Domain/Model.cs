@@ -109,21 +109,28 @@ public sealed class Tenant
 
     public List<TenantDomain> Domains { get; set; } = [];
 
-    public void SetRetentionYears(int years)
+    public RuleResult SetRetentionYears(int years)
     {
         if (years < DatabaseNames.MinimumRetentionYears)
         {
-            throw new InvalidOperationException(
-                $"Retention cannot be below the platform minimum of {DatabaseNames.MinimumRetentionYears} years.");
+            return RuleResult.Fail("below_minimum");
         }
 
         if (years < RetentionYears)
         {
-            throw new InvalidOperationException("Retention can only grow.");
+            return RuleResult.Fail("cannot_shrink");
         }
 
         RetentionYears = years;
+        return RuleResult.Ok();
     }
+}
+
+public readonly record struct RuleResult(bool Succeeded, string? Error)
+{
+    public static RuleResult Ok() => new(true, null);
+
+    public static RuleResult Fail(string error) => new(false, error);
 }
 
 public sealed class UserAccount

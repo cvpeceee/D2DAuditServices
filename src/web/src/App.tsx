@@ -1,16 +1,16 @@
 import { useEffect, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useAuth } from "./auth/AuthContext";
-import { Skeleton } from "./components/ui";
-import { ActivityPage } from "./pages/ActivityPage";
-import { AuthCallbackPage } from "./pages/AuthCallbackPage";
-import { ControlsPage } from "./pages/ControlsPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { FrameworkDetailPage } from "./pages/FrameworkDetailPage";
-import { FrameworksPage } from "./pages/FrameworksPage";
-import { LoginPage } from "./pages/LoginPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
-import { AppShell } from "./shell/AppShell";
+import { useAuth } from "./features/auth/AuthContext";
+import { Skeleton } from "./shared/ui/ui";
+import { ActivityPage } from "./features/activity/ActivityPage";
+import { AuthCallbackPage } from "./features/auth/AuthCallbackPage";
+import { ControlsPage } from "./features/controls/ControlsPage";
+import { DashboardPage } from "./features/dashboard/DashboardPage";
+import { FrameworkDetailPage } from "./features/frameworks/FrameworkDetailPage";
+import { FrameworksPage } from "./features/frameworks/FrameworksPage";
+import { LoginPage } from "./features/auth/LoginPage";
+import { PlaceholderPage } from "./features/shell/PlaceholderPage";
+import { AppShell } from "./features/shell/AppShell";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -47,7 +47,14 @@ export function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+      <Route
+        path="/login"
+        element={
+          <GuestOnly>
+            <LoginPage />
+          </GuestOnly>
+        }
+      />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
         element={

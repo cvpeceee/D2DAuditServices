@@ -2,7 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type ThemeChoice = "light" | "dark" | "system" | "high-contrast";
 
-const ThemeContext = createContext<{ choice: ThemeChoice; setChoice: (choice: ThemeChoice) => void }>({
+const ThemeContext = createContext<{
+  choice: ThemeChoice;
+  setChoice: (choice: ThemeChoice) => void;
+}>({
   choice: "system",
   setChoice: () => undefined,
 });
@@ -16,7 +19,12 @@ function resolve(choice: ThemeChoice): string {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [choice, setChoiceState] = useState<ThemeChoice>(() => {
     const stored = localStorage.getItem("d2d-theme");
-    return stored === "light" || stored === "dark" || stored === "system" || stored === "high-contrast" ? stored : "system";
+    return stored === "light" ||
+      stored === "dark" ||
+      stored === "system" ||
+      stored === "high-contrast"
+      ? stored
+      : "system";
   });
 
   useEffect(() => {

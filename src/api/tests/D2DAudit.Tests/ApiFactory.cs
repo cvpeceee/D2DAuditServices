@@ -11,11 +11,12 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
 
     public string DatabaseName { get; } = "cp_" + Guid.NewGuid().ToString("N");
 
-    public ApiFactory(string environment = "Testing")
+    public ApiFactory(string environment = "Testing", string? adminConnection = null)
     {
         _environment = environment;
-        _adminConnection = Environment.GetEnvironmentVariable("TEST_POSTGRES")
-            ?? "Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres";
+        _adminConnection = adminConnection
+            ?? Environment.GetEnvironmentVariable("TEST_POSTGRES")
+            ?? throw new InvalidOperationException("Integration tests need Testcontainers or TEST_POSTGRES.");
         if (!DatabaseNames.IsSafe(DatabaseName))
         {
             throw new InvalidOperationException("Test database name failed the safety check.");

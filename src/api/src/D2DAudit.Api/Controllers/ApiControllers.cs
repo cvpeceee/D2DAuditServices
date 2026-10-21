@@ -1,10 +1,8 @@
 using D2DAudit.Api.Security;
 using D2DAudit.Application;
-using D2DAudit.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 
 namespace D2DAudit.Api.Controllers;
 
@@ -195,8 +193,8 @@ public sealed class WorkspaceController(IWorkspaceQuery query) : ControllerBase
     [Authorize(Policy = "TenantWrite")]
     public async Task<ActionResult<ControlDetail>> AssignOwner(string code, [FromBody] AssignOwnerRequest body, CancellationToken cancellationToken)
     {
-        var detail = await query.AssignOwnerAsync(code, body, cancellationToken);
-        return detail is null ? NotFound(new { code = "not_found" }) : Ok(detail);
+        var result = await query.AssignOwnerAsync(code, body, cancellationToken);
+        return ToResult(result);
     }
 
     [HttpGet("jobs")]
@@ -204,21 +202,41 @@ public sealed class WorkspaceController(IWorkspaceQuery query) : ControllerBase
 
     [HttpGet("activity")]
     [Authorize(Policy = "TenantAdmin")]
-    public Task<IReadOnlyList<ActivityDto>> Activity(CancellationToken cancellationToken) => query.ActivityAsync(cancellationToken);
+    public async Task<ActionResult<IReadOnlyList<ActivityDto>>> Activity(CancellationToken cancellationToken)
+    {
+        var result = await query.ActivityAsync(cancellationToken);
+        return ToResult(result);
+    }
+
+    private ActionResult<T> ToResult<T>(Result<T> result)
+    {
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return result.Error switch
+        {
+            "not_found" => NotFound(new { code = "not_found" }),
+            "forbidden" => StatusCode(StatusCodes.Status403Forbidden, new { code = "forbidden" }),
+            _ => BadRequest(new { code = result.Error }),
+        };
+    }
 }
 
 [ApiController]
-public sealed class HealthController(ControlPlaneDbContext db) : ControllerBase
+[Route("health")]
+public sealed class HealthController(IControlPlaneDirectory directory) : ControllerBase
 {
-    [HttpGet("/health")]
+    [HttpGet("")]
     [AllowAnonymous]
     public IActionResult Live() => Ok(new { status = "ok" });
 
-    [HttpGet("/health/ready")]
+    [HttpGet("ready")]
     [AllowAnonymous]
     public async Task<IActionResult> Ready(CancellationToken cancellationToken)
     {
-        var ready = await db.Database.CanConnectAsync(cancellationToken);
+        var ready = await directory.CanConnectAsync(cancellationToken);
         return ready ? Ok(new { status = "ready" }) : StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 }

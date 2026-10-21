@@ -1,7 +1,7 @@
 export function Ring({ value, tone }: { value: number; tone: string }) {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const dash = circumference * Math.max(0, Math.min(100, value)) / 100;
+  const dash = (circumference * Math.max(0, Math.min(100, value))) / 100;
   return (
     <div className="ring" role="img" aria-label={`${value}%`}>
       <svg width="92" height="92" aria-hidden="true">
@@ -23,15 +23,16 @@ export function Ring({ value, tone }: { value: number; tone: string }) {
 }
 
 export function Pill({ status, children }: { status?: string; children: string }) {
-  const tone = status === "passing" || status === "pass" || status === "succeeded"
-    ? "ok"
-    : status === "failing" || status === "fail" || status === "failed"
-      ? "bad"
-      : status === "dueSoon" || status === "needsEvidence" || status === "warn"
-        ? "warn"
-        : status === "manual" || status === "notRun" || status === "info"
-          ? "info"
-          : "neutral";
+  const tone =
+    status === "passing" || status === "pass" || status === "succeeded"
+      ? "ok"
+      : status === "failing" || status === "fail" || status === "failed"
+        ? "bad"
+        : status === "dueSoon" || status === "needsEvidence" || status === "warn"
+          ? "warn"
+          : status === "manual" || status === "notRun" || status === "info"
+            ? "info"
+            : "neutral";
   return <span className={`pill ${tone}`}>{children}</span>;
 }
 
@@ -50,7 +51,9 @@ export function formatDate(value: string) {
 }
 
 export function formatWhen(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(value),
+  );
 }
 
 export function daysUntil(value: string) {

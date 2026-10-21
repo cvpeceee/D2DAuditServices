@@ -89,16 +89,12 @@ public sealed class AuthService(
     {
         try
         {
-            await identity.RequestPasswordResetAsync(email, cancellationToken);
-            return "sent";
-        }
-        catch (LocalPasswordResetException)
-        {
-            return "unavailable";
+            var supported = await identity.RequestPasswordResetAsync(email, cancellationToken);
+            return supported ? "sent" : "unavailable";
         }
         catch (Exception exception)
         {
-            logger.LogWarning("Password reset request failed. {ExceptionType}", exception.GetType().Name);
+            logger.LogWarning(exception, "Password reset request failed. {ExceptionType}", exception.GetType().Name);
             return "sent";
         }
     }
