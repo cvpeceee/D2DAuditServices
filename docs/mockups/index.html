@@ -1,0 +1,359 @@
+<!DOCTYPE html><html data-theme="light"><head><meta charset="utf-8"><title>D2D Audit Services — Mockups</title>
+<style>
+:root{--font:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+--bg:#f6f7fb;--bg2:#eef0f7;--surface:#fff;--surface2:#f9fafc;--border:#e6e8f0;--text:#0f1222;--muted:#5d6478;--faint:#8b91a5;
+--accent:#5b4cf0;--accent2:#8b5cf6;--accentSoft:#efedff;--ok:#0f9d6b;--okSoft:#e3f6ee;--warn:#c27803;--warnSoft:#fdf3dc;--bad:#dc2f45;--badSoft:#fde8eb;--info:#2563eb;--infoSoft:#e5edfd;
+--shadow:0 1px 2px rgba(16,20,45,.04),0 4px 16px rgba(16,20,45,.06);--r:14px}
+[data-theme=dark]{--bg:#0b0d17;--bg2:#10131f;--surface:#141827;--surface2:#191e30;--border:#252b40;--text:#eef0f8;--muted:#a3a9bf;--faint:#727a93;
+--accent:#8b7dff;--accent2:#b18cff;--accentSoft:#231f47;--ok:#34d399;--okSoft:#0f2c24;--warn:#fbbf24;--warnSoft:#2d2412;--bad:#fb7185;--badSoft:#341823;--info:#60a5fa;--infoSoft:#14233f;
+--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35)}
+*{box-sizing:border-box;margin:0}body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:232px 1fr;height:900px;width:1440px;overflow:hidden}
+.side{background:var(--surface);border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;padding:2px 8px 16px}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;box-shadow:0 4px 12px rgba(91,76,240,.35)}
+.org{border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:12px;display:flex;justify-content:space-between;background:var(--surface2)}
+.org b{display:block;font-size:12.5px}.org small{color:var(--faint);font-size:11px}
+.sec{color:var(--faint);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:12px 10px 4px;font-weight:600}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);font-weight:500}
+.nav i{width:16px;height:16px;border-radius:5px;border:1.6px solid currentColor;opacity:.8;flex:none}
+.nav.on{background:var(--accentSoft);color:var(--accent);font-weight:600}.nav .ct{margin-left:auto;font-size:11px;background:var(--badSoft);color:var(--bad);border-radius:20px;padding:1px 7px;font-weight:600}
+.agentcard{margin-top:auto;border-radius:12px;padding:12px;background:linear-gradient(135deg,var(--accentSoft),transparent);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+.agentcard b{color:var(--text);display:block;margin-bottom:4px}
+.main{display:flex;flex-direction:column;min-width:0}
+.top{height:60px;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.crumb{color:var(--faint)}.crumb b{color:var(--text)}
+.search{margin-left:auto;width:340px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);display:flex;align-items:center;padding:0 12px;color:var(--faint);gap:8px}
+.kbd{margin-left:auto;font-family:var(--mono);font-size:11px;border:1px solid var(--border);border-bottom-width:2px;border-radius:6px;padding:1px 6px;background:var(--surface);color:var(--muted)}
+.toggle{display:flex;border:1px solid var(--border);border-radius:10px;padding:3px;background:var(--surface2)}.toggle span{padding:4px 10px;border-radius:7px;color:var(--faint);font-size:12px}
+.toggle .on{background:var(--surface);color:var(--text);box-shadow:var(--shadow);font-weight:600}
+.btn{height:34px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:600;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-family:inherit}
+.btn.p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;box-shadow:0 4px 14px rgba(91,76,240,.3)}
+.av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ec4899);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+.body{flex:1;display:flex;min-height:0}.content{flex:1;padding:22px 24px;overflow:hidden;min-width:0}
+h1{font-size:22px;letter-spacing:-.02em}.sub{color:var(--muted);margin-top:4px}
+.head{display:flex;align-items:flex-end;gap:12px;margin-bottom:18px}.head .act{margin-left:auto;display:flex;gap:8px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.card h3{font-size:13.5px;display:flex;align-items:center;gap:8px;margin-bottom:12px}.card h3 .r{margin-left:auto;font-weight:500;color:var(--accent);font-size:12px}
+.grid{display:grid;gap:14px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}.info{background:var(--infoSoft);color:var(--info)}.acc{background:var(--accentSoft);color:var(--accent)}
+.nodot:before{display:none}
+.ring{position:relative;width:92px;height:92px}.ring svg{transform:rotate(-90deg)}.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;letter-spacing:-.02em}
+.fw{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}.fw small{color:var(--faint);font-size:11px}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:11px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--border)}
+td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}tr:last-child td{border-bottom:0}
+tr.sel td{background:var(--accentSoft)}
+.id{white-space:nowrap;font-family:var(--mono);font-size:11.5px;color:var(--muted)}.t{font-weight:600}.m{color:var(--muted);font-size:12px}td.m,td .t{white-space:nowrap}.row .t,.row .m{white-space:nowrap}
+.tag{white-space:nowrap;display:inline-block;font-size:10.5px;padding:2px 6px;border-radius:6px;background:var(--bg2);color:var(--muted);font-weight:600;margin-right:3px;border:1px solid var(--border)}
+#controls td:nth-child(3){white-space:nowrap;width:1%}
+.bar{height:6px;border-radius:6px;background:var(--bg2);overflow:hidden}.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;flex:none}
+.row{display:flex;align-items:center;gap:10px}
+.assist{width:372px;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column}
+.ah{padding:16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.spark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2),#ec4899);color:#fff;display:grid;place-items:center;font-size:15px}
+.msgs{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px}
+.bub{padding:11px 13px;border-radius:14px;line-height:1.5;max-width:92%}
+.u{align-self:flex-end;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-bottom-right-radius:4px}
+.a{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.step{display:flex;gap:8px;margin-top:6px}.step em{font-style:normal;width:18px;height:18px;border-radius:50%;background:var(--accentSoft);color:var(--accent);font-size:10.5px;font-weight:700;display:grid;place-items:center;flex:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:11.5px;color:var(--muted);background:var(--surface)}
+.input{margin:12px 16px 16px;border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--faint);display:flex;background:var(--surface2)}
+.drawer{width:430px;border-left:1px solid var(--border);background:var(--surface);box-shadow:-12px 0 32px rgba(16,20,45,.08);padding:20px;overflow:hidden;display:flex;flex-direction:column;gap:14px}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kv>div{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 10px}.kv small{color:var(--faint);font-size:10.5px;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.hash{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}.tabs span{padding:8px 12px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}.tabs .on{color:var(--accent);border-color:var(--accent);font-weight:600}
+.banner{border-radius:14px;padding:14px 18px;background:linear-gradient(120deg,var(--accentSoft),var(--infoSoft));border:1px solid var(--border);display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.screen{display:none}.screen.on{display:block}
+.login-stage{display:none;width:1440px;height:900px;background:
+radial-gradient(900px 420px at 20% -10%,var(--accentSoft),transparent),var(--bg);
+align-items:center;justify-content:center;gap:28px;padding:36px}
+.login-stage.on{display:flex}
+.login-card{width:440px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 26px 22px}
+.login-card h1{font-size:20px;margin-top:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.auth-btn{width:100%;justify-content:center;height:38px;margin-top:8px}
+.gmark{width:16px;height:16px;border-radius:50%;background:#fff;color:#1a73e8;display:grid;place-items:center;font-size:11px;font-weight:800;border:1px solid var(--border)}
+.mmark{width:14px;height:14px;display:grid;grid-template-columns:1fr 1fr;gap:1px;flex:none}
+.mmark i{display:block}.mmark i:nth-child(1){background:#f25022}.mmark i:nth-child(2){background:#7fba00}.mmark i:nth-child(3){background:#00a4ef}.mmark i:nth-child(4){background:#ffb900}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.field label,.code-label{font-size:12px;font-weight:600;color:var(--muted)}
+.field input{height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);padding:0 12px;color:var(--text);font:inherit}
+.label-row{display:flex;justify-content:space-between;align-items:baseline}
+.forgot{color:var(--accent);font-weight:600;font-size:12px;text-decoration:none}
+.hint{color:var(--faint);font-size:11.5px;margin-top:6px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--faint);margin:16px 0 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--border)}
+.login-note{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+.mfa-card .pill{margin-bottom:2px}
+.codes{display:flex;gap:8px;margin-top:8px}
+.codes input{width:44px;height:48px;text-align:center;font-family:var(--mono);font-size:18px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text)}
+</style></head><body>
+<script>
+const p=new URLSearchParams(location.search);document.documentElement.dataset.theme=p.get('theme')||'light';
+</script>
+<div class="app">
+<aside class="side">
+ <div class="logo"><div class="mark">D2D</div>D2D Audit</div>
+ <div class="org"><div><b>Acme Robotics</b><small>US · Production</small></div><span style="color:var(--faint)">⌄</span></div>
+ <div class="nav" data-s="dashboard"><i></i>Dashboard</div>
+ <div class="nav"><i></i>Frameworks</div>
+ <div class="nav" data-s="controls"><i></i>Controls<span class="ct">7</span></div>
+ <div class="nav"><i></i>Tests</div>
+ <div class="nav" data-s="evidence"><i></i>Evidence</div>
+ <div class="sec">Governance</div>
+ <div class="nav"><i></i>Policies</div><div class="nav"><i></i>Risks</div><div class="nav"><i></i>Vendors</div><div class="nav"><i></i>People & devices</div>
+ <div class="sec">Audit</div>
+ <div class="nav" data-s="auditor"><i></i>Auditor portal</div><div class="nav"><i></i>Integrations</div>
+ <div class="agentcard"><b>Device agent</b>142 of 148 laptops reporting<div class="bar" style="margin-top:8px"><i style="width:96%"></i></div></div>
+</aside>
+<div class="main">
+ <header class="top"><div class="crumb" id="crumb"></div>
+  <div class="search">⌕ Search controls, evidence, actions…<span class="kbd">Ctrl K</span></div>
+  <div class="toggle"><span id="tl">☀ Light</span><span id="td">☾ Dark</span></div>
+  <button class="btn">🔔</button><div class="av">CV</div></header>
+ <div class="body">
+
+<!-- DASHBOARD -->
+<div class="content screen" id="dashboard">
+ <div class="head"><div><h1>Good afternoon, Chandra</h1><div class="sub">Acme Robotics is <b style="color:var(--ok)">84% audit-ready</b> across 3 frameworks · last scan 6 min ago</div></div>
+  <div class="act"><button class="btn">Export report</button><button class="btn p">＋ Add framework</button></div></div>
+ <div class="grid" style="grid-template-columns:1.35fr 1fr">
+  <div class="card"><h3>Framework readiness<span class="r">View all →</span></h3>
+   <div style="display:flex;justify-content:space-around">
+    <div class="fw"><div class="ring" data-v="91" data-c="var(--ok)"></div><b>ISO 27001</b><small>87 / 93 controls</small></div>
+    <div class="fw"><div class="ring" data-v="86" data-c="var(--accent)"></div><b>SOC 2</b><small>Type II · 62 / 72</small></div>
+    <div class="fw"><div class="ring" data-v="72" data-c="var(--warn)"></div><b>HIPAA</b><small>39 / 54 safeguards</small></div>
+   </div></div>
+  <div class="card" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;position:relative;overflow:hidden">
+   <div style="position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.08)"></div>
+   <div style="opacity:.8;font-size:12px;font-weight:600;letter-spacing:.06em">UPCOMING AUDIT</div>
+   <div style="font-size:18px;font-weight:700;margin:6px 0 2px">SOC 2 Type II — Fieldwork</div><div style="opacity:.8">Northgate Assurance LLP · Nov 30, 2026</div>
+   <div style="display:flex;gap:10px;margin-top:16px">
+    <div style="background:rgba(255,255,255,.14);border-radius:12px;padding:10px 14px"><div style="font-size:26px;font-weight:800">40</div><small style="opacity:.8">days</small></div>
+    <div style="background:rgba(255,255,255,.14);border-radius:12px;padding:10px 14px"><div style="font-size:26px;font-weight:800">10</div><small style="opacity:.8">open items</small></div>
+    <div style="background:rgba(255,255,255,.14);border-radius:12px;padding:10px 14px"><div style="font-size:26px;font-weight:800">3</div><small style="opacity:.8">samples due</small></div>
+   </div></div>
+ </div>
+ <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
+  <div class="card"><h3>Control health · 90 days<span class="pill ok nodot" style="margin-left:auto">▲ 12%</span></h3>
+   <svg viewBox="0 0 400 140" width="100%" height="150"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    <g stroke="var(--border)"><line x1="0" y1="30" x2="400" y2="30"/><line x1="0" y1="70" x2="400" y2="70"/><line x1="0" y1="110" x2="400" y2="110"/></g>
+    <path d="M0 100 C40 96 60 88 90 84 S150 80 180 66 S250 58 280 44 S350 36 400 28 L400 140 L0 140Z" fill="url(#g)"/>
+    <path d="M0 100 C40 96 60 88 90 84 S150 80 180 66 S250 58 280 44 S350 36 400 28" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <path d="M0 120 C60 118 120 112 180 114 S300 122 400 124" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="4 4"/>
+   </svg>
+   <div class="row m" style="gap:16px"><span><b style="color:var(--accent)">━</b> Passing 184</span><span><b style="color:var(--bad)">┅</b> Failing 7</span><span>Needs evidence 12</span></div></div>
+  <div class="card"><h3>Integration health<span class="r">Manage →</span></h3>
+   <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+    <div class="row"><div class="ic" style="background:#ff9900">AWS</div><div><div class="t">AWS (3)</div><div class="m">Synced 6m ago</div></div><span class="pill ok" style="margin-left:auto">OK</span></div>
+    <div class="row"><div class="ic" style="background:#0078d4">AZ</div><div><div class="t">Azure</div><div class="m">Synced 12m ago</div></div><span class="pill ok" style="margin-left:auto">OK</span></div>
+    <div class="row"><div class="ic" style="background:#34a853">GCP</div><div><div class="t">Google Cloud</div><div class="m">Synced 1h ago</div></div><span class="pill ok" style="margin-left:auto">OK</span></div>
+    <div class="row"><div class="ic" style="background:#4285f4">GW</div><div><div class="t">Workspace</div><div class="m">Token expiring</div></div><span class="pill warn" style="margin-left:auto">4d</span></div>
+    <div class="row"><div class="ic" style="background:#24292f">GH</div><div><div class="t">GitHub</div><div class="m">Rate limited</div></div><span class="pill bad" style="margin-left:auto">Retry</span></div>
+    <div class="row"><div class="ic" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">AG</div><div><div class="t">Device agent</div><div class="m">142 / 148</div></div><span class="pill ok" style="margin-left:auto">OK</span></div>
+   </div></div>
+ </div>
+ <div class="card" style="margin-top:14px;padding-bottom:6px"><h3>Failing tests needing attention<span class="r">See all 7 →</span></h3>
+  <table><tr><th>Test</th><th>Source</th><th>Frameworks</th><th>Owner</th><th>Status</th></tr>
+  <tr><td class="t">MFA enforced for all GitHub org members</td><td class="m">GitHub</td><td><span class="tag">ISO A.5.17</span><span class="tag">SOC CC6.1</span></td><td class="m">Priya N.</td><td><span class="pill bad">3 users</span></td></tr>
+  <tr><td class="t">S3 buckets block public access</td><td class="m">AWS prod</td><td><span class="tag">ISO A.8.3</span><span class="tag">HIPAA 164.312</span></td><td class="m">Marcus L.</td><td><span class="pill bad">1 bucket</span></td></tr>
+  </table></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="content screen" id="controls">
+ <div class="head"><div><h1>Controls</h1><div class="sub">203 controls · one control satisfies requirements across all your frameworks</div></div><div class="act"><button class="btn">Filters · 2</button><button class="btn p">＋ New control</button></div></div>
+ <div class="tabs"><span class="on">All 203</span><span>Failing 7</span><span>Needs evidence 12</span><span>Assigned to me 18</span></div>
+ <div class="card" style="padding:4px 8px">
+ <table><tr><th>ID</th><th>Control</th><th>Mapped to</th><th>Tests</th><th>Owner</th><th>Status</th></tr>
+ <tr><td class="id">AC-04</td><td class="t">Quarterly user access reviews</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">3/4</td><td class="m">Priya N.</td><td><span class="pill warn">Due soon</span></td></tr>
+ <tr class="sel"><td class="id">AC-07</td><td class="t">MFA required for all workforce accounts</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">4/5</td><td class="m">Priya N.</td><td><span class="pill bad">Failing</span></td></tr>
+ <tr><td class="id">CR-02</td><td class="t">Encryption at rest for production data</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">6/6</td><td class="m">Marcus L.</td><td><span class="pill ok">Passing</span></td></tr>
+ <tr><td class="id">CM-11</td><td class="t">Code changes peer-reviewed before merge</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span></td><td class="m">2/2</td><td class="m">Dev T.</td><td><span class="pill ok">Passing</span></td></tr>
+ <tr><td class="id">EP-03</td><td class="t">Laptop disk encryption enabled</td><td><span class="tag">ISO</span><span class="tag">HIPAA</span></td><td class="m">1/1</td><td class="m">IT Ops</td><td><span class="pill ok">Passing</span></td></tr>
+ <tr><td class="id">VM-05</td><td class="t">Vendor security reviews annually</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span></td><td class="m">—</td><td class="m">Lena K.</td><td><span class="pill info">Manual</span></td></tr>
+ <tr><td class="id">BC-01</td><td class="t">Backups tested via restore quarterly</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">2/2</td><td class="m">Marcus L.</td><td><span class="pill ok">Passing</span></td></tr>
+ <tr><td class="id">IR-02</td><td class="t">Incident response plan tested yearly</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">—</td><td class="m">Chandra V.</td><td><span class="pill warn">Needs evidence</span></td></tr>
+ <tr><td class="id">HR-06</td><td class="t">Security awareness training completed</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span><span class="tag">HIPAA</span></td><td class="m">1/1</td><td class="m">People Ops</td><td><span class="pill ok">Passing</span></td></tr>
+ <tr><td class="id">LG-03</td><td class="t">Audit logs retained ≥ 1 year</td><td><span class="tag">ISO</span><span class="tag">SOC 2</span></td><td class="m">3/3</td><td class="m">Marcus L.</td><td><span class="pill ok">Passing</span></td></tr>
+ </table></div>
+</div>
+
+<!-- EVIDENCE -->
+<div class="content screen" id="evidence">
+ <div class="head"><div><h1>Evidence library</h1><div class="sub">2,418 items · every file SHA-256 hashed at collection and stored write-once</div></div><div class="act"><button class="btn">Verify all</button><button class="btn p">⤒ Upload evidence</button></div></div>
+ <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+  <div class="card"><div class="m">Integrity verified</div><div style="font-size:24px;font-weight:800;margin-top:4px">100%</div><span class="pill ok">Chain intact · anchored 02:00</span></div>
+  <div class="card"><div class="m">Automated</div><div style="font-size:24px;font-weight:800;margin-top:4px">2,207</div><span class="pill acc nodot">91% of total</span></div>
+  <div class="card"><div class="m">Manual uploads</div><div style="font-size:24px;font-weight:800;margin-top:4px">211</div><span class="pill info nodot">PHI scan on upload</span></div>
+  <div class="card"><div class="m">Retention policy</div><div style="font-size:24px;font-weight:800;margin-top:4px">6 years</div><span class="pill warn nodot">HIPAA tenant default</span></div>
+ </div>
+ <div class="card" style="padding:4px 8px">
+ <table><tr><th>Evidence</th><th>Control</th><th>Source</th><th>Collected</th><th>Integrity</th><th>Lock</th></tr>
+ <tr><td><div class="t">IAM credential report — prod</div><div class="hash">sha256 9f2c…a41e</div></td><td class="id">AC-07</td><td><div class="row"><div class="ic" style="background:#ff9900;width:22px;height:22px;font-size:8px">AWS</div>AWS collector v2.4</div></td><td class="m">Oct 21, 12:47 PM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 21, 2032</td></tr>
+ <tr><td><div class="t">Q3 access review — signed.pdf</div><div class="hash">sha256 41bd…07c3</div></td><td class="id">AC-04</td><td class="m">Manual · Priya N.</td><td class="m">Oct 3, 9:12 AM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 3, 2032</td></tr>
+ <tr><td><div class="t">Branch protection rules — 41 repos</div><div class="hash">sha256 c07a…9be2</div></td><td class="id">CM-11</td><td><div class="row"><div class="ic" style="background:#24292f;width:22px;height:22px;font-size:8px">GH</div>GitHub collector v1.9</div></td><td class="m">Oct 21, 11:30 AM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 21, 2032</td></tr>
+ <tr><td><div class="t">Disk encryption — 142 devices</div><div class="hash">sha256 e5d1…33f0</div></td><td class="id">EP-03</td><td class="m">Device agent 1.3.0</td><td class="m">Oct 21, 8:00 AM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 21, 2032</td></tr>
+ <tr><td><div class="t">Restore test log — db-primary</div><div class="hash">sha256 77ae…d2b9</div></td><td class="id">BC-01</td><td><div class="row"><div class="ic" style="background:#0078d4;width:22px;height:22px;font-size:8px">AZ</div>Azure collector v2.1</div></td><td class="m">Oct 14, 3:05 AM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 14, 2032</td></tr>
+ <tr><td><div class="t">Calibration cert — CMM line 2.jpg</div><div class="hash">sha256 —</div></td><td class="id">QM-08</td><td class="m">Manual · Plant floor</td><td class="m">Oct 21, 12:51 PM CT</td><td><span class="pill info">Hashing…</span></td><td class="m">Pending</td></tr>
+ <tr><td><div class="t">Training completion export</div><div class="hash">sha256 b3c9…1f6a</div></td><td class="id">HR-06</td><td><div class="row"><div class="ic" style="background:#4285f4;width:22px;height:22px;font-size:8px">GW</div>Workspace v1.2</div></td><td class="m">Oct 20, 6:00 PM CT</td><td><span class="pill ok">SHA-256 verified</span></td><td class="m">🔒 Oct 20, 2032</td></tr>
+ </table></div>
+</div>
+
+<!-- AUDITOR -->
+<div class="content screen" id="auditor">
+ <div class="banner"><div class="spark">⛨</div><div><b>Auditor view · read-only</b><div class="m">Rachel Ortiz, Northgate Assurance · Scope: SOC 2 Type II (Security, Availability) · Period Apr 1 – Sep 30, 2026 · access expires Dec 15, 2026</div></div><span class="pill ok" style="margin-left:auto">Integrity report: verified</span></div>
+ <div class="head" style="margin-bottom:14px"><div><h1>SOC 2 Type II audit</h1><div class="sub">Fieldwork in progress · 72 controls in scope</div></div><div class="act"><button class="btn">⤓ Download audit package</button><button class="btn p">＋ New request</button></div></div>
+ <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+  <div class="card"><div class="m">Controls tested</div><div style="font-size:22px;font-weight:800;margin:4px 0 8px">48 / 72</div><div class="bar"><i style="width:66%"></i></div></div>
+  <div class="card"><div class="m">Sample requests</div><div style="font-size:22px;font-weight:800;margin:4px 0 8px">14 <small class="m">· 3 open</small></div><div class="bar"><i style="width:79%"></i></div></div>
+  <div class="card"><div class="m">Findings</div><div style="font-size:22px;font-weight:800;margin:4px 0 8px">2 <small class="m">· 1 exception</small></div><span class="pill warn nodot">Under review</span></div>
+  <div class="card"><div class="m">Avg. response time</div><div style="font-size:22px;font-weight:800;margin:4px 0 8px">6.2 h</div><span class="pill ok nodot">▼ 70% vs last year</span></div>
+ </div>
+ <div class="grid" style="grid-template-columns:1.5fr 1fr">
+  <div class="card" style="padding-bottom:6px"><h3>Sampling requests</h3>
+   <table><tr><th>Request</th><th>Population</th><th>Due</th><th>Status</th></tr>
+   <tr><td><div class="t">REQ-14 · New-hire onboarding</div><div class="m">Sample 5 of 23 hires</div></td><td class="m">HR system</td><td class="m">Oct 24</td><td><span class="pill warn">Open</span></td></tr>
+   <tr><td><div class="t">REQ-13 · Change tickets</div><div class="m">Sample 25 of 612 PRs</div></td><td class="m">GitHub</td><td class="m">Oct 23</td><td><span class="pill info">Submitted</span></td></tr>
+   <tr><td><div class="t">REQ-12 · Terminations</div><div class="m">Sample 4 of 9 leavers</div></td><td class="m">Workspace</td><td class="m">Oct 22</td><td><span class="pill warn">Open</span></td></tr>
+   <tr><td><div class="t">REQ-11 · Q2 access review</div><div class="m">Full population</div></td><td class="m">Manual</td><td class="m">Oct 18</td><td><span class="pill ok">Accepted</span></td></tr>
+   <tr><td><div class="t">REQ-10 · Backup restores</div><div class="m">Sample 2 of 6</div></td><td class="m">Azure</td><td class="m">Oct 16</td><td><span class="pill ok">Accepted</span></td></tr>
+   </table></div>
+  <div class="card"><h3>Findings</h3>
+   <div style="border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;border-left:3px solid var(--bad)"><div class="row"><b>F-02 · MFA gap</b><span class="pill bad" style="margin-left:auto">Exception</span></div><div class="m" style="margin:6px 0">3 GitHub accounts lacked MFA for 11 days in July. CC6.1</div><div class="m">Management response drafted · Priya N.</div></div>
+   <div style="border:1px solid var(--border);border-radius:12px;padding:12px;border-left:3px solid var(--warn)"><div class="row"><b>F-01 · Late access review</b><span class="pill warn" style="margin-left:auto">Observation</span></div><div class="m" style="margin:6px 0">Q2 review completed 9 days after due date. CC6.2</div><div class="m">Remediated · evidence REQ-11</div></div>
+  </div>
+ </div>
+</div>
+
+<!-- assistant (dashboard) -->
+<aside class="assist" id="assist">
+ <div class="ah"><div class="spark">✦</div><div><b>D2D Assistant</b><div class="m">Knows your controls and this app</div></div><span style="margin-left:auto;color:var(--faint)">✕</span></div>
+ <div class="msgs">
+  <div class="bub u">Where do I upload evidence for our quarterly access review?</div>
+  <div class="bub a">Access reviews are covered by control <b>AC-04 · Quarterly user access reviews</b>, which satisfies ISO 27001 A.5.18, SOC 2 CC6.2 and HIPAA 164.308(a)(4).
+   <div class="step"><em>1</em>Open AC-04 → <b>Evidence</b> tab</div>
+   <div class="step"><em>2</em>Click <b>Upload</b> and attach the signed review</div>
+   <div class="step"><em>3</em>It's hashed and locked automatically</div>
+   <div style="display:flex;gap:8px;margin-top:12px"><button class="btn p">Take me there →</button><button class="btn">Highlight button</button></div></div>
+  <div class="m" style="font-size:11px">Q3 review is due <b style="color:var(--warn)">Oct 31</b>. Want me to create a task for Priya?</div>
+  <div class="chips" style="margin-top:auto"><span class="chip">Why is GitHub MFA failing?</span><span class="chip">What is CC6.1?</span><span class="chip">Prep for SOC 2 audit</span></div>
+ </div>
+ <div class="input">Ask anything about compliance or the app…<span class="kbd">↵</span></div>
+</aside>
+
+<!-- drawer (controls) -->
+<aside class="drawer" id="drawer">
+ <div class="row"><span class="id">AC-07</span><span class="pill bad">Failing</span><span style="margin-left:auto;color:var(--faint)">✕</span></div>
+ <div><h1 style="font-size:19px">MFA required for all workforce accounts</h1><div class="sub">All human accounts on in-scope systems must use multi-factor authentication.</div></div>
+ <div class="kv"><div><small>Owner</small><div class="row" style="gap:6px"><div class="av" style="width:20px;height:20px;font-size:9px;background:linear-gradient(135deg,#10b981,#3b82f6)">PN</div>Priya N.</div></div><div><small>Frequency</small>Continuous</div><div><small>Last test</small>6 min ago</div></div>
+ <div><div class="sec" style="padding-left:0">Mapped requirements</div>
+  <div class="grid" style="gap:8px">
+   <div class="row"><span class="pill acc nodot" style="width:84px;justify-content:center">ISO 27001</span><span class="t">A.5.17</span><span class="m">Authentication information</span></div>
+   <div class="row"><span class="pill acc nodot" style="width:84px;justify-content:center">ISO 27001</span><span class="t">A.8.5</span><span class="m">Secure authentication</span></div>
+   <div class="row"><span class="pill info nodot" style="width:84px;justify-content:center">SOC 2</span><span class="t">CC6.1</span><span class="m">Logical access security</span></div>
+   <div class="row"><span class="pill ok nodot" style="width:84px;justify-content:center">HIPAA</span><span class="t">164.312(d)</span><span class="m">Person or entity authentication</span></div>
+  </div></div>
+ <div><div class="sec" style="padding-left:0">Automated tests</div>
+  <div class="card" style="padding:4px 12px;box-shadow:none">
+   <div class="row" style="padding:8px 0;border-bottom:1px solid var(--border)"><span>Google Workspace 2-step enforced</span><span class="pill ok" style="margin-left:auto">Pass</span></div>
+   <div class="row" style="padding:8px 0;border-bottom:1px solid var(--border)"><span>AWS IAM console users have MFA</span><span class="pill ok" style="margin-left:auto">Pass</span></div>
+   <div class="row" style="padding:8px 0;border-bottom:1px solid var(--border)"><span>Azure Entra conditional access</span><span class="pill ok" style="margin-left:auto">Pass</span></div>
+   <div class="row" style="padding:8px 0"><span>GitHub org members have 2FA <span class="m">· 3 of 41 missing</span></span><span class="pill bad" style="margin-left:auto">Fail</span></div>
+  </div></div>
+ <div><div class="sec" style="padding-left:0">Latest evidence</div>
+  <div class="row" style="padding:6px 0"><span>📄</span><div><div class="t">IAM credential report — prod</div><div class="hash">sha256 9f2c…a41e · Oct 21, 12:47 PM CT</div></div><span class="pill ok" style="margin-left:auto">Verified</span></div>
+  <div class="row" style="padding:6px 0"><span>📄</span><div><div class="t">Workspace 2SV enrollment.csv</div><div class="hash">sha256 3a8e…c0d4 · Oct 21, 6:00 AM CT</div></div><span class="pill ok" style="margin-left:auto">Verified</span></div>
+ </div>
+ <div class="row" style="margin-top:auto"><button class="btn p">Fix with guided steps</button><button class="btn">Assign</button><button class="btn">Ask assistant ✦</button></div>
+</aside>
+
+ </div></div></div>
+<div id="login" class="login-stage">
+ <section class="login-card">
+  <div class="brand"><div class="mark">D2D</div><span data-i18n="productName"></span></div>
+  <h1 data-i18n="signInTitle"></h1>
+  <div class="sub" data-i18n="signInSub"></div>
+  <button class="btn auth-btn" type="button"><span class="gmark">G</span><span data-i18n="continueGoogle"></span></button>
+  <button class="btn auth-btn" type="button"><span class="mmark"><i></i><i></i><i></i><i></i></span><span data-i18n="continueMicrosoft"></span></button>
+  <div class="field">
+   <label data-i18n="ssoLabel"></label>
+   <input data-i18n-placeholder="ssoPlaceholder" data-i18n-value="ssoExample">
+  </div>
+  <button class="btn auth-btn" type="button" data-i18n="continueSso"></button>
+  <div class="hint" data-i18n="ssoHelp"></div>
+  <div class="divider" data-i18n="divider"></div>
+  <div class="field">
+   <label data-i18n="emailLabel"></label>
+   <input type="email" data-i18n-placeholder="emailPlaceholder" data-i18n-value="emailExample">
+  </div>
+  <div class="field">
+   <div class="label-row"><label data-i18n="passwordLabel"></label><a class="forgot" href="#" data-i18n="forgotPassword"></a></div>
+   <input type="password" data-i18n-placeholder="passwordPlaceholder">
+  </div>
+  <button class="btn p auth-btn" type="button" data-i18n="signIn"></button>
+  <p class="login-note" data-i18n="auditorNote"></p>
+ </section>
+ <section class="login-card mfa-card">
+  <span class="pill acc nodot" data-i18n="mfaStep"></span>
+  <h1 data-i18n="mfaTitle"></h1>
+  <div class="sub" data-i18n="mfaSub"></div>
+  <button class="btn auth-btn" type="button" data-i18n="usePasskey"></button>
+  <div class="divider" data-i18n="orCode"></div>
+  <div class="code-label" data-i18n="codeLabel"></div>
+  <div class="codes"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"></div>
+  <div class="hint" data-i18n="codeHint"></div>
+  <button class="btn p auth-btn" type="button" data-i18n="verify"></button>
+ </section>
+</div>
+<script>
+const strings={en:{
+ productName:'D2DAuditServices',
+ signInTitle:'Sign in',
+ signInSub:'Company accounts use Google, Microsoft, or SSO. Auditors and testers use email.',
+ continueGoogle:'Continue with Google',
+ continueMicrosoft:'Continue with Microsoft',
+ ssoLabel:'Work email',
+ ssoPlaceholder:'name@company.example',
+ ssoExample:'name@company.example',
+ continueSso:'Continue with SSO',
+ ssoHelp:'Routes to your company SSO.',
+ divider:'or',
+ emailLabel:'Email',
+ emailPlaceholder:'auditor@example.com',
+ emailExample:'auditor@example.com',
+ passwordLabel:'Password',
+ passwordPlaceholder:'Password',
+ forgotPassword:'Forgot password',
+ signIn:'Sign in',
+ auditorNote:'Auditor? Use the invite link from your client.',
+ mfaStep:'Next step',
+ mfaTitle:'Verify it is you',
+ mfaSub:'Email sign-in requires MFA. Example account: auditor@example.com',
+ usePasskey:'Use a passkey',
+ orCode:'or enter a code',
+ codeLabel:'Authenticator code',
+ codeHint:'6-digit code from your authenticator app.',
+ verify:'Verify'
+}};
+const t=strings.en;
+document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t[el.dataset.i18n]||'';});
+document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t[el.dataset.i18nPlaceholder]||'';});
+document.querySelectorAll('[data-i18n-value]').forEach(el=>{el.value=t[el.dataset.i18nValue]||'';});
+const s=p.get('screen')||'dashboard';
+if(s==='login'){
+ document.querySelector('.app').style.display='none';
+ document.getElementById('login').classList.add('on');
+}else{
+ document.getElementById(s).classList.add('on');
+ document.querySelectorAll('.nav[data-s]').forEach(n=>n.classList.toggle('on',n.dataset.s===s));
+ if(s!=='dashboard')assist.remove(); if(s!=='controls')drawer.remove();
+ const names={dashboard:'Dashboard',controls:'Controls',evidence:'Evidence',auditor:'Auditor portal'};
+ crumb.innerHTML='Acme Robotics / <b>'+names[s]+'</b>';
+ (document.documentElement.dataset.theme==='dark'?td:tl).classList.add('on');
+ document.querySelectorAll('.ring').forEach(r=>{const v=+r.dataset.v,c=2*Math.PI*40;r.innerHTML=`<svg width="92" height="92"><circle cx="46" cy="46" r="40" fill="none" stroke="var(--bg2)" stroke-width="9"/><circle cx="46" cy="46" r="40" fill="none" stroke="${r.dataset.c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c*v/100} ${c}"/></svg><b>${v}%</b>`});
+}
+</script></body></html>
