@@ -67,6 +67,29 @@ tr.sel td{background:var(--accentSoft)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}.tabs span{padding:8px 12px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}.tabs .on{color:var(--accent);border-color:var(--accent);font-weight:600}
 .banner{border-radius:14px;padding:14px 18px;background:linear-gradient(120deg,var(--accentSoft),var(--infoSoft));border:1px solid var(--border);display:flex;align-items:center;gap:14px;margin-bottom:16px}
 .screen{display:none}.screen.on{display:block}
+.login-stage{display:none;width:1440px;height:900px;background:
+radial-gradient(900px 420px at 20% -10%,var(--accentSoft),transparent),var(--bg);
+align-items:center;justify-content:center;gap:28px;padding:36px}
+.login-stage.on{display:flex}
+.login-card{width:440px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 26px 22px}
+.login-card h1{font-size:20px;margin-top:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.auth-btn{width:100%;justify-content:center;height:38px;margin-top:8px}
+.gmark{width:16px;height:16px;border-radius:50%;background:#fff;color:#1a73e8;display:grid;place-items:center;font-size:11px;font-weight:800;border:1px solid var(--border)}
+.mmark{width:14px;height:14px;display:grid;grid-template-columns:1fr 1fr;gap:1px;flex:none}
+.mmark i{display:block}.mmark i:nth-child(1){background:#f25022}.mmark i:nth-child(2){background:#7fba00}.mmark i:nth-child(3){background:#00a4ef}.mmark i:nth-child(4){background:#ffb900}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.field label,.code-label{font-size:12px;font-weight:600;color:var(--muted)}
+.field input{height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);padding:0 12px;color:var(--text);font:inherit}
+.label-row{display:flex;justify-content:space-between;align-items:baseline}
+.forgot{color:var(--accent);font-weight:600;font-size:12px;text-decoration:none}
+.hint{color:var(--faint);font-size:11.5px;margin-top:6px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--faint);margin:16px 0 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--border)}
+.login-note{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+.mfa-card .pill{margin-bottom:2px}
+.codes{display:flex;gap:8px;margin-top:8px}
+.codes input{width:44px;height:48px;text-align:center;font-family:var(--mono);font-size:18px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text)}
 </style></head><body>
 <script>
 const p=new URLSearchParams(location.search);document.documentElement.dataset.theme=p.get('theme')||'light';
@@ -249,12 +272,88 @@ const p=new URLSearchParams(location.search);document.documentElement.dataset.th
 </aside>
 
  </div></div></div>
+<div id="login" class="login-stage">
+ <section class="login-card">
+  <div class="brand"><div class="mark">D2D</div><span data-i18n="productName"></span></div>
+  <h1 data-i18n="signInTitle"></h1>
+  <div class="sub" data-i18n="signInSub"></div>
+  <button class="btn auth-btn" type="button"><span class="gmark">G</span><span data-i18n="continueGoogle"></span></button>
+  <button class="btn auth-btn" type="button"><span class="mmark"><i></i><i></i><i></i><i></i></span><span data-i18n="continueMicrosoft"></span></button>
+  <div class="field">
+   <label data-i18n="ssoLabel"></label>
+   <input data-i18n-placeholder="ssoPlaceholder" data-i18n-value="ssoExample">
+  </div>
+  <button class="btn auth-btn" type="button" data-i18n="continueSso"></button>
+  <div class="hint" data-i18n="ssoHelp"></div>
+  <div class="divider" data-i18n="divider"></div>
+  <div class="field">
+   <label data-i18n="emailLabel"></label>
+   <input type="email" data-i18n-placeholder="emailPlaceholder" data-i18n-value="emailExample">
+  </div>
+  <div class="field">
+   <div class="label-row"><label data-i18n="passwordLabel"></label><a class="forgot" href="#" data-i18n="forgotPassword"></a></div>
+   <input type="password" data-i18n-placeholder="passwordPlaceholder">
+  </div>
+  <button class="btn p auth-btn" type="button" data-i18n="signIn"></button>
+  <p class="login-note" data-i18n="auditorNote"></p>
+ </section>
+ <section class="login-card mfa-card">
+  <span class="pill acc nodot" data-i18n="mfaStep"></span>
+  <h1 data-i18n="mfaTitle"></h1>
+  <div class="sub" data-i18n="mfaSub"></div>
+  <button class="btn auth-btn" type="button" data-i18n="usePasskey"></button>
+  <div class="divider" data-i18n="orCode"></div>
+  <div class="code-label" data-i18n="codeLabel"></div>
+  <div class="codes"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"></div>
+  <div class="hint" data-i18n="codeHint"></div>
+  <button class="btn p auth-btn" type="button" data-i18n="verify"></button>
+ </section>
+</div>
 <script>
-const s=p.get('screen')||'dashboard';document.getElementById(s).classList.add('on');
-document.querySelectorAll('.nav[data-s]').forEach(n=>n.classList.toggle('on',n.dataset.s===s));
-if(s!=='dashboard')assist.remove(); if(s!=='controls')drawer.remove();
-const names={dashboard:'Dashboard',controls:'Controls',evidence:'Evidence',auditor:'Auditor portal'};
-crumb.innerHTML='Acme Robotics / <b>'+names[s]+'</b>';
-(document.documentElement.dataset.theme==='dark'?td:tl).classList.add('on');
-document.querySelectorAll('.ring').forEach(r=>{const v=+r.dataset.v,c=2*Math.PI*40;r.innerHTML=`<svg width="92" height="92"><circle cx="46" cy="46" r="40" fill="none" stroke="var(--bg2)" stroke-width="9"/><circle cx="46" cy="46" r="40" fill="none" stroke="${r.dataset.c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c*v/100} ${c}"/></svg><b>${v}%</b>`});
+const strings={en:{
+ productName:'D2DAuditServices',
+ signInTitle:'Sign in',
+ signInSub:'Company accounts use Google, Microsoft, or SSO. Auditors and testers use email.',
+ continueGoogle:'Continue with Google',
+ continueMicrosoft:'Continue with Microsoft',
+ ssoLabel:'Work email',
+ ssoPlaceholder:'name@company.example',
+ ssoExample:'name@company.example',
+ continueSso:'Continue with SSO',
+ ssoHelp:'Routes to your company SSO.',
+ divider:'or',
+ emailLabel:'Email',
+ emailPlaceholder:'auditor@example.com',
+ emailExample:'auditor@example.com',
+ passwordLabel:'Password',
+ passwordPlaceholder:'Password',
+ forgotPassword:'Forgot password',
+ signIn:'Sign in',
+ auditorNote:'Auditor? Use the invite link from your client.',
+ mfaStep:'Next step',
+ mfaTitle:'Verify it is you',
+ mfaSub:'Email sign-in requires MFA. Example account: auditor@example.com',
+ usePasskey:'Use a passkey',
+ orCode:'or enter a code',
+ codeLabel:'Authenticator code',
+ codeHint:'6-digit code from your authenticator app.',
+ verify:'Verify'
+}};
+const t=strings.en;
+document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t[el.dataset.i18n]||'';});
+document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t[el.dataset.i18nPlaceholder]||'';});
+document.querySelectorAll('[data-i18n-value]').forEach(el=>{el.value=t[el.dataset.i18nValue]||'';});
+const s=p.get('screen')||'dashboard';
+if(s==='login'){
+ document.querySelector('.app').style.display='none';
+ document.getElementById('login').classList.add('on');
+}else{
+ document.getElementById(s).classList.add('on');
+ document.querySelectorAll('.nav[data-s]').forEach(n=>n.classList.toggle('on',n.dataset.s===s));
+ if(s!=='dashboard')assist.remove(); if(s!=='controls')drawer.remove();
+ const names={dashboard:'Dashboard',controls:'Controls',evidence:'Evidence',auditor:'Auditor portal'};
+ crumb.innerHTML='Acme Robotics / <b>'+names[s]+'</b>';
+ (document.documentElement.dataset.theme==='dark'?td:tl).classList.add('on');
+ document.querySelectorAll('.ring').forEach(r=>{const v=+r.dataset.v,c=2*Math.PI*40;r.innerHTML=`<svg width="92" height="92"><circle cx="46" cy="46" r="40" fill="none" stroke="var(--bg2)" stroke-width="9"/><circle cx="46" cy="46" r="40" fill="none" stroke="${r.dataset.c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c*v/100} ${c}"/></svg><b>${v}%</b>`});
+}
 </script></body></html>
