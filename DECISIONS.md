@@ -22,4 +22,8 @@
 
 11. **v1 eventing is a simple queue beside Temporal.** Collectors publish evidence events through an `IEventBus`; IT evidence is collected in batches on a schedule, so minutes of latency are acceptable and Kafka and Flink stay deferred. In the IoT and manufacturing phase the same interface swaps in Kafka (or Redpanda) for continuous telemetry and Flink for windowed streaming control checks, leaving collectors and the control engine unchanged.
 
-Next: middleware (APIs, job orchestration, collectors), then UI.
+12. **The core is a modular monolith with separate worker pools.** One service holds strict internal modules for frameworks, controls, evidence, policies, risk, vendors, and audits; collectors and the control engine run in their own worker pools. An API gateway handles SSO (SAML/OIDC) and MFA, resolves the tenant from the registry, and hands business code a connection scoped to that tenant only, and the UI uses the same versioned, OpenAPI-documented public API that customers and auditors get. Collectors are sandboxed plugins (connect, discover, collect) with short-lived read-only credentials and per-integration rate limits and retries. Roles are admin, control owner, employee, and a read-only, time-limited external auditor scoped to the frameworks in audit.
+
+13. **The backend is C# on modern .NET, and the UI is React with TypeScript.** C# matches the team's expertise, gives strong typing for the business logic, and has official AWS, Azure, GCP, and Temporal SDKs, with Entity Framework against per-tenant Postgres. Go is reserved for agents installed on customer devices, because it ships as a single small binary: the laptop and endpoint agent now, and IoT and factory gateway agents later. Python stays optional for later data-science or AI features.
+
+Next: remaining middleware details (auth and SSO, public API), then UI.
