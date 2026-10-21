@@ -1,0 +1,594 @@
+{
+  "key": "iso27001",
+  "name": "ISO 27001",
+  "version": "2022",
+  "description": "Annex A controls from ISO/IEC 27001:2022. Titles identify the control. Descriptions are our own short guidance, not the standard's text. Clauses 4 to 10 are not part of this seed.",
+  "requirements": [
+    {
+      "code": "A.5",
+      "title": "Organizational controls",
+      "summary": "Controls that sit with the organization rather than a single system.",
+      "children": [
+        {
+          "code": "A.5.1",
+          "title": "Policies for information security",
+          "summary": "Write the security rules down, have management approve them, and tell people where they live.",
+          "children": []
+        },
+        {
+          "code": "A.5.2",
+          "title": "Information security roles and responsibilities",
+          "summary": "Name who protects information, who they report to, and what they are accountable for.",
+          "children": []
+        },
+        {
+          "code": "A.5.3",
+          "title": "Segregation of duties",
+          "summary": "Split sensitive work so one person cannot both request and approve it.",
+          "children": []
+        },
+        {
+          "code": "A.5.4",
+          "title": "Management responsibilities",
+          "summary": "Managers make sure their teams follow the security rules.",
+          "children": []
+        },
+        {
+          "code": "A.5.5",
+          "title": "Contact with authorities",
+          "summary": "Know which regulators and law-enforcement contacts you will call, and when.",
+          "children": []
+        },
+        {
+          "code": "A.5.6",
+          "title": "Contact with special interest groups",
+          "summary": "Keep a link to security communities that share warnings relevant to you.",
+          "children": []
+        },
+        {
+          "code": "A.5.7",
+          "title": "Threat intelligence",
+          "summary": "Collect useful threat information and use it to adjust your defenses.",
+          "children": []
+        },
+        {
+          "code": "A.5.8",
+          "title": "Information security in project management",
+          "summary": "Put security checkpoints into projects, not only into day-to-day operations.",
+          "children": []
+        },
+        {
+          "code": "A.5.9",
+          "title": "Inventory of information and other associated assets",
+          "summary": "Keep a list of the information and systems you rely on, and who owns each one.",
+          "children": []
+        },
+        {
+          "code": "A.5.10",
+          "title": "Acceptable use of information and other associated assets",
+          "summary": "Tell people what they may and may not do with company systems and data.",
+          "children": []
+        },
+        {
+          "code": "A.5.11",
+          "title": "Return of assets",
+          "summary": "Collect equipment and access when someone stops needing them.",
+          "children": []
+        },
+        {
+          "code": "A.5.12",
+          "title": "Classification of information",
+          "summary": "Label information by how sensitive it is so people handle it consistently.",
+          "children": []
+        },
+        {
+          "code": "A.5.13",
+          "title": "Labelling of information",
+          "summary": "Mark sensitive information in a way people and systems can recognize.",
+          "children": []
+        },
+        {
+          "code": "A.5.14",
+          "title": "Information transfer",
+          "summary": "Protect information when it moves between people, systems, or organizations.",
+          "children": []
+        },
+        {
+          "code": "A.5.15",
+          "title": "Access control",
+          "summary": "Give people access only to what their work requires.",
+          "children": []
+        },
+        {
+          "code": "A.5.16",
+          "title": "Identity management",
+          "summary": "Give each person a unique identity and keep the lifecycle of that identity under control.",
+          "children": []
+        },
+        {
+          "code": "A.5.17",
+          "title": "Authentication information",
+          "summary": "Protect passwords, keys, and other secrets people use to prove who they are.",
+          "children": []
+        },
+        {
+          "code": "A.5.18",
+          "title": "Access rights",
+          "summary": "Review and adjust access when jobs change, and remove it when it is no longer needed.",
+          "children": []
+        },
+        {
+          "code": "A.5.19",
+          "title": "Information security in supplier relationships",
+          "summary": "Expect suppliers who touch your systems or data to meet your security bar.",
+          "children": []
+        },
+        {
+          "code": "A.5.20",
+          "title": "Addressing information security within supplier agreements",
+          "summary": "Put the security obligations in the contract, not only in a conversation.",
+          "children": []
+        },
+        {
+          "code": "A.5.21",
+          "title": "Managing information security in the ICT supply chain",
+          "summary": "Understand security risk in the chain of technology suppliers behind a service.",
+          "children": []
+        },
+        {
+          "code": "A.5.22",
+          "title": "Monitoring, review and change management of supplier services",
+          "summary": "Recheck supplier services when they change, and on a regular schedule.",
+          "children": []
+        },
+        {
+          "code": "A.5.23",
+          "title": "Information security for use of cloud services",
+          "summary": "Decide how cloud services are chosen, configured, and left.",
+          "children": []
+        },
+        {
+          "code": "A.5.24",
+          "title": "Information security incident management planning and preparation",
+          "summary": "Decide in advance who responds to a security incident and how.",
+          "children": []
+        },
+        {
+          "code": "A.5.25",
+          "title": "Assessment and decision on information security events",
+          "summary": "Triage security events so real incidents get a response.",
+          "children": []
+        },
+        {
+          "code": "A.5.26",
+          "title": "Response to information security incidents",
+          "summary": "Contain and fix incidents using the plan you prepared.",
+          "children": []
+        },
+        {
+          "code": "A.5.27",
+          "title": "Learning from information security incidents",
+          "summary": "Record what an incident taught you and change the system accordingly.",
+          "children": []
+        },
+        {
+          "code": "A.5.28",
+          "title": "Collection of evidence",
+          "summary": "When you need evidence, collect it in a way that preserves it.",
+          "children": []
+        },
+        {
+          "code": "A.5.29",
+          "title": "Information security during disruption",
+          "summary": "Keep security in place when the business is operating in a degraded mode.",
+          "children": []
+        },
+        {
+          "code": "A.5.30",
+          "title": "ICT readiness for business continuity",
+          "summary": "Make sure technology can be recovered in the time the business can tolerate.",
+          "children": []
+        },
+        {
+          "code": "A.5.31",
+          "title": "Legal, statutory, regulatory and contractual requirements",
+          "summary": "Know the legal and contractual security duties that apply and track them.",
+          "children": []
+        },
+        {
+          "code": "A.5.32",
+          "title": "Intellectual property rights",
+          "summary": "Use software and content within the rights you actually have.",
+          "children": []
+        },
+        {
+          "code": "A.5.33",
+          "title": "Protection of records",
+          "summary": "Keep required records readable and protected for as long as you must.",
+          "children": []
+        },
+        {
+          "code": "A.5.34",
+          "title": "Privacy and protection of PII",
+          "summary": "Handle personal information in line with the privacy commitments you make.",
+          "children": []
+        },
+        {
+          "code": "A.5.35",
+          "title": "Independent review of information security",
+          "summary": "Have someone independent check the security program on a schedule.",
+          "children": []
+        },
+        {
+          "code": "A.5.36",
+          "title": "Compliance with policies, rules and standards for information security",
+          "summary": "Check that teams actually follow the security rules you published.",
+          "children": []
+        },
+        {
+          "code": "A.5.37",
+          "title": "Documented operating procedures",
+          "summary": "Write down how to operate systems so the work does not live in one person's head.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.6",
+      "title": "People controls",
+      "summary": "Controls that depend on how people are hired, trained, and offboarded.",
+      "children": [
+        {
+          "code": "A.6.1",
+          "title": "Screening",
+          "summary": "Screen people before you trust them with access, at a level that matches the role.",
+          "children": []
+        },
+        {
+          "code": "A.6.2",
+          "title": "Terms and conditions of employment",
+          "summary": "Put security responsibilities into the employment terms people agree to.",
+          "children": []
+        },
+        {
+          "code": "A.6.3",
+          "title": "Information security awareness, education and training",
+          "summary": "Train people for the security risks in their actual job.",
+          "children": []
+        },
+        {
+          "code": "A.6.4",
+          "title": "Disciplinary process",
+          "summary": "Have a fair process for when someone breaks the security rules.",
+          "children": []
+        },
+        {
+          "code": "A.6.5",
+          "title": "Responsibilities after termination or change of employment",
+          "summary": "When someone leaves or changes role, end their access and remind them of ongoing duties.",
+          "children": []
+        },
+        {
+          "code": "A.6.6",
+          "title": "Confidentiality or non-disclosure agreements",
+          "summary": "Use confidentiality terms with people who will see sensitive information.",
+          "children": []
+        },
+        {
+          "code": "A.6.7",
+          "title": "Remote working",
+          "summary": "Set expectations for working outside the office, including how devices are protected.",
+          "children": []
+        },
+        {
+          "code": "A.6.8",
+          "title": "Information security event reporting",
+          "summary": "Make it easy and expected for people to report a security concern.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.7",
+      "title": "Physical controls",
+      "summary": "Controls for facilities, equipment, and the spaces people work in.",
+      "children": [
+        {
+          "code": "A.7.1",
+          "title": "Physical security perimeters",
+          "summary": "Define the physical boundary around spaces that need protection.",
+          "children": []
+        },
+        {
+          "code": "A.7.2",
+          "title": "Physical entry",
+          "summary": "Control and record who enters secure areas.",
+          "children": []
+        },
+        {
+          "code": "A.7.3",
+          "title": "Securing offices, rooms and facilities",
+          "summary": "Lock rooms that hold sensitive work, and don't leave them open by habit.",
+          "children": []
+        },
+        {
+          "code": "A.7.4",
+          "title": "Physical security monitoring",
+          "summary": "Watch physical spaces for unauthorized access.",
+          "children": []
+        },
+        {
+          "code": "A.7.5",
+          "title": "Protecting against physical and environmental threats",
+          "summary": "Plan for fire, water, heat, and similar threats to facilities and equipment.",
+          "children": []
+        },
+        {
+          "code": "A.7.6",
+          "title": "Working in secure areas",
+          "summary": "Set extra rules for people working inside a secure area.",
+          "children": []
+        },
+        {
+          "code": "A.7.7",
+          "title": "Clear desk and clear screen",
+          "summary": "Lock screens and put sensitive papers away when you step away.",
+          "children": []
+        },
+        {
+          "code": "A.7.8",
+          "title": "Equipment siting and protection",
+          "summary": "Place equipment so it is harder to steal, view, or damage.",
+          "children": []
+        },
+        {
+          "code": "A.7.9",
+          "title": "Security of assets off-premises",
+          "summary": "Protect equipment and data that leave the building.",
+          "children": []
+        },
+        {
+          "code": "A.7.10",
+          "title": "Storage media",
+          "summary": "Control storage media through its life, including when it is reused or sent out.",
+          "children": []
+        },
+        {
+          "code": "A.7.11",
+          "title": "Supporting utilities",
+          "summary": "Protect power and other utilities the systems depend on.",
+          "children": []
+        },
+        {
+          "code": "A.7.12",
+          "title": "Cabling security",
+          "summary": "Protect network and power cables from tampering and accidental damage.",
+          "children": []
+        },
+        {
+          "code": "A.7.13",
+          "title": "Equipment maintenance",
+          "summary": "Maintain equipment so it stays reliable and so maintenance staff don't get open-ended access.",
+          "children": []
+        },
+        {
+          "code": "A.7.14",
+          "title": "Secure disposal or re-use of equipment",
+          "summary": "Wipe or destroy storage before equipment is reused or thrown away.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.8",
+      "title": "Technological controls",
+      "summary": "Controls implemented in systems, software, and networks.",
+      "children": [
+        {
+          "code": "A.8.1",
+          "title": "User endpoint devices",
+          "summary": "Protect laptops and other endpoints that people use for work.",
+          "children": []
+        },
+        {
+          "code": "A.8.2",
+          "title": "Privileged access rights",
+          "summary": "Limit administrator access and keep it separate from everyday accounts.",
+          "children": []
+        },
+        {
+          "code": "A.8.3",
+          "title": "Information access restriction",
+          "summary": "Restrict access to information and system functions to the people who need them.",
+          "children": []
+        },
+        {
+          "code": "A.8.4",
+          "title": "Access to source code",
+          "summary": "Limit who can read and change source code.",
+          "children": []
+        },
+        {
+          "code": "A.8.5",
+          "title": "Secure authentication",
+          "summary": "Use authentication that resists guessing, replay, and stolen-password reuse.",
+          "children": []
+        },
+        {
+          "code": "A.8.6",
+          "title": "Capacity management",
+          "summary": "Watch capacity so systems keep up with demand.",
+          "children": []
+        },
+        {
+          "code": "A.8.7",
+          "title": "Protection against malware",
+          "summary": "Protect systems from malware and know what to do when it is found.",
+          "children": []
+        },
+        {
+          "code": "A.8.8",
+          "title": "Management of technical vulnerabilities",
+          "summary": "Find technical vulnerabilities and fix them on a timeline that matches the risk.",
+          "children": []
+        },
+        {
+          "code": "A.8.9",
+          "title": "Configuration management",
+          "summary": "Define secure configurations and notice when they drift.",
+          "children": []
+        },
+        {
+          "code": "A.8.10",
+          "title": "Information deletion",
+          "summary": "Delete information when there is no reason left to keep it.",
+          "children": []
+        },
+        {
+          "code": "A.8.11",
+          "title": "Data masking",
+          "summary": "Hide personal or sensitive data when the real values are not required.",
+          "children": []
+        },
+        {
+          "code": "A.8.12",
+          "title": "Data leakage prevention",
+          "summary": "Put measures in place so sensitive data is harder to send to the wrong place.",
+          "children": []
+        },
+        {
+          "code": "A.8.13",
+          "title": "Information backup",
+          "summary": "Back up information and prove you can restore it.",
+          "children": []
+        },
+        {
+          "code": "A.8.14",
+          "title": "Redundancy of information processing facilities",
+          "summary": "Have enough redundancy for the availability you commit to.",
+          "children": []
+        },
+        {
+          "code": "A.8.15",
+          "title": "Logging",
+          "summary": "Log security-relevant activity and keep those logs usable.",
+          "children": []
+        },
+        {
+          "code": "A.8.16",
+          "title": "Monitoring activities",
+          "summary": "Watch systems for unusual activity and follow up.",
+          "children": []
+        },
+        {
+          "code": "A.8.17",
+          "title": "Clock synchronization",
+          "summary": "Keep system clocks aligned so logs and evidence share one timeline.",
+          "children": []
+        },
+        {
+          "code": "A.8.18",
+          "title": "Use of privileged utility programs",
+          "summary": "Restrict tools that can bypass normal security controls.",
+          "children": []
+        },
+        {
+          "code": "A.8.19",
+          "title": "Installation of software on operational systems",
+          "summary": "Control what software can be installed on production systems.",
+          "children": []
+        },
+        {
+          "code": "A.8.20",
+          "title": "Networks security",
+          "summary": "Protect the network, not only the individual servers.",
+          "children": []
+        },
+        {
+          "code": "A.8.21",
+          "title": "Security of network services",
+          "summary": "Know the security features you require from network services.",
+          "children": []
+        },
+        {
+          "code": "A.8.22",
+          "title": "Segregation of networks",
+          "summary": "Separate networks when a flat network would spread a failure or an attack.",
+          "children": []
+        },
+        {
+          "code": "A.8.23",
+          "title": "Web filtering",
+          "summary": "Reduce exposure to malicious or inappropriate sites from work devices.",
+          "children": []
+        },
+        {
+          "code": "A.8.24",
+          "title": "Use of cryptography",
+          "summary": "Use cryptography where it protects confidentiality or integrity, and manage the keys.",
+          "children": []
+        },
+        {
+          "code": "A.8.25",
+          "title": "Secure development life cycle",
+          "summary": "Build security into how software is designed, built, and released.",
+          "children": []
+        },
+        {
+          "code": "A.8.26",
+          "title": "Application security requirements",
+          "summary": "State the security requirements for an application before it is built.",
+          "children": []
+        },
+        {
+          "code": "A.8.27",
+          "title": "Secure system architecture and engineering principles",
+          "summary": "Follow engineering principles that keep systems understandable and defensible.",
+          "children": []
+        },
+        {
+          "code": "A.8.28",
+          "title": "Secure coding",
+          "summary": "Write code in a way that avoids the common classes of implementation flaws.",
+          "children": []
+        },
+        {
+          "code": "A.8.29",
+          "title": "Security testing in development and acceptance",
+          "summary": "Test security before a change is accepted into production.",
+          "children": []
+        },
+        {
+          "code": "A.8.30",
+          "title": "Outsourced development",
+          "summary": "Keep security oversight when someone else writes the code.",
+          "children": []
+        },
+        {
+          "code": "A.8.31",
+          "title": "Separation of development, test and production environments",
+          "summary": "Keep production separate from the places where people experiment.",
+          "children": []
+        },
+        {
+          "code": "A.8.32",
+          "title": "Change management",
+          "summary": "Approve and record changes to production systems.",
+          "children": []
+        },
+        {
+          "code": "A.8.33",
+          "title": "Test information",
+          "summary": "Protect real personal or customer data if it is ever used in a test.",
+          "children": []
+        },
+        {
+          "code": "A.8.34",
+          "title": "Protection of information systems during audit testing",
+          "summary": "Plan audit tests so they don't take production down or expose data.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

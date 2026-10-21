@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/D2DAudit.Api/D2DAudit.Api.csproj" />
+    <Project Path="src/D2DAudit.Application/D2DAudit.Application.csproj" />
+    <Project Path="src/D2DAudit.Domain/D2DAudit.Domain.csproj" />
+    <Project Path="src/D2DAudit.Infrastructure/D2DAudit.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/D2DAudit.Tests/D2DAudit.Tests.csproj" />
+  </Folder>
+</Solution>

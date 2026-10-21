@@ -1,0 +1,308 @@
+{
+  "key": "soc2",
+  "name": "SOC 2",
+  "version": "2017",
+  "description": "Trust Services Criteria for Security and Availability. Titles are short public identifiers. Descriptions are our own wording, not the criteria text.",
+  "requirements": [
+    {
+      "code": "CC",
+      "title": "Security",
+      "summary": "Common criteria that apply to the security of the system.",
+      "children": [
+        {
+          "code": "CC1",
+          "title": "Control environment",
+          "summary": "How the organization sets the tone and structure for its controls.",
+          "children": [
+            {
+              "code": "CC1.1",
+              "title": "Integrity and ethical values",
+              "summary": "Leadership sets a standard for honest behavior and people can see it in decisions.",
+              "children": []
+            },
+            {
+              "code": "CC1.2",
+              "title": "Board oversight",
+              "summary": "The board, or an equivalent, oversees how management handles security risk.",
+              "children": []
+            },
+            {
+              "code": "CC1.3",
+              "title": "Organizational structure",
+              "summary": "Reporting lines and responsibilities for security are defined.",
+              "children": []
+            },
+            {
+              "code": "CC1.4",
+              "title": "Commitment to competence",
+              "summary": "People who run security-relevant work have the skills the job needs.",
+              "children": []
+            },
+            {
+              "code": "CC1.5",
+              "title": "Accountability",
+              "summary": "People are held to the security responsibilities assigned to them.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC2",
+          "title": "Communication and information",
+          "summary": "How security information moves to the people who need it.",
+          "children": [
+            {
+              "code": "CC2.1",
+              "title": "Quality information",
+              "summary": "The organization uses information that is good enough to run its controls.",
+              "children": []
+            },
+            {
+              "code": "CC2.2",
+              "title": "Internal communication",
+              "summary": "Security responsibilities and issues are communicated inside the organization.",
+              "children": []
+            },
+            {
+              "code": "CC2.3",
+              "title": "External communication",
+              "summary": "Customers and other outsiders are told what they need to know about security.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC3",
+          "title": "Risk assessment",
+          "summary": "How the organization finds and judges security risk.",
+          "children": [
+            {
+              "code": "CC3.1",
+              "title": "Specifies objectives",
+              "summary": "Security objectives are clear enough that risks can be judged against them.",
+              "children": []
+            },
+            {
+              "code": "CC3.2",
+              "title": "Identifies and analyzes risk",
+              "summary": "The organization identifies security risks and decides how significant they are.",
+              "children": []
+            },
+            {
+              "code": "CC3.3",
+              "title": "Considers fraud risk",
+              "summary": "The risk assessment includes fraud and misuse, not only external attack.",
+              "children": []
+            },
+            {
+              "code": "CC3.4",
+              "title": "Identifies significant change",
+              "summary": "Changes that would affect security are identified and assessed.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC4",
+          "title": "Monitoring activities",
+          "summary": "How the organization checks that controls keep working.",
+          "children": [
+            {
+              "code": "CC4.1",
+              "title": "Ongoing and separate evaluations",
+              "summary": "Controls are evaluated as they run, and by separate reviews.",
+              "children": []
+            },
+            {
+              "code": "CC4.2",
+              "title": "Communicates deficiencies",
+              "summary": "Control gaps are reported to the people who can fix them.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC5",
+          "title": "Control activities",
+          "summary": "The policies and activities that carry out the security response.",
+          "children": [
+            {
+              "code": "CC5.1",
+              "title": "Selects control activities",
+              "summary": "Control activities are chosen to address the risks that were identified.",
+              "children": []
+            },
+            {
+              "code": "CC5.2",
+              "title": "Technology general controls",
+              "summary": "Technology controls support the security objectives of the service.",
+              "children": []
+            },
+            {
+              "code": "CC5.3",
+              "title": "Policies and procedures",
+              "summary": "Policies say what must happen, and procedures say how it happens.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC6",
+          "title": "Logical and physical access",
+          "summary": "How access to systems, data, and facilities is limited.",
+          "children": [
+            {
+              "code": "CC6.1",
+              "title": "Logical access security",
+              "summary": "Logical access to systems and data is restricted to authorized users.",
+              "children": []
+            },
+            {
+              "code": "CC6.2",
+              "title": "Registers and authorizes users",
+              "summary": "New access is registered and authorized before it is used.",
+              "children": []
+            },
+            {
+              "code": "CC6.3",
+              "title": "Removes user access",
+              "summary": "Access is removed when someone leaves or no longer needs it.",
+              "children": []
+            },
+            {
+              "code": "CC6.4",
+              "title": "Restricts physical access",
+              "summary": "Physical access to systems is limited to authorized people.",
+              "children": []
+            },
+            {
+              "code": "CC6.5",
+              "title": "Discontinues access as assets change",
+              "summary": "Logical and physical access ends when assets are retired or moved.",
+              "children": []
+            },
+            {
+              "code": "CC6.6",
+              "title": "Protects against external threats",
+              "summary": "Boundaries are protected against threats from outside the system.",
+              "children": []
+            },
+            {
+              "code": "CC6.7",
+              "title": "Protects data in transmission",
+              "summary": "Data is protected while it moves across networks.",
+              "children": []
+            },
+            {
+              "code": "CC6.8",
+              "title": "Prevents malicious software",
+              "summary": "Controls reduce the chance that malicious software is introduced.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC7",
+          "title": "System operations",
+          "summary": "How the organization detects and responds to operational security events.",
+          "children": [
+            {
+              "code": "CC7.1",
+              "title": "Detects vulnerabilities and changes",
+              "summary": "Configuration changes and vulnerabilities are detected.",
+              "children": []
+            },
+            {
+              "code": "CC7.2",
+              "title": "Monitors for anomalies",
+              "summary": "System activity is monitored for behavior that is out of the ordinary.",
+              "children": []
+            },
+            {
+              "code": "CC7.3",
+              "title": "Evaluates security events",
+              "summary": "Security events are evaluated so the response matches the event.",
+              "children": []
+            },
+            {
+              "code": "CC7.4",
+              "title": "Responds to incidents",
+              "summary": "Identified security incidents get a defined response.",
+              "children": []
+            },
+            {
+              "code": "CC7.5",
+              "title": "Recovers from incidents",
+              "summary": "The organization can recover systems after an incident.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC8",
+          "title": "Change management",
+          "summary": "How changes are introduced without losing control.",
+          "children": [
+            {
+              "code": "CC8.1",
+              "title": "Manages change",
+              "summary": "Changes to infrastructure, software, and procedures are authorized and tested.",
+              "children": []
+            }
+          ]
+        },
+        {
+          "code": "CC9",
+          "title": "Risk mitigation",
+          "summary": "How residual business and vendor risk is handled.",
+          "children": [
+            {
+              "code": "CC9.1",
+              "title": "Mitigates business disruption",
+              "summary": "Risks that would disrupt the business are identified and mitigated.",
+              "children": []
+            },
+            {
+              "code": "CC9.2",
+              "title": "Manages vendor risk",
+              "summary": "Risks from vendors and partners are assessed and addressed.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A",
+      "title": "Availability",
+      "summary": "Additional criteria for the availability commitment.",
+      "children": [
+        {
+          "code": "A1",
+          "title": "Availability",
+          "summary": "Capacity, environmental protection, backup, and recovery testing.",
+          "children": [
+            {
+              "code": "A1.1",
+              "title": "Maintains capacity",
+              "summary": "Capacity is managed so commitments to customers can be met.",
+              "children": []
+            },
+            {
+              "code": "A1.2",
+              "title": "Protects environmental and recovery needs",
+              "summary": "Facilities, backups, and recovery support the availability commitment.",
+              "children": []
+            },
+            {
+              "code": "A1.3",
+              "title": "Tests recovery",
+              "summary": "Recovery procedures are tested.",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
