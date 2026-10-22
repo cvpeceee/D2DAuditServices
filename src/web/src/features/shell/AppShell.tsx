@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import { initials } from "../../shared/ui/ui";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
+import { Icon } from "../../shared/ui/icons";
 
 const links = [
   { to: "/", key: "dashboard", end: true },
@@ -232,8 +233,8 @@ export function AppShell() {
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            <i />
-            {t(`nav.${link.key}`)}
+            <Icon name={link.key} />
+            <span>{t(`nav.${link.key}`)}</span>
             {link.key === "controls" && (workspace?.failingControls ?? 0) > 0 && (
               <span className="ct">{workspace?.failingControls}</span>
             )}
@@ -247,8 +248,8 @@ export function AppShell() {
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            <i />
-            {t(`nav.${link.key}`)}
+            <Icon name={link.key} />
+            <span>{t(`nav.${link.key}`)}</span>
           </NavLink>
         ))}
         <div className="sec">{t("nav.audit")}</div>
@@ -257,16 +258,16 @@ export function AppShell() {
           className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
           onClick={() => setMenuOpen(false)}
         >
-          <i />
-          {t("nav.auditor")}
+          <Icon name="auditor" />
+          <span>{t("nav.auditor")}</span>
         </NavLink>
         <NavLink
           to="/integrations"
           className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
           onClick={() => setMenuOpen(false)}
         >
-          <i />
-          {t("nav.integrations")}
+          <Icon name="integrations" />
+          <span>{t("nav.integrations")}</span>
         </NavLink>
         {workspace?.role === "Admin" && (
           <NavLink
@@ -274,8 +275,8 @@ export function AppShell() {
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            <i />
-            {t("nav.settings")}
+            <Icon name="settings" />
+            <span>{t("nav.settings")}</span>
           </NavLink>
         )}
         {workspace?.role === "Admin" && (
@@ -284,12 +285,15 @@ export function AppShell() {
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            <i />
-            {t("nav.activity")}
+            <Icon name="activity" />
+            <span>{t("nav.activity")}</span>
           </NavLink>
         )}
         <div className="agentcard">
-          <b>{t("shell.deviceAgent")}</b>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <Icon name="device" size={14} />
+            <b style={{ margin: 0 }}>{t("shell.deviceAgent")}</b>
+          </div>
           {t("shell.devices", { count: deviceCount })}
           <div className="bar" style={{ marginTop: 8 }}>
             <i style={{ width: deviceCount > 0 ? "100%" : "0%" }} />
@@ -318,7 +322,8 @@ export function AppShell() {
               setActive(0);
             }}
           >
-            ⌕ {t("shell.search")}
+            <Icon name="search" size={14} style={{ opacity: 0.6 }} />
+            <span>{t("shell.search")}</span>
             <span className="kbd">Ctrl K</span>
           </button>
           <div className="toggle" role="group" aria-label={t("theme.label")}>
@@ -339,8 +344,22 @@ export function AppShell() {
               type="button"
               aria-label={t("shell.notifications")}
               onClick={() => setNotesOpen((open) => !open)}
+              style={{ position: "relative" }}
             >
-              {notes.length > 0 ? notes.length : "○"}
+              <Icon name="bell" size={16} />
+              {notes.length > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: "var(--accent)",
+                  }}
+                />
+              )}
             </button>
             {notesOpen && (
               <div className="note-pop" role="dialog" aria-label={t("shell.notifications")}>
@@ -371,7 +390,12 @@ export function AppShell() {
             aria-label={t("shell.jobs")}
             onClick={() => setTray(true)}
           >
-            {running ? "●" : "○"}
+            <Icon
+              name="jobs"
+              size={16}
+              className={running ? "spin" : ""}
+              style={{ color: running ? "var(--accent)" : "inherit" }}
+            />
           </button>
           <button
             className="btn icon-btn"
@@ -379,7 +403,7 @@ export function AppShell() {
             aria-label={t("shell.openAssistant")}
             onClick={() => setAssist(true)}
           >
-            ✦
+            <Icon name="sparkles" size={16} style={{ color: "var(--accent)" }} />
           </button>
           <button
             className="av"
@@ -504,7 +528,12 @@ export function AppShell() {
                   setPalette(false);
                 }}
               >
-                {action.label}
+                <Icon
+                  name={action.id.startsWith("theme-") ? "settings" : action.id}
+                  size={15}
+                  style={{ opacity: 0.7 }}
+                />
+                <span>{action.label}</span>
               </button>
             ))}
           </div>

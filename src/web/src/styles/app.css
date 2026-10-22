@@ -125,18 +125,26 @@ a {
   width: 100%;
   text-align: start;
 }
+.nav .ico,
 .nav i {
   width: 16px;
   height: 16px;
-  border-radius: 5px;
-  border: 1.6px solid currentColor;
-  opacity: 0.8;
+  opacity: 0.75;
   flex: none;
+  stroke: currentColor;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.nav:hover .ico {
+  opacity: 1;
 }
 .nav.on {
   background: var(--accentSoft);
   color: var(--accent);
   font-weight: 600;
+}
+.nav.on .ico {
+  opacity: 1;
+  stroke: var(--accent);
 }
 .nav .ct {
   margin-inline-start: auto;
@@ -258,6 +266,23 @@ a {
 .icon-btn {
   width: 34px;
   padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn .ico {
+  flex: none;
+}
+.spin {
+  animation: d2d-spin 1.2s linear infinite;
+}
+@keyframes d2d-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .av {
   width: 32px;
@@ -816,7 +841,28 @@ button.row-hit::after {
   background: transparent;
   outline: none;
 }
-.palette-card button.item,
+.palette-card button.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  padding: 10px 16px;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.palette-card button.item .ico {
+  opacity: 0.65;
+  flex: none;
+}
+.palette-card button.item.on .ico,
+.palette-card button.item:hover .ico {
+  opacity: 1;
+  stroke: var(--accent);
+}
 .tray-card .job {
   display: block;
   width: 100%;
