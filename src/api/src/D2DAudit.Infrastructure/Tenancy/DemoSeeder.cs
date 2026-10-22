@@ -1,8 +1,10 @@
 using D2DAudit.Application;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Identity;
 using D2DAudit.Infrastructure.Integrations;
 using D2DAudit.Infrastructure.Persistence;
+using D2DAudit.Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,20 +21,19 @@ public sealed class DemoSeeder(
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
-        var acme = await RequiredTenantAsync(provisioner, new CreateTenantRequest("acme-robotics", "Acme Robotics", "US", true), cancellationToken);
+        var acme = await RequiredTenantAsync(provisioner, new CreateTenantRequest(ClientSeed.Company.Slug, ClientSeed.Company.Name, ClientSeed.Company.Region, true), cancellationToken);
         var northwind = await RequiredTenantAsync(provisioner, new CreateTenantRequest("northwind-labs", "Northwind Labs", "EU", true), cancellationToken);
         await provisioner.SeedExampleControlsAsync(acme.Id, cancellationToken);
         await EnsureNorthwindMarkerAsync(northwind, cancellationToken);
         await provisioner.SeedExampleControlsAsync(northwind.Id, cancellationToken);
         await EnsureAuditAsync(acme.Id, cancellationToken);
 
-        var chandra = await EnsureUserAsync("chandra@acme.example", "Chandra V.", cancellationToken);
-        var priya = await EnsureUserAsync("priya@acme.example", "Priya N.", cancellationToken);
-        var marcus = await EnsureUserAsync("marcus@acme.example", "Marcus L.", cancellationToken);
-        var dev = await EnsureUserAsync("dev@acme.example", "Dev T.", cancellationToken);
-        var people = await EnsureUserAsync("people@acme.example", "People Ops", cancellationToken);
-        var itops = await EnsureUserAsync("itops@acme.example", "IT Ops", cancellationToken);
-        var lena = await EnsureUserAsync("lena@acme.example", "Lena K.", cancellationToken);
+        var domain = ClientSeed.Company.Domain;
+        var chandra = await EnsureUserAsync($"chandra.vell@{domain}", "Chandra Vell", cancellationToken);
+        var priya = await EnsureUserAsync($"priya.nair@{domain}", "Priya Nair", cancellationToken);
+        var marcus = await EnsureUserAsync($"marcus.lee@{domain}", "Marcus Lee", cancellationToken);
+        var dev = await EnsureUserAsync($"dev.patel@{domain}", "Dev Patel", cancellationToken);
+        var lena = await EnsureUserAsync($"lena.cho@{domain}", "Lena Cho", cancellationToken);
         var auditor = await EnsureUserAsync("auditor@northgate.example", "Rachel Ortiz", cancellationToken);
         var northwindOwner = await EnsureUserAsync("owner@northwind.example", "Alex Kim", cancellationToken);
 
@@ -40,8 +41,6 @@ public sealed class DemoSeeder(
         await EnsureMembershipAsync(priya, acme.Id, TenantRole.ControlOwner, cancellationToken);
         await EnsureMembershipAsync(marcus, acme.Id, TenantRole.ControlOwner, cancellationToken);
         await EnsureMembershipAsync(dev, acme.Id, TenantRole.Employee, cancellationToken);
-        await EnsureMembershipAsync(people, acme.Id, TenantRole.Employee, cancellationToken);
-        await EnsureMembershipAsync(itops, acme.Id, TenantRole.Employee, cancellationToken);
         await EnsureMembershipAsync(lena, acme.Id, TenantRole.ControlOwner, cancellationToken);
         await EnsureMembershipAsync(auditor, acme.Id, TenantRole.Auditor, cancellationToken);
         await EnsureMembershipAsync(northwindOwner, northwind.Id, TenantRole.Admin, cancellationToken);
@@ -49,7 +48,38 @@ public sealed class DemoSeeder(
         await EnsureSsoDomainAsync(acme.Id, cancellationToken);
         await EnsureExamplesAndCollectAsync(acme, "acme", cancellationToken);
         await EnsureExamplesAndCollectAsync(northwind, "northwind", cancellationToken);
-        await DemoPortal.SeedAsync(databases, acme, time.GetUtcNow(), cancellationToken);
+        await using var scope = scopes.CreateAsyncScope();
+        var evidence = scope.ServiceProvider.GetRequiredService<EvidenceWriter>();
+        var now = time.GetUtcNow();
+        await DemoPortal.SeedAsync(databases, acme, now, evidence, cancellationToken);
+        await SeedActivityAsync(acme.Id, now, cancellationToken);
+    }
+
+    private async Task SeedActivityAsync(Guid tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (await control.Activity.AnyAsync(item => item.TenantId == tenantId && item.Action == "access.started", cancellationToken))
+        {
+            return;
+        }
+
+        var emails = ClientSeed.Activity.Select(item => item.Actor).Distinct().ToArray();
+        var users = await control.Users.Where(user => emails.Contains(user.Email)).ToListAsync(cancellationToken);
+        foreach (var item in ClientSeed.Activity)
+        {
+            var actor = users.FirstOrDefault(user => user.Email == item.Actor);
+            control.Activity.Add(new ActivityEvent
+            {
+                Id = Guid.NewGuid(),
+                At = ClientSeed.Moment(now, item.DayOffset),
+                ActorUserId = actor?.Id,
+                TenantId = tenantId,
+                Action = item.Action,
+                Result = item.Result,
+                Detail = item.Detail,
+            });
+        }
+
+        await control.SaveChangesAsync(cancellationToken);
     }
 
     private async Task EnsureExamplesAndCollectAsync(Tenant tenant, string fixture, CancellationToken cancellationToken)
@@ -72,7 +102,7 @@ public sealed class DemoSeeder(
             return false;
         }
 
-        foreach (var provider in new[] { "aws", "google", "microsoft", "github" })
+        foreach (var provider in IntegrationPolicies.ExampleProviders(fixture))
         {
             db.Integrations.Add(new IntegrationConnection
             {
@@ -82,7 +112,7 @@ public sealed class DemoSeeder(
                 Status = "connected",
                 Example = true,
                 Fixture = fixture,
-                AccountLabel = fixture == "northwind" ? "Northwind Labs example" : "Acme Robotics example",
+                AccountLabel = fixture == "northwind" ? "Northwind Labs example" : ClientSeed.Company.Name + " example",
                 SetupHint = "Example fixture. No customer account is connected.",
             });
         }

@@ -1,5 +1,6 @@
 import { exampleAccounts, examplePassword } from "./accounts";
 import {
+  company,
   createWorld,
   type DemoEvidence,
   type DemoFinding,
@@ -7,6 +8,7 @@ import {
   type DemoRequest,
   type DemoWorld,
 } from "./catalog";
+import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
 const tenantId = "a360c8ce-0988-4dfc-9722-bce45697b553";
@@ -39,6 +41,7 @@ let worldPromise: Promise<DemoWorld> | null = null;
 let session: Session | null = null;
 let jobs: Job[] = [];
 let activity: Activity[] = [];
+let activitySeeded = false;
 let stepDelayMs = 400;
 let idCounter = 1;
 
@@ -48,11 +51,13 @@ export function setDemoStepDelay(milliseconds: number) {
 
 export async function resetDemo() {
   worldPromise = createWorld();
-  await worldPromise;
+  const data = await worldPromise;
   session = null;
   jobs = [];
   activity = [];
+  activitySeeded = false;
   idCounter = 1;
+  seedActivity(data);
   sessionStorage.removeItem(sessionKey);
 }
 
@@ -132,6 +137,7 @@ async function route(
 
   const actor = requireUser();
   const data = await world();
+  seedActivity(data);
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -223,6 +229,64 @@ async function route(
     requireAudit(actor);
     return packageFile(path.slice("/api/v1/audits/packages/".length));
   }
+  if (path === "/api/v1/risks" && method === "GET") return json(data.risks);
+  if (path === "/api/v1/risks/export" && method === "GET") {
+    return exportDocument(riskDocument(data), query.get("format"), "iso27001-risk-treatment-plan");
+  }
+  if (path === "/api/v1/risks" && method === "POST") return json(saveRisk(data, actor, body));
+  if (path === "/api/v1/people" && method === "GET") return json(peoplePage(data, query));
+  if (path === "/api/v1/people/sync" && method === "POST") {
+    requireWrite(actor);
+    record(actor, "people.synced", "ok", String(data.people.length));
+    return json(data.people.length);
+  }
+  if (path.startsWith("/api/v1/people/") && path.endsWith("/tasks") && method === "POST") {
+    return json(setTask(data, actor, path.slice("/api/v1/people/".length, -"/tasks".length), body));
+  }
+  if (path.startsWith("/api/v1/people/") && method === "GET") {
+    return json(personDetail(data, decodeURIComponent(path.slice("/api/v1/people/".length))));
+  }
+  if (path === "/api/v1/soa/export" && method === "GET") {
+    return exportDocument(
+      soaDocument(data),
+      query.get("format"),
+      "iso27001-statement-of-applicability",
+    );
+  }
+  if (path === "/api/v1/soa" && method === "GET") {
+    if (actor.role === "Auditor") record(actor, "soa.viewed", "ok", "iso27001");
+    return json(data.soa);
+  }
+  if (path.startsWith("/api/v1/soa/") && method === "PUT") {
+    return json(saveSoa(data, actor, decodeURIComponent(path.slice("/api/v1/soa/".length)), body));
+  }
+  if (path === "/api/v1/vendors" && method === "GET") return json(data.vendors);
+  if (path === "/api/v1/vendors" && method === "POST") return json(saveVendor(data, actor, body));
+  if (path === "/api/v1/access-reviews" && method === "GET")
+    return json(data.campaigns.map(campaignList));
+  if (path === "/api/v1/access-reviews" && method === "POST")
+    return json(await startCampaign(data, actor, body));
+  if (
+    path.startsWith("/api/v1/access-reviews/") &&
+    path.endsWith("/complete") &&
+    method === "POST"
+  ) {
+    const id = path.slice("/api/v1/access-reviews/".length, -"/complete".length);
+    return json(await completeCampaign(data, actor, id));
+  }
+  if (path.includes("/items/") && path.startsWith("/api/v1/access-reviews/") && method === "POST") {
+    const rest = path.slice("/api/v1/access-reviews/".length);
+    const [campaignId, itemId] = rest.split("/items/");
+    return json(decideItem(data, actor, campaignId, itemId, body));
+  }
+  if (path.startsWith("/api/v1/access-reviews/") && method === "GET") {
+    return json(
+      campaignDetail(data, decodeURIComponent(path.slice("/api/v1/access-reviews/".length))),
+    );
+  }
+  if (path === "/api/v1/notifications") return json(data.notifications);
+  if (path === "/api/v1/devices") return json(data.devices);
+  if (path === "/api/v1/resources") return json(data.resources);
   if (path === "/api/v1/jobs") return json(jobs.map(publicJob));
   if (path === "/api/v1/activity") {
     if (actor.role !== "Admin") throw new DemoError(403, "forbidden");
@@ -281,9 +345,9 @@ function authBody() {
     tenants: [
       {
         tenantId,
-        name: "Acme Robotics",
-        slug: "acme-robotics",
-        region: "US",
+        name: company.name,
+        slug: company.slug,
+        region: company.region,
         role: session.role,
         exampleData: true,
       },
@@ -298,8 +362,8 @@ function authBody() {
 function workspace(data: DemoWorld, actor: Session) {
   return {
     tenantId,
-    name: "Acme Robotics",
-    region: "US",
+    name: company.name,
+    region: company.region,
     role: actor.role,
     exampleData: true,
     canWrite: actor.role !== "Auditor",
@@ -336,8 +400,8 @@ function dashboard(data: DemoWorld, actor: Session) {
   ).length;
   return {
     displayName: actor.name,
-    tenantName: "Acme Robotics",
-    region: "US",
+    tenantName: company.name,
+    region: company.region,
     exampleData: true,
     readinessPercent: percent(health.passing, data.controls.length),
     frameworkCount: data.frameworks.length,
@@ -360,6 +424,9 @@ function dashboard(data: DemoWorld, actor: Session) {
     },
     failingTests,
     health,
+    dueItems: dueItems(data),
+    history: data.history,
+    devicesReporting: data.devices.length,
   };
 }
 
@@ -524,21 +591,23 @@ async function upload(data: DemoWorld, actor: Session, body: Record<string, unkn
   return publicEvidence(item);
 }
 
+const providerNames: Record<string, string> = {
+  aws: "Amazon Web Services",
+  azure: "Microsoft Azure",
+  gcp: "Google Cloud",
+  google: "Google Workspace",
+  microsoft: "Microsoft 365",
+  github: "GitHub",
+};
+
 function integrations() {
-  return ["aws", "google", "microsoft", "github"].map((provider, index) => ({
+  return ["aws", "azure", "gcp", "google", "microsoft", "github"].map((provider, index) => ({
     id: idOf(20 + index),
     provider,
-    displayName:
-      provider === "aws"
-        ? "Amazon Web Services"
-        : provider === "google"
-          ? "Google Workspace"
-          : provider === "microsoft"
-            ? "Microsoft 365"
-            : "GitHub",
+    displayName: providerNames[provider] ?? provider,
     status: "connected",
     example: true,
-    accountLabel: "Acme Robotics example",
+    accountLabel: `${company.name} example`,
     externalId: null,
     roleArn: null,
     domain: null,
@@ -720,7 +789,7 @@ function auditPage(data: DemoWorld) {
       name: "SOC 2 Type II — Fieldwork",
       firmName: "Northgate Assurance LLP",
       frameworkKey: "soc2",
-      scope: "SOC 2 Type II (Security, Availability). Example engagement for Acme Robotics.",
+      scope: `${company.name} (${company.legalName}), a ${company.product}. SOC 2 Type II (Security, Availability) example engagement. The program also covers ISO 27001, ISO 27017, and ISO 27018.`,
       periodStart: "2026-04-01",
       periodEnd: "2026-09-30",
       fieldworkOn: "2026-11-30",
@@ -818,6 +887,7 @@ function createFinding(data: DemoWorld, actor: Session, body: Record<string, unk
     requirementCode: String(body.requirementCode ?? ""),
     managementResponse: null,
     responseByName: null,
+    comments: [],
   };
   data.findings.unshift(row);
   record(actor, "audit.finding.created", "ok", row.code);
@@ -962,6 +1032,520 @@ function publicJob(job: Job) {
   };
 }
 
+type ExportDocument = { pdf: string[]; csv: string };
+
+function dueItems(data: DemoWorld) {
+  const today = new Date().toISOString().slice(0, 10);
+  const horizon = shiftDate(today, 30);
+  const items: { kind: string; title: string; dueOn: string; href: string; overdue: boolean }[] =
+    [];
+  for (const risk of data.risks) {
+    if (risk.reviewOn <= horizon) {
+      items.push({
+        kind: "risk",
+        title: risk.title,
+        dueOn: risk.reviewOn,
+        href: "/risks",
+        overdue: risk.reviewOn < today,
+      });
+    }
+  }
+  for (const vendor of data.vendors) {
+    if (vendor.reviewDueOn <= horizon) {
+      items.push({
+        kind: "vendor",
+        title: vendor.name,
+        dueOn: vendor.reviewDueOn,
+        href: "/vendors",
+        overdue: vendor.reviewDueOn < today,
+      });
+    }
+  }
+  for (const person of data.people) {
+    if (person.training !== "Complete" && person.trainingDueOn && person.trainingDueOn <= horizon) {
+      items.push({
+        kind: "training",
+        title: person.name,
+        dueOn: person.trainingDueOn,
+        href: "/people",
+        overdue: person.trainingDueOn < today,
+      });
+    }
+  }
+  for (const campaign of data.campaigns) {
+    if (campaign.state === "Open" && campaign.dueOn <= horizon) {
+      items.push({
+        kind: "access",
+        title: campaign.name,
+        dueOn: campaign.dueOn,
+        href: "/access-reviews",
+        overdue: campaign.dueOn < today,
+      });
+    }
+  }
+  for (const policy of data.policies) {
+    const approved = [...policy.versions]
+      .filter((item) => item.state === "Approved")
+      .sort((a, b) => b.number - a.number)[0];
+    for (const item of policy.acknowledgements) {
+      if (item.version === approved?.number && !item.acknowledgedAt && item.dueOn <= horizon) {
+        items.push({
+          kind: "policy",
+          title: `${policy.title} · ${item.personName}`,
+          dueOn: item.dueOn,
+          href: "/policies",
+          overdue: item.dueOn < today,
+        });
+      }
+    }
+  }
+  return items.sort((a, b) => a.dueOn.localeCompare(b.dueOn) || a.title.localeCompare(b.title));
+}
+
+function shiftDate(iso: string, days: number) {
+  const date = new Date(`${iso}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function pdfBytes(lines: string[]) {
+  const bytes = plainPdf(lines);
+  const copy = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copy).set(bytes);
+  return copy;
+}
+
+function exportDocument(document: ExportDocument, format: string | null, name: string) {
+  if (format !== "csv" && format !== "pdf") throw new DemoError(400, "invalid_format");
+  const pdf = format === "pdf";
+  const body = pdf ? pdfBytes(document.pdf) : document.csv;
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": pdf ? "application/pdf" : "text/csv",
+      "Content-Disposition": `attachment; filename="${name}.${pdf ? "pdf" : "csv"}"`,
+    },
+  });
+}
+
+function riskDocument(data: DemoWorld): ExportDocument {
+  const header =
+    "code,title,statement,likelihood,impact,score,band,owner,treatment,treatmentPlan,controls,reviewOn,residualLikelihood,residualImpact,residualScore";
+  return {
+    pdf: [
+      "ISO 27001 risk assessment and treatment plan",
+      "",
+      ...data.risks.map(
+        (row) =>
+          `${row.code}  ${row.likelihood}x${row.impact}=${row.score} ${row.band}  residual ${row.residualLikelihood}x${row.residualImpact}=${row.residualScore}  ${row.treatment}  review ${row.reviewOn}  ${row.title}`,
+      ),
+    ],
+    csv: `${[
+      header,
+      ...data.risks.map((row) =>
+        [
+          row.code,
+          row.title,
+          row.statement,
+          row.likelihood,
+          row.impact,
+          row.score,
+          row.band,
+          row.ownerName,
+          row.treatment,
+          row.treatmentPlan,
+          row.controlCodes.join(" "),
+          row.reviewOn,
+          row.residualLikelihood,
+          row.residualImpact,
+          row.residualScore,
+        ]
+          .map((cell) => quoted(String(cell)))
+          .join(","),
+      ),
+    ].join("\n")}\n`,
+  };
+}
+
+function soaDocument(data: DemoWorld): ExportDocument {
+  return {
+    pdf: [
+      "ISO 27001 statement of applicability",
+      "",
+      ...data.soa.map(
+        (row) =>
+          `${row.code}  ${row.applicable ? "applicable" : "not applicable"}  ${row.implementation}  ${row.title}`,
+      ),
+    ],
+    csv: `${[
+      "code,title,applicable,justification,implementation",
+      ...data.soa.map((row) =>
+        [row.code, row.title, row.applicable ? "yes" : "no", row.justification, row.implementation]
+          .map(quoted)
+          .join(","),
+      ),
+    ].join("\n")}\n`,
+  };
+}
+
+function quoted(value: string) {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+function onScale(value: number) {
+  return Number.isInteger(value) && value >= 1 && value <= 5;
+}
+
+function saveRisk(data: DemoWorld, actor: Session, body: Record<string, unknown>) {
+  requireWrite(actor);
+  const likelihood = Number(body.likelihood);
+  const impact = Number(body.impact);
+  const residualLikelihood = Number(body.residualLikelihood);
+  const residualImpact = Number(body.residualImpact);
+  const title = String(body.title ?? "").trim();
+  const ownerName = String(body.ownerName ?? "").trim();
+  const ownerEmail = String(body.ownerEmail ?? "").trim();
+  const treatment = String(body.treatment ?? "");
+  const treatments = ["Mitigate", "Accept", "Transfer", "Avoid"];
+  if (
+    !title ||
+    !ownerName ||
+    !ownerEmail.includes("@") ||
+    !treatments.includes(treatment) ||
+    !onScale(likelihood) ||
+    !onScale(impact) ||
+    !onScale(residualLikelihood) ||
+    !onScale(residualImpact)
+  ) {
+    throw new DemoError(400, "invalid_risk");
+  }
+  const controlCodes = Array.isArray(body.controlCodes) ? body.controlCodes.map(String) : [];
+  if (controlCodes.some((code) => !data.controls.some((control) => control.code === code))) {
+    throw new DemoError(400, "invalid_control");
+  }
+  const requested = String(body.code ?? "").trim();
+  const code = requested || nextRiskCode(data);
+  const score = likelihood * impact;
+  const residualScore = residualLikelihood * residualImpact;
+  const row = {
+    code,
+    title,
+    statement: String(body.statement ?? "").trim(),
+    likelihood,
+    impact,
+    score,
+    band: score >= 15 ? "critical" : score >= 8 ? "high" : score >= 4 ? "medium" : "low",
+    ownerName,
+    ownerEmail,
+    treatment,
+    treatmentPlan: String(body.treatmentPlan ?? "").trim(),
+    reviewOn: String(body.reviewOn ?? ""),
+    residualLikelihood,
+    residualImpact,
+    residualScore,
+    residualBand:
+      residualScore >= 15
+        ? "critical"
+        : residualScore >= 8
+          ? "high"
+          : residualScore >= 4
+            ? "medium"
+            : "low",
+    controlCodes,
+  };
+  const index = data.risks.findIndex((item) => item.code === code);
+  if (index >= 0) data.risks[index] = row;
+  else data.risks.push(row);
+  record(actor, "risk.saved", "ok", code);
+  return row;
+}
+
+function nextRiskCode(data: DemoWorld) {
+  const numbers = data.risks
+    .map((item) => Number(item.code.replace("R-", "")))
+    .filter((item) => !Number.isNaN(item));
+  return `R-${String(Math.max(0, ...numbers) + 1).padStart(2, "0")}`;
+}
+
+function peoplePage(data: DemoWorld, query: URLSearchParams) {
+  const term = (query.get("q") ?? "").trim().toLowerCase();
+  const parsedSize = Number(query.get("pageSize"));
+  const parsedPage = Number(query.get("page"));
+  const pageSize =
+    Number.isFinite(parsedSize) && parsedSize > 0 ? Math.min(100, Math.floor(parsedSize)) : 40;
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+  const filtered = data.people.filter((person) => {
+    if (!term) return true;
+    return [person.name, person.email, person.department, person.role]
+      .join(" ")
+      .toLowerCase()
+      .includes(term);
+  });
+  const start = (page - 1) * pageSize;
+  return {
+    items: filtered.slice(start, start + pageSize).map(personList),
+    total: filtered.length,
+    page,
+    pageSize,
+  };
+}
+
+function personList(person: DemoWorld["people"][number]) {
+  return {
+    id: person.id,
+    name: person.name,
+    email: person.email,
+    department: person.department,
+    source: person.source,
+    state: person.state,
+    training: person.training,
+    trainingDueOn: person.trainingDueOn,
+    leaverStillHasAccess: leaverStillHasAccess(person),
+    openTasks: person.tasks.filter(
+      (task) =>
+        !task.done && task.kind === (person.state === "Offboarded" ? "Offboarding" : "Onboarding"),
+    ).length,
+    role: person.role,
+    hireOn: person.hireOn,
+    leftOn: person.leftOn,
+  };
+}
+
+function leaverStillHasAccess(person: DemoWorld["people"][number]) {
+  return person.state === "Offboarded" && person.accounts.some((account) => account.active);
+}
+
+function setTask(data: DemoWorld, actor: Session, id: string, body: Record<string, unknown>) {
+  requireWrite(actor);
+  const person = data.people.find((item) => item.id === id);
+  const task = person?.tasks.find((item) => item.taskCode === String(body.taskCode ?? ""));
+  if (!person || !task) throw new DemoError(404, "not_found");
+  task.done = Boolean(body.done);
+  record(actor, "people.task", "ok", task.taskCode);
+  return personDetail(data, person.id);
+}
+
+function personDetail(data: DemoWorld, id: string) {
+  const person = data.people.find((item) => item.id === id);
+  if (!person) throw new DemoError(404, "not_found");
+  const acknowledgements = data.policies.flatMap((policy) => {
+    const approved = [...policy.versions]
+      .filter((item) => item.state === "Approved")
+      .sort((a, b) => b.number - a.number)[0];
+    return policy.acknowledgements
+      .filter(
+        (item) =>
+          item.version === approved?.number &&
+          item.personEmail.toLowerCase() === person.email.toLowerCase(),
+      )
+      .map((item) => ({
+        policyCode: policy.code,
+        policyTitle: policy.title,
+        dueOn: item.dueOn,
+        acknowledgedAt: item.acknowledgedAt,
+      }));
+  });
+  return {
+    ...personList(person),
+    accounts: person.accounts,
+    tasks: person.tasks,
+    acknowledgements,
+  };
+}
+
+function saveSoa(data: DemoWorld, actor: Session, code: string, body: Record<string, unknown>) {
+  requireWrite(actor);
+  const justification = String(body.justification ?? "").trim();
+  const implementation = String(body.implementation ?? "");
+  const statuses = ["Implemented", "InProgress", "NotStarted", "NotApplicable"];
+  if (!/^A\.\d+\.\d+$/.test(code) || !justification || !statuses.includes(implementation)) {
+    throw new DemoError(400, "invalid_soa");
+  }
+  const row = data.soa.find((item) => item.code === code);
+  if (!row) throw new DemoError(404, "not_found");
+  const applicable = Boolean(body.applicable);
+  row.applicable = applicable;
+  row.justification = justification;
+  row.implementation = applicable ? implementation : "NotApplicable";
+  record(actor, "soa.saved", "ok", code);
+  return row;
+}
+
+function saveVendor(data: DemoWorld, actor: Session, body: Record<string, unknown>) {
+  requireWrite(actor);
+  const name = String(body.name ?? "").trim();
+  const service = String(body.service ?? "").trim();
+  const criticality = String(body.criticality ?? "");
+  const reviewState = String(body.reviewState ?? "");
+  const riskRating = Number(body.riskRating);
+  const criticalities = ["Low", "Medium", "High", "Critical"];
+  const reviews = ["NotStarted", "InReview", "Approved", "Expired"];
+  if (
+    !name ||
+    !service ||
+    !criticalities.includes(criticality) ||
+    !reviews.includes(reviewState) ||
+    !onScale(riskRating)
+  ) {
+    throw new DemoError(400, "invalid_vendor");
+  }
+  const id = body.id ? String(body.id) : "";
+  let row = id ? data.vendors.find((item) => item.id === id) : undefined;
+  if (id && !row) throw new DemoError(404, "not_found");
+  if (!row) {
+    row = {
+      id: freshId(),
+      name,
+      service,
+      criticality,
+      dataAccess: "",
+      reviewState,
+      reviewDueOn: "",
+      riskRating,
+      documents: [],
+    };
+    data.vendors.push(row);
+  }
+  row.name = name;
+  row.service = service;
+  row.criticality = criticality;
+  row.dataAccess = String(body.dataAccess ?? "").trim();
+  row.reviewState = reviewState;
+  row.reviewDueOn = String(body.reviewDueOn ?? "");
+  row.riskRating = riskRating;
+  row.documents = Array.isArray(body.documents)
+    ? body.documents.map((document) => {
+        const file = document as Record<string, unknown>;
+        return {
+          title: String(file.title ?? ""),
+          kind: String(file.kind ?? ""),
+          issuedOn: file.issuedOn ? String(file.issuedOn) : null,
+        };
+      })
+    : [];
+  record(actor, "vendor.saved", "ok", row.name);
+  return row;
+}
+
+function campaignList(campaign: DemoWorld["campaigns"][number]) {
+  return {
+    id: campaign.id,
+    name: campaign.name,
+    dueOn: campaign.dueOn,
+    state: campaign.state,
+    pending: campaign.items.filter((item) => item.decision === "Pending").length,
+    total: campaign.items.length,
+  };
+}
+
+async function startCampaign(data: DemoWorld, actor: Session, body: Record<string, unknown>) {
+  requireWrite(actor);
+  const name = String(body.name ?? "").trim();
+  const dueOn = String(body.dueOn ?? "");
+  if (!name || !dueOn) throw new DemoError(400, "invalid_campaign");
+  const accounts = data.people.flatMap((person) =>
+    person.accounts.map((account) => ({ person, account })),
+  );
+  if (accounts.length === 0) throw new DemoError(400, "no_accounts");
+  const row = {
+    id: freshId(),
+    name,
+    dueOn,
+    state: "Open",
+    completedAt: null,
+    evidenceId: null,
+    items: accounts.map(({ person, account }) => ({
+      id: freshId(),
+      personName: person.name,
+      personEmail: person.email,
+      provider: account.provider,
+      accountName: account.accountName,
+      decision: "Pending",
+    })),
+  };
+  data.campaigns.unshift(row);
+  record(actor, "access.started", "ok", name);
+  return campaignDetail(data, row.id);
+}
+
+function decideItem(
+  data: DemoWorld,
+  actor: Session,
+  campaignId: string,
+  itemId: string,
+  body: Record<string, unknown>,
+) {
+  requireWrite(actor);
+  const decision = String(body.decision ?? "");
+  if (decision !== "Approved" && decision !== "Revoked")
+    throw new DemoError(400, "invalid_decision");
+  const row = data.campaigns.find((item) => item.id === campaignId);
+  const item = row?.items.find((entry) => entry.id === itemId);
+  if (!row || !item) throw new DemoError(404, "not_found");
+  if (row.state !== "Open") throw new DemoError(400, "campaign_closed");
+  item.decision = decision;
+  record(actor, "access.decided", "ok", decision);
+  return campaignDetail(data, row.id);
+}
+
+async function completeCampaign(data: DemoWorld, actor: Session, id: string) {
+  requireWrite(actor);
+  const row = data.campaigns.find((item) => item.id === id);
+  if (!row) throw new DemoError(404, "not_found");
+  if (row.state === "Completed") return campaignDetail(data, id);
+  if (row.items.length === 0) throw new DemoError(400, "empty_campaign");
+  if (row.items.some((item) => item.decision !== "Approved" && item.decision !== "Revoked")) {
+    throw new DemoError(400, "decisions_pending");
+  }
+  const csv = reviewCsv(row);
+  const evidenceId = freshId();
+  data.evidence.unshift({
+    id: evidenceId,
+    title: `Access review ${row.name}`,
+    controlCode: "AC-07",
+    source: "Access review",
+    collectedAt: new Date().toISOString(),
+    integrity: "verified",
+    sha256: await sha256(csv),
+    lockedUntil: null,
+    body: csv,
+  });
+  row.evidenceId = evidenceId;
+  row.state = "Completed";
+  row.completedAt = new Date().toISOString();
+  record(actor, "access.completed", "ok", row.name);
+  return campaignDetail(data, id);
+}
+
+function reviewCsv(campaign: DemoWorld["campaigns"][number]) {
+  return `${[
+    "person,email,provider,account,decision",
+    ...campaign.items.map((item) =>
+      [item.personName, item.personEmail, item.provider, item.accountName, item.decision]
+        .map(quoted)
+        .join(","),
+    ),
+  ].join("\n")}\n`;
+}
+
+function campaignDetail(data: DemoWorld, id: string) {
+  const row = data.campaigns.find((item) => item.id === id);
+  if (!row) throw new DemoError(404, "not_found");
+  const evidence = row.evidenceId
+    ? data.evidence.find((item) => item.id === row.evidenceId)
+    : undefined;
+  return {
+    id: row.id,
+    name: row.name,
+    dueOn: row.dueOn,
+    state: row.state,
+    completedAt: row.completedAt,
+    evidenceId: row.evidenceId,
+    evidenceSha256: evidence?.sha256 ?? null,
+    items: row.items,
+  };
+}
+
 function inScope(data: DemoWorld, actor: Session): DemoWorld {
   if (actor.role !== "Auditor") return data;
   const controls = data.controls.filter((control) =>
@@ -1026,6 +1610,21 @@ function requireAudit(actor: Session) {
   if (actor.role !== "Auditor" && actor.role !== "Admin") throw new DemoError(403, "forbidden");
 }
 
+function seedActivity(data: DemoWorld) {
+  if (activitySeeded) return;
+  activity = [...data.activity]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .map((item) => ({
+      at: item.at,
+      action: item.action,
+      result: item.result,
+      detail: item.detail,
+      actorEmail: item.actor,
+      ipAddress: null,
+    }));
+  activitySeeded = true;
+}
+
 function record(actor: Session, action: string, result: string, detail: string | null) {
   activity.unshift({
     at: new Date().toISOString(),
@@ -1075,10 +1674,14 @@ async function readBody(body: BodyInit | null | undefined) {
 }
 
 function requestPath(input: RequestInfo | URL) {
-  if (typeof input === "string")
-    return input.startsWith("http") ? new URL(input).pathname : input.split("?")[0];
-  if (input instanceof URL) return input.pathname;
-  return new URL(input.url).pathname;
+  if (typeof input === "string") {
+    if (!input.startsWith("http")) return input;
+    const url = new URL(input);
+    return url.pathname + url.search;
+  }
+  if (input instanceof URL) return input.pathname + input.search;
+  const url = new URL(input.url);
+  return url.pathname + url.search;
 }
 
 function json(body: unknown, status = 200) {

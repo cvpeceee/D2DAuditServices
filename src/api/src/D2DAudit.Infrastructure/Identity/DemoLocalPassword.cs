@@ -1,3 +1,5 @@
+using D2DAudit.Infrastructure.Seed;
+
 namespace D2DAudit.Infrastructure.Identity;
 
 /// <summary>
@@ -10,10 +12,11 @@ public static class DemoLocalPassword
 
     public static readonly string[] Emails =
     [
-        "chandra@acme.example",
-        "priya@acme.example",
-        "marcus@acme.example",
-        "dev@acme.example",
+        "chandra.vell@" + ClientSeed.Company.Domain,
+        "priya.nair@" + ClientSeed.Company.Domain,
+        "marcus.lee@" + ClientSeed.Company.Domain,
+        "dev.patel@" + ClientSeed.Company.Domain,
+        "lena.cho@" + ClientSeed.Company.Domain,
         "auditor@northgate.example",
         "owner@northwind.example",
     ];

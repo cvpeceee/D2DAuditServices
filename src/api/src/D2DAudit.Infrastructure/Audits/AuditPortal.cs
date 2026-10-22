@@ -39,6 +39,7 @@ public sealed class AuditPortal(
             .OrderByDescending(item => item.Code)
             .ToListAsync(cancellationToken);
         var findings = await db.Findings.AsNoTracking()
+            .Include(item => item.Comments)
             .Where(item => item.EngagementId == engagement.Id)
             .OrderByDescending(item => item.Code)
             .ToListAsync(cancellationToken);
@@ -226,7 +227,7 @@ public sealed class AuditPortal(
         var engagement = await EngagementAsync(db, cancellationToken);
         var row = engagement is null
             ? null
-            : await db.Findings.FirstOrDefaultAsync(item => item.EngagementId == engagement.Id && item.Code == code, cancellationToken);
+            : await db.Findings.Include(item => item.Comments).FirstOrDefaultAsync(item => item.EngagementId == engagement.Id && item.Code == code, cancellationToken);
         if (row is null)
         {
             return Result<FindingDto>.Fail("not_found");
@@ -351,7 +352,8 @@ public sealed class AuditPortal(
         row.Detail,
         row.RequirementCode,
         row.ManagementResponse,
-        row.ResponseByName);
+        row.ResponseByName,
+        row.Comments.OrderBy(comment => comment.At).Select(comment => new FindingCommentDto(comment.AuthorName, comment.Body, comment.At)).ToArray());
 
     private Task WriteAsync(string action, string detail, CancellationToken cancellationToken) =>
         activity.WriteAsync(tenant.UserId, tenant.TenantId, action, "ok", detail, null, cancellationToken);

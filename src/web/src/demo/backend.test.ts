@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { examplePassword } from "./accounts";
+import { company } from "./client";
 import { demoResponse, resetDemo, setDemoStepDelay } from "./backend";
 
 async function login(email: string) {
@@ -20,7 +21,7 @@ async function get(path: string) {
 describe("demo backend", () => {
   it("signs in the example accounts and keeps the auditor inside SOC 2", async () => {
     await resetDemo();
-    const admin = await login("chandra@acme.example");
+    const admin = await login("chandra.vell@harborline.example");
     expect(admin.tenants[0].role).toBe("Admin");
     const policies = (await get("/api/v1/policies")) as { code: string }[];
     expect(policies.map((item) => item.code)).toContain("POL-PRI");
@@ -88,4 +89,97 @@ describe("demo backend", () => {
     expect(hash?.[1]).toBe(recorded?.[1]);
     expect(text).toContain('"intact": true');
   });
+
+  it("serves the statement of applicability, leaver flag, and a hashed access review", async () => {
+    await resetDemo();
+    await login(`chandra.vell@${company.domain}`);
+    const soa = (await get("/api/v1/soa")) as { code: string; applicable: boolean }[];
+    expect(soa).toHaveLength(93);
+    expect(soa[0]?.code).toBe("A.5.1");
+    expect(soa.at(-1)?.code).toBe("A.8.34");
+    expect(soa.find((row) => row.code === "A.7.5")?.applicable).toBe(false);
+    const pdf = await demoResponse("/api/v1/soa/export?format=pdf");
+    expect(pdf.headers.get("Content-Type")).toContain("application/pdf");
+    const pdfText = new TextDecoder().decode(await pdf.arrayBuffer());
+    expect(pdfText.startsWith("%PDF-")).toBe(true);
+    expect(pdfText).toContain("A.8.34");
+
+    const people = (await get(`/api/v1/people?q=sam.leaved@${company.domain}`)) as {
+      items: { name: string; email: string; leaverStillHasAccess: boolean }[];
+      total: number;
+    };
+    const directory = (await get("/api/v1/people?pageSize=1")) as {
+      total: number;
+      items: unknown[];
+    };
+    expect(directory.total).toBeGreaterThanOrEqual(1000);
+    expect(directory.items).toHaveLength(1);
+    const sam = people.items.find((person) => person.email === `sam.leaved@${company.domain}`);
+    expect(sam?.leaverStillHasAccess).toBe(true);
+
+    const campaigns = (await get("/api/v1/access-reviews")) as { id: string; name: string }[];
+    const campaign = campaigns.find((item) => item.name === "Q4 access review");
+    expect(campaign).toBeTruthy();
+    const open = (await get(`/api/v1/access-reviews/${campaign?.id}`)) as {
+      items: { id: string }[];
+    };
+    for (const item of open.items) {
+      const decided = await demoResponse(
+        `/api/v1/access-reviews/${campaign?.id}/items/${item.id}`,
+        { method: "POST", body: JSON.stringify({ decision: "Approved" }) },
+      );
+      expect(decided.status).toBe(200);
+    }
+    const completed = await demoResponse(`/api/v1/access-reviews/${campaign?.id}/complete`, {
+      method: "POST",
+      body: "{}",
+    });
+    expect(completed.status).toBe(200);
+    const review = (await completed.json()) as { evidenceSha256: string; state: string };
+    expect(review.state).toBe("Completed");
+    const evidence = (await get("/api/v1/evidence")) as {
+      items: { title: string; sha256: string }[];
+    };
+    const stored = evidence.items.find((item) => item.title === "Access review Q4 access review");
+    expect(stored?.sha256).toBe(review.evidenceSha256);
+    expect(review.evidenceSha256).toMatch(/^[a-f0-9]{64}$/);
+
+    const dashboard = (await get("/api/v1/dashboard")) as {
+      tenantName: string;
+      dueItems: { title: string; overdue: boolean }[];
+      frameworks: { key: string; percent: number }[];
+      history: { weekOf: string }[];
+      devicesReporting: number;
+      readinessPercent: number;
+    };
+    expect(dashboard.tenantName).toBe(company.name);
+    expect(dashboard.history.length).toBeGreaterThanOrEqual(26);
+    expect(dashboard.devicesReporting).toBeGreaterThan(0);
+    expect(dashboard.readinessPercent).toBeGreaterThanOrEqual(70);
+    expect(dashboard.readinessPercent).toBeLessThanOrEqual(80);
+    expect(
+      dashboard.dueItems.some((item) => item.title === "Leaver still has access" && item.overdue),
+    ).toBe(true);
+    expect(dashboard.frameworks.map((item) => item.key)).toEqual(
+      expect.arrayContaining(["soc2", "iso27001", "iso27017", "iso27018"]),
+    );
+    const resources = (await get("/api/v1/resources")) as { provider: string; name: string }[];
+    expect(resources.some((item) => item.provider === "azure")).toBe(true);
+    expect(resources.some((item) => item.provider === "gcp")).toBe(true);
+    expect(resources.some((item) => item.name === "marketing-site")).toBe(true);
+
+    await demoResponse("/api/v1/auth/logout", { method: "POST" });
+    await login("auditor@northgate.example");
+    const visibleSoa = await demoResponse("/api/v1/soa");
+    expect(visibleSoa.status).toBe(200);
+    const denied = await demoResponse("/api/v1/soa/A.5.1", {
+      method: "PUT",
+      body: JSON.stringify({
+        applicable: true,
+        justification: "Applies.",
+        implementation: "Implemented",
+      }),
+    });
+    expect(denied.status).toBe(403);
+  }, 60_000);
 });

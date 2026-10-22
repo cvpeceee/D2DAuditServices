@@ -13,7 +13,11 @@ import { AuditorPage } from "./features/auditor/AuditorPage";
 import { EvidencePage } from "./features/evidence/EvidencePage";
 import { PoliciesPage } from "./features/policies/PoliciesPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
-import { PlaceholderPage } from "./features/shell/PlaceholderPage";
+import { AccessReviewsPage } from "./features/access/AccessReviewsPage";
+import { PeoplePage } from "./features/people/PeoplePage";
+import { RisksPage } from "./features/risks/RisksPage";
+import { SoaPage } from "./features/soa/SoaPage";
+import { VendorsPage } from "./features/vendors/VendorsPage";
 import { TestsPage } from "./features/tests/TestsPage";
 import { AppShell } from "./features/shell/AppShell";
 
@@ -76,9 +80,11 @@ export function App() {
         <Route path="tests" element={<TestsPage />} />
         <Route path="evidence" element={<EvidencePage />} />
         <Route path="policies" element={<PoliciesPage />} />
-        <Route path="risks" element={<PlaceholderPage />} />
-        <Route path="vendors" element={<PlaceholderPage />} />
-        <Route path="people" element={<PlaceholderPage />} />
+        <Route path="risks" element={<RisksPage />} />
+        <Route path="soa" element={<SoaPage />} />
+        <Route path="vendors" element={<VendorsPage />} />
+        <Route path="people" element={<PeoplePage />} />
+        <Route path="access-reviews" element={<AccessReviewsPage />} />
         <Route path="auditor" element={<AuditorPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
       </Route>

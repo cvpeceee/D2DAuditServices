@@ -57,7 +57,13 @@ jobs:
         run: npm run build
       - name: npm audit
         working-directory: src/web
-        run: npm audit --audit-level=high
+        run: |
+          for attempt in 1 2 3; do
+            npm audit --audit-level=high && exit 0
+            echo "npm audit attempt ${attempt} failed"
+            sleep $((attempt * 20))
+          done
+          exit 1
 
   secrets:
     runs-on: ubuntu-latest

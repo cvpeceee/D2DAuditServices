@@ -1,6 +1,7 @@
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Audits;
+using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Catalog;
 using D2DAudit.Infrastructure.Policies;
 using D2DAudit.Infrastructure.Evidence;
@@ -67,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<IDemoSeeder, DemoSeeder>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IWorkspaceQuery, WorkspaceQuery>();
+        services.AddScoped<IClientRead, ClientPortal>();
         services.AddSingleton<SecretBox>();
         services.AddSingleton<EvidenceWriter>();
         if (string.IsNullOrWhiteSpace(configuration["Storage:Endpoint"]))
@@ -91,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<CollectionRunner>();
         services.AddScoped<IIntegrationQuery, IntegrationQuery>();
         services.AddScoped<IPolicyPortal, PolicyPortal>();
+        services.AddScoped<IGovernance, GovernancePortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();
         services.AddSingleton<AuditExportQueue>();

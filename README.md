@@ -2,7 +2,7 @@
 
 D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
-A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra@acme.example` or `auditor@northgate.example`. The example password is on the login screen.
+A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra.vell@harborline.example` or `auditor@northgate.example`. The example password is on the login screen.
 
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
@@ -50,21 +50,23 @@ cd src/web && npm ci && npm run dev
 
 The API listens on http://localhost:8080. Vite listens on http://localhost:5173 and proxies `/api` and `/hubs`.
 
-On first start in Development, the API migrates the control-plane database, creates the example tenants, and loads SOC 2 and ISO 27001 into each tenant database. That provisioning job is real work; the jobs tray shows its step and percent.
+On first start in Development, the API migrates the control-plane database, creates the example tenants, and loads SOC 2, ISO 27001, ISO 27017, and ISO 27018 into each tenant database. That provisioning job is real work; the jobs tray shows its step and percent.
 
 ### Example workspace
 
 Local identity mode only. Password for every example account: `Example-Only-1!`
 
+The default client is Harborline, a fictional multi-cloud data platform. Its name, legal name, product, and `.example` domain are in `src/seed/brand.json`. Change that file and run `node src/seed/build.mjs` to rebuild `src/seed/client.json`, which both the development seeder and the Pages demo read.
+
 | Email | Workspace | Role |
 | --- | --- | --- |
-| chandra@acme.example | Acme Robotics (US) | Admin |
-| priya@acme.example, marcus@acme.example, lena@acme.example | Acme Robotics | Control owner |
-| dev@acme.example | Acme Robotics | Employee, read-only |
-| auditor@northgate.example | Acme Robotics | Auditor, read-only, SOC 2 only, through 2026-12-15 |
+| chandra.vell@harborline.example | Harborline (US) | Admin |
+| priya.nair@harborline.example, marcus.lee@harborline.example, lena.cho@harborline.example | Harborline | Control owner |
+| dev.patel@harborline.example | Harborline | Employee, read-only |
+| auditor@northgate.example | Harborline | Auditor, read-only, SOC 2 only, through 2026-12-15 |
 | owner@northwind.example | Northwind Labs (EU) | Admin |
 
-Acme and Northwind are separate databases. A user of one cannot read the other. The auditor does not see ISO-only controls.
+Harborline and Northwind are separate databases. A user of one cannot read the other. The auditor does not see ISO-only controls. The statement of applicability is the ISO 27001 Annex A list. ISO 27017 and ISO 27018 are additional framework catalogs.
 
 ## WorkOS
 
@@ -80,7 +82,7 @@ In the WorkOS dashboard:
 1. Enable email and password, and require an authenticator-app (TOTP) factor for those users. The login screen completes TOTP. Passkeys stay on the WorkOS side and are not a ceremony in this milestone.
 2. Enable Google and Microsoft sign-in.
 3. Add redirect URIs exactly: `http://localhost:5173/auth/callback` and `http://localhost:8088/auth/callback`, plus the production origin when you have one.
-4. For company SSO, create an organization and set `WORKOS_ORGANIZATION_ID` and `WORKOS_SSO_DOMAIN` before the demo seed runs. The seed writes that organization id onto the Acme domain row. A domain with no organization returns `sso_not_configured`.
+4. For company SSO, create an organization and set `WORKOS_ORGANIZATION_ID` and `WORKOS_SSO_DOMAIN` before the demo seed runs. The seed writes that organization id onto the example tenant's domain row. A domain with no organization returns `sso_not_configured`.
 5. Optional: set a JWT template audience and `WORKOS_TOKEN_AUDIENCE` to the same value. Access tokens must be RS256 from `https://api.workos.com/sso/jwks/{clientId}`, issuer `https://api.workos.com`, and the `client_id` claim must match `WORKOS_CLIENT_ID`.
 
 Leave both variables unset and the API uses local identity mode. That mode exists only when `ASPNETCORE_ENVIRONMENT` is `Development` or `Testing`. Production and Staging refuse to start without WorkOS. Local mode does not simulate Google, Microsoft, SSO, or MFA.
@@ -89,7 +91,7 @@ There is no public signup endpoint. Tenants are created by the provisioner (the 
 
 ## Integrations
 
-Example workspaces (Acme Robotics and Northwind Labs) load fixture resources and do not call AWS, Google, Microsoft, or GitHub. A real workspace connects with the credentials below. Leave them unset until you are ready. `TENANT_DATA_KEY` is 32 bytes, base64, and is required before a Google refresh token is stored. Production and Staging also require `TEMPORAL_ADDRESS`, `Storage__Endpoint`, and `Storage__ObjectLock=true`.
+Example workspaces (Harborline and Northwind Labs) load fixture resources and do not call AWS, Azure, Google Cloud, Google, Microsoft, or GitHub. A real workspace connects with the credentials below. Leave them unset until you are ready. `TENANT_DATA_KEY` is 32 bytes, base64, and is required before a Google refresh token is stored. Production and Staging also require `TEMPORAL_ADDRESS`, `Storage__Endpoint`, and `Storage__ObjectLock=true`.
 
 ### AWS
 

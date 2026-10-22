@@ -74,4 +74,6 @@ public sealed class Finding
     public string? ManagementResponse { get; set; }
 
     public string? ResponseByName { get; set; }
+
+    public List<FindingComment> Comments { get; set; } = [];
 }

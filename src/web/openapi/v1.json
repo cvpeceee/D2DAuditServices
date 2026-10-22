@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080/"
+      "url": "http://127.0.0.1:5099/"
     }
   ],
   "paths": {
@@ -472,6 +472,72 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ActivityDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resources": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceDto"
                   }
                 }
               }
@@ -1160,10 +1226,672 @@
           }
         }
       }
+    },
+    "/api/v1/risks": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RiskListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveRiskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskListItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/risks/export": {
+      "get": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/sync": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}": {
+      "get": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}/tasks": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/soa": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SoaRow"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/soa/{code}": {
+      "put": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveSoaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoaRow"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/soa/export": {
+      "get": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vendors": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VendorListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveVendorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorListItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccessCampaignListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartCampaignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews/{id}": {
+      "get": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews/{id}/items/{itemId}": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews/{id}/complete": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AccessCampaignDetail": {
+        "required": [
+          "id",
+          "name",
+          "dueOn",
+          "state",
+          "completedAt",
+          "evidenceId",
+          "evidenceSha256",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "state": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidenceSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessItemDto"
+            }
+          }
+        }
+      },
+      "AccessCampaignListItem": {
+        "required": [
+          "id",
+          "name",
+          "dueOn",
+          "state",
+          "pending",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "state": {
+            "type": "string"
+          },
+          "pending": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AccessDecisionRequest": {
+        "required": [
+          "decision"
+        ],
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string"
+          }
+        }
+      },
+      "AccessItemDto": {
+        "required": [
+          "id",
+          "personName",
+          "personEmail",
+          "provider",
+          "accountName",
+          "decision"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "personName": {
+            "type": "string"
+          },
+          "personEmail": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          }
+        }
+      },
       "AcknowledgementDto": {
         "required": [
           "personName",
@@ -2044,7 +2772,10 @@
           "frameworks",
           "audit",
           "failingTests",
-          "health"
+          "health",
+          "dueItems",
+          "history",
+          "devicesReporting"
         ],
         "type": "object",
         "properties": {
@@ -2100,6 +2831,78 @@
           },
           "health": {
             "$ref": "#/components/schemas/ControlHealth"
+          },
+          "dueItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DueItem"
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            }
+          },
+          "devicesReporting": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "DeviceDto": {
+        "required": [
+          "ownerName",
+          "platform",
+          "serial",
+          "lastSeenOn"
+        ],
+        "type": "object",
+        "properties": {
+          "ownerName": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "lastSeenOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "DueItem": {
+        "required": [
+          "kind",
+          "title",
+          "dueOn",
+          "href",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "href": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "boolean"
           }
         }
       },
@@ -2347,6 +3150,46 @@
           }
         }
       },
+      "FileExport": {
+        "required": [
+          "fileName",
+          "contentType",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "format": "byte"
+          }
+        }
+      },
+      "FindingCommentDto": {
+        "required": [
+          "authorName",
+          "body",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "authorName": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "FindingDto": {
         "required": [
           "code",
@@ -2355,7 +3198,8 @@
           "detail",
           "requirementCode",
           "managementResponse",
-          "responseByName"
+          "responseByName",
+          "comments"
         ],
         "type": "object",
         "properties": {
@@ -2385,6 +3229,12 @@
               "null",
               "string"
             ]
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindingCommentDto"
+            }
           }
         }
       },
@@ -2521,6 +3371,36 @@
             "format": "int32"
           },
           "percent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "HistoryPoint": {
+        "required": [
+          "weekOf",
+          "passing",
+          "failing"
+        ],
+        "type": "object",
+        "properties": {
+          "weekOf": {
+            "type": "string",
+            "format": "date"
+          },
+          "passing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "failing": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -2736,6 +3616,30 @@
           }
         }
       },
+      "NotificationDto": {
+        "required": [
+          "title",
+          "body",
+          "href",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PasswordLoginBody": {
         "required": [
           "email",
@@ -2748,6 +3652,279 @@
           },
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "PersonAccountDto": {
+        "required": [
+          "provider",
+          "accountName",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PersonAcknowledgementDto": {
+        "required": [
+          "policyCode",
+          "policyTitle",
+          "dueOn",
+          "acknowledgedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "policyCode": {
+            "type": "string"
+          },
+          "policyTitle": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "acknowledgedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PersonDetail": {
+        "required": [
+          "id",
+          "name",
+          "email",
+          "department",
+          "source",
+          "state",
+          "training",
+          "trainingDueOn",
+          "leaverStillHasAccess",
+          "accounts",
+          "tasks",
+          "acknowledgements",
+          "role",
+          "hireOn",
+          "leftOn"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "training": {
+            "type": "string"
+          },
+          "trainingDueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leaverStillHasAccess": {
+            "type": "boolean"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonAccountDto"
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonTaskDto"
+            }
+          },
+          "acknowledgements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonAcknowledgementDto"
+            }
+          },
+          "role": {
+            "type": "string"
+          },
+          "hireOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leftOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PersonListItem": {
+        "required": [
+          "id",
+          "name",
+          "email",
+          "department",
+          "source",
+          "state",
+          "training",
+          "trainingDueOn",
+          "leaverStillHasAccess",
+          "openTasks",
+          "role",
+          "hireOn",
+          "leftOn"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "training": {
+            "type": "string"
+          },
+          "trainingDueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leaverStillHasAccess": {
+            "type": "boolean"
+          },
+          "openTasks": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "role": {
+            "type": "string"
+          },
+          "hireOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leftOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "PersonPage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonListItem"
+            }
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PersonTaskDto": {
+        "required": [
+          "kind",
+          "taskCode",
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "taskCode": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
           }
         }
       },
@@ -2925,6 +4102,29 @@
           }
         }
       },
+      "ResourceDto": {
+        "required": [
+          "provider",
+          "kind",
+          "name",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
       "RespondSampleRequest": {
         "required": [
           "body",
@@ -2941,6 +4141,115 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "RiskListItem": {
+        "required": [
+          "code",
+          "title",
+          "statement",
+          "likelihood",
+          "impact",
+          "score",
+          "band",
+          "ownerName",
+          "ownerEmail",
+          "treatment",
+          "treatmentPlan",
+          "reviewOn",
+          "residualLikelihood",
+          "residualImpact",
+          "residualScore",
+          "residualBand",
+          "controlCodes"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "likelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "impact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "score": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "band": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "treatment": {
+            "type": "string"
+          },
+          "treatmentPlan": {
+            "type": "string"
+          },
+          "reviewOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "residualLikelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "residualImpact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "residualScore": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "residualBand": {
+            "type": "string"
+          },
+          "controlCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3024,6 +4333,225 @@
           }
         }
       },
+      "SaveRiskRequest": {
+        "required": [
+          "code",
+          "title",
+          "statement",
+          "likelihood",
+          "impact",
+          "ownerName",
+          "ownerEmail",
+          "treatment",
+          "treatmentPlan",
+          "reviewOn",
+          "residualLikelihood",
+          "residualImpact",
+          "controlCodes"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "likelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "impact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "treatment": {
+            "type": "string"
+          },
+          "treatmentPlan": {
+            "type": "string"
+          },
+          "reviewOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "residualLikelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "residualImpact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SaveSoaRequest": {
+        "required": [
+          "applicable",
+          "justification",
+          "implementation"
+        ],
+        "type": "object",
+        "properties": {
+          "applicable": {
+            "type": "boolean"
+          },
+          "justification": {
+            "type": "string"
+          },
+          "implementation": {
+            "type": "string"
+          }
+        }
+      },
+      "SaveVendorRequest": {
+        "required": [
+          "id",
+          "name",
+          "service",
+          "criticality",
+          "dataAccess",
+          "reviewState",
+          "reviewDueOn",
+          "riskRating",
+          "documents"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "criticality": {
+            "type": "string"
+          },
+          "dataAccess": {
+            "type": "string"
+          },
+          "reviewState": {
+            "type": "string"
+          },
+          "reviewDueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "riskRating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VendorDocumentDto"
+            }
+          }
+        }
+      },
+      "SetTaskRequest": {
+        "required": [
+          "taskCode",
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "taskCode": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SoaRow": {
+        "required": [
+          "code",
+          "title",
+          "applicable",
+          "justification",
+          "implementation"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "applicable": {
+            "type": "boolean"
+          },
+          "justification": {
+            "type": "string"
+          },
+          "implementation": {
+            "type": "string"
+          }
+        }
+      },
+      "StartCampaignRequest": {
+        "required": [
+          "name",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
       "TenantMembershipSummary": {
         "required": [
           "tenantId",
@@ -3092,6 +4620,82 @@
           },
           "displayName": {
             "type": "string"
+          }
+        }
+      },
+      "VendorDocumentDto": {
+        "required": [
+          "title",
+          "kind",
+          "issuedOn"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "issuedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "VendorListItem": {
+        "required": [
+          "id",
+          "name",
+          "service",
+          "criticality",
+          "dataAccess",
+          "reviewState",
+          "reviewDueOn",
+          "riskRating",
+          "documents"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "criticality": {
+            "type": "string"
+          },
+          "dataAccess": {
+            "type": "string"
+          },
+          "reviewState": {
+            "type": "string"
+          },
+          "reviewDueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "riskRating": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VendorDocumentDto"
+            }
           }
         }
       },
@@ -3201,6 +4805,9 @@
     },
     {
       "name": "AuditEndpoints"
+    },
+    {
+      "name": "GovernanceEndpoints"
     }
   ]
 }

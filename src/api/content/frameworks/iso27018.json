@@ -1,0 +1,81 @@
+{
+  "key": "iso27018",
+  "name": "ISO 27018",
+  "version": "2019",
+  "description": "Controls for protecting personal data in a public cloud. Titles name the topic. Descriptions are our own short guidance, not the standard's text.",
+  "requirements": [
+    {
+      "code": "PII",
+      "title": "Personal data in the public cloud",
+      "summary": "Extra duties when the service processes personal data for customers.",
+      "children": [
+        {
+          "code": "A.2.1",
+          "title": "Help with people's requests",
+          "summary": "Give the customer what they need to answer a person's request about their data.",
+          "children": []
+        },
+        {
+          "code": "A.3.1",
+          "title": "Purpose for processing",
+          "summary": "Process personal data only for the purpose the customer agreed.",
+          "children": []
+        },
+        {
+          "code": "A.3.2",
+          "title": "No advertising use",
+          "summary": "Do not use customer personal data to advertise.",
+          "children": []
+        },
+        {
+          "code": "A.5.1",
+          "title": "Temporary files are erased",
+          "summary": "Delete temporary copies of personal data when the job that needed them is finished.",
+          "children": []
+        },
+        {
+          "code": "A.6.1",
+          "title": "Disclosure to others",
+          "summary": "Tell the customer before personal data is disclosed, unless the law forbids the notice.",
+          "children": []
+        },
+        {
+          "code": "A.8.1",
+          "title": "Subprocessors",
+          "summary": "Name the subprocessors that can see personal data and tell the customer when the list changes.",
+          "children": []
+        },
+        {
+          "code": "A.10.1",
+          "title": "Breach notice",
+          "summary": "Tell the customer when a breach involves their personal data.",
+          "children": []
+        },
+        {
+          "code": "A.10.2",
+          "title": "Policy retention",
+          "summary": "Keep the security policies that were in force, so a later review can see what applied.",
+          "children": []
+        },
+        {
+          "code": "A.10.3",
+          "title": "Return or deletion",
+          "summary": "Return or delete personal data when the contract ends, and say which copies remain.",
+          "children": []
+        },
+        {
+          "code": "A.11.1",
+          "title": "Where data is stored",
+          "summary": "Be able to say which countries hold the personal data.",
+          "children": []
+        },
+        {
+          "code": "A.11.2",
+          "title": "Where data is meant to be stored",
+          "summary": "Tell the customer the countries where the service is designed to store personal data.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -65,6 +65,8 @@ export function daysUntil(value: string) {
 
 export function frameworkTag(key: string) {
   if (key === "iso27001") return "ISO";
+  if (key === "iso27017") return "27017";
+  if (key === "iso27018") return "27018";
   if (key === "soc2") return "SOC 2";
   return key;
 }

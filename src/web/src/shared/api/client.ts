@@ -53,6 +53,17 @@ export type VerifyReport = Model<"VerifyReport">;
 export type PolicyListItem = Model<"PolicyListItem">;
 export type PolicyDetail = Model<"PolicyDetail">;
 export type AuditPortalPage = Model<"AuditPortalPage">;
+export type RiskListItem = Model<"RiskListItem">;
+export type PersonListItem = Model<"PersonListItem">;
+export type PersonPage = Model<"PersonPage">;
+export type Notification = Model<"NotificationDto">;
+export type Device = Model<"DeviceDto">;
+export type Resource = Model<"ResourceDto">;
+export type PersonDetail = Model<"PersonDetail">;
+export type SoaRow = Model<"SoaRow">;
+export type VendorListItem = Model<"VendorListItem">;
+export type AccessCampaignListItem = Model<"AccessCampaignListItem">;
+export type AccessCampaignDetail = Model<"AccessCampaignDetail">;
 
 let refreshInFlight: Promise<boolean> | null = null;
 
@@ -107,4 +118,19 @@ export async function api<T>(
   }
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+export async function download(path: string, tenantId: string | null) {
+  const headers: Record<string, string> = { "X-D2D-Request": "1" };
+  if (tenantId) headers["X-Tenant-Id"] = tenantId;
+  const response = await fetch(path, { headers, credentials: "include" });
+  if (!response.ok) throw new ApiError(response.status, "request_failed");
+  const blob = await response.blob();
+  const match = /filename="?([^";]+)"?/.exec(response.headers.get("Content-Disposition") ?? "");
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = match?.[1] ?? "download";
+  link.click();
+  URL.revokeObjectURL(url);
 }

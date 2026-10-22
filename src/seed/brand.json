@@ -1,0 +1,13 @@
+{
+  "note": "Edit this file, then run node src/seed/build.mjs. The development seeder and the Pages demo both read src/seed/client.json. Keep the name fictional and the domain under .example.",
+  "name": "Harborline",
+  "legalName": "Harborline Data, Inc.",
+  "slug": "harborline",
+  "domain": "harborline.example",
+  "region": "US",
+  "product": "multi-cloud data platform",
+  "mark": "HL",
+  "headcount": 1080,
+  "seed": 12046,
+  "summary": "Fictional cloud data platform with about 1,080 people. Customer warehouses run on three public clouds. The program is preparing for SOC 2 Type II, ISO 27001, ISO 27017, and ISO 27018."
+}

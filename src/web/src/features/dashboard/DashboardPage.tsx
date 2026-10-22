@@ -50,7 +50,6 @@ export function DashboardPage() {
   const { tenantId } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [exportNote, setExportNote] = useState(false);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -121,19 +120,14 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="act">
-          <button className="btn" type="button" onClick={() => setExportNote(true)}>
+          <Link className="btn" to="/auditor">
             {t("dashboard.export")}
-          </button>
+          </Link>
           <Link className="btn primary" to="/frameworks">
             {t("dashboard.addFramework")}
           </Link>
         </div>
       </div>
-      {exportNote && (
-        <div className="notice" role="status">
-          {t("dashboard.exportLater")}
-        </div>
-      )}
       <div className="dash-split">
         <div className="card">
           <h3>
@@ -195,7 +189,21 @@ export function DashboardPage() {
       <div className="dash-split even">
         <div className="card">
           <h3>{t("dashboard.health")}</h3>
-          <p className="m">{t("dashboard.history")}</p>
+          {data.history.length > 0 && (
+            <div className="trend" aria-label={t("dashboard.history")}>
+              {data.history.map((point) => {
+                const passing = Number(point.passing);
+                const failing = Number(point.failing);
+                const total = Math.max(1, passing + failing);
+                return (
+                  <div className="trend-col" key={point.weekOf} title={point.weekOf}>
+                    <i className="fail" style={{ height: `${(failing / total) * 48}px` }} />
+                    <i className="pass" style={{ height: `${(passing / total) * 48}px` }} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="health-bars" style={{ marginTop: 12 }}>
             {health.map(([key, count]) => (
               <div className="line" key={key}>
@@ -224,9 +232,48 @@ export function DashboardPage() {
           </h3>
           <IntegrationHealth tenantId={tenantId} />
           <div className="notice">
-            {t("shell.deviceAgent")}: {t("shell.noDevices")}
+            {t("shell.deviceAgent")}: {t("shell.devices", { count: Number(data.devicesReporting) })}
           </div>
         </div>
+      </div>
+      <div className="card" style={{ marginTop: 14 }}>
+        <h3>{t("dashboard.dueTitle")}</h3>
+        {data.dueItems.length === 0 ? (
+          <div className="empty">{t("dashboard.dueEmpty")}</div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("dashboard.test")}</th>
+                  <th>{t("dashboard.due")}</th>
+                  <th>{t("controls.status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.dueItems.slice(0, 8).map((item) => (
+                  <tr key={`${item.kind}-${item.title}-${item.dueOn}`}>
+                    <td>
+                      <Link to={item.href}>{item.title}</Link>
+                      <div className="id">{t(`dashboard.dueKinds.${item.kind}`)}</div>
+                    </td>
+                    <td className="m">{formatDate(item.dueOn)}</td>
+                    <td>
+                      {item.overdue ? (
+                        <Pill status="fail">{t("dashboard.overdue")}</Pill>
+                      ) : (
+                        <Pill status="warn">{t("dashboard.dueSoon")}</Pill>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {data.dueItems.length > 8 && (
+              <p className="m">{t("dashboard.moreDue", { count: data.dueItems.length - 8 })}</p>
+            )}
+          </div>
+        )}
       </div>
       <div className="card" style={{ marginTop: 14 }}>
         <h3>
