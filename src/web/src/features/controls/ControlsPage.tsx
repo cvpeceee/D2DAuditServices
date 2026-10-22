@@ -10,6 +10,7 @@ import {
 } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
 import { frameworkTag, Pill, Skeleton } from "../../shared/ui/ui";
+import { AssignTask } from "../program/AssignTask";
 
 type Tab = "all" | "failing" | "needsEvidence" | "dueSoon" | "mine";
 
@@ -349,6 +350,12 @@ export function ControlsPage() {
                   )}
                 </form>
               )}
+              <AssignTask
+                tenantId={tenantId}
+                linkedKind="Control"
+                linkedCode={selected}
+                canWrite={Boolean(workspace?.canWrite)}
+              />
             </>
           )}
         </aside>

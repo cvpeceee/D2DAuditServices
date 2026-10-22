@@ -193,7 +193,7 @@
       "code": "HR-06",
       "title": "Security awareness training is completed",
       "description": "People finish security training for their role.",
-      "status": "Passing",
+      "status": "Failing",
       "frequency": "Annual",
       "ownerName": "Lena Cho",
       "ownerEmail": "lena.cho@{{domain}}",
@@ -211,10 +211,10 @@
       ],
       "tests": [
         {
-          "name": "Training completion",
+          "name": "Personnel completed training within 12 months",
           "kind": "document",
-          "outcome": "pass",
-          "detail": "Example data in the {{company}} workspace."
+          "outcome": "fail",
+          "detail": "Some personnel are outside the 12-month training window."
         }
       ]
     },

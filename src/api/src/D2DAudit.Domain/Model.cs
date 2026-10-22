@@ -13,6 +13,8 @@ public enum TenantRole
 {
     Admin,
     ControlOwner,
+    Editor,
+    Viewer,
     Employee,
     Auditor,
 }
@@ -165,6 +167,8 @@ public sealed class Membership
     public Tenant? Tenant { get; set; }
 
     public TenantRole Role { get; set; }
+
+    public bool Active { get; set; } = true;
 }
 
 public sealed class AuditorGrant

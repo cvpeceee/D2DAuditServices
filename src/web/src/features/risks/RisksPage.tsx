@@ -9,8 +9,26 @@ import {
   type Workspace,
 } from "../../shared/api/client";
 import { formatDate, Pill } from "../../shared/ui/ui";
+import { AssignTask } from "../program/AssignTask";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
+
+type RichRisk = RiskListItem & {
+  approved?: boolean;
+  approvedBy?: string;
+  approvedOn?: string | null;
+  libraryCode?: string;
+};
+
+type LibraryItem = {
+  code: string;
+  title: string;
+  statement: string;
+  likelihood: number;
+  impact: number;
+  treatment: string;
+  added: boolean;
+};
 
 const treatments = ["Mitigate", "Accept", "Transfer", "Avoid"] as const;
 
@@ -35,12 +53,14 @@ const emptyRisk = {
   residualLikelihood: 2,
   residualImpact: 2,
   controlCodes: "",
+  approved: false,
 };
 
 export function RisksPage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
-  const [rows, setRows] = useState<RiskListItem[] | null>(null);
+  const [rows, setRows] = useState<RichRisk[] | null>(null);
+  const [library, setLibrary] = useState<LibraryItem[] | null>(null);
   const [form, setForm] = useState(emptyRisk);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,9 +68,12 @@ export function RisksPage() {
 
   const load = () => {
     if (!tenantId) return;
-    void api<RiskListItem[]>("/api/v1/risks", { tenantId })
+    void api<RichRisk[]>("/api/v1/risks", { tenantId })
       .then(setRows)
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
+    void api<LibraryItem[]>("/api/v1/risks/library", { tenantId })
+      .then(setLibrary)
+      .catch(() => setLibrary([]));
   };
 
   useEffect(() => {
@@ -62,7 +85,7 @@ export function RisksPage() {
     (row) => !filter || (row.likelihood === filter.likelihood && row.impact === filter.impact),
   );
 
-  function select(row: RiskListItem) {
+  function select(row: RichRisk) {
     setForm({
       code: row.code,
       title: row.title,
@@ -77,7 +100,26 @@ export function RisksPage() {
       residualLikelihood: row.residualLikelihood,
       residualImpact: row.residualImpact,
       controlCodes: row.controlCodes.join(", "),
+      approved: Boolean(row.approved),
     });
+  }
+
+  async function adopt(code: string) {
+    if (!tenantId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/v1/risks/library/${encodeURIComponent(code)}`, {
+        method: "POST",
+        tenantId,
+        body: {},
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function save(event: React.FormEvent) {
@@ -96,6 +138,7 @@ export function RisksPage() {
             .split(",")
             .map((code) => code.trim())
             .filter(Boolean),
+          approved: form.approved,
         },
       });
       load();
@@ -180,6 +223,32 @@ export function RisksPage() {
           {t("risksPage.likelihood")} → · {t("risksPage.impact")} ↑
         </div>
       </div>
+      {library && library.length > 0 && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <h3>{t("risksPage.library")}</h3>
+          <ul>
+            {library.map((item) => (
+              <li key={item.code}>
+                <b>{item.code}</b> {item.title}
+                <div className="id">{item.statement}</div>
+                {workspace?.canWrite &&
+                  (item.added ? (
+                    <span className="m">{t("risksPage.added")}</span>
+                  ) : (
+                    <button
+                      className="btn"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void adopt(item.code)}
+                    >
+                      {t("risksPage.adopt")}
+                    </button>
+                  ))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="card" style={{ marginTop: 14 }}>
         {!rows ? null : shown.length === 0 ? (
           <div className="empty">{t("risksPage.empty")}</div>
@@ -193,6 +262,7 @@ export function RisksPage() {
                   <th>{t("risksPage.residual")}</th>
                   <th>{t("risksPage.treatment")}</th>
                   <th>{t("risksPage.review")}</th>
+                  <th>{t("risksPage.approval")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,6 +284,12 @@ export function RisksPage() {
                     </td>
                     <td>{t(`risksPage.treatments.${row.treatment}`)}</td>
                     <td className="m">{formatDate(row.reviewOn)}</td>
+                    <td>
+                      <Pill status={row.approved ? "pass" : "warn"}>
+                        {row.approved ? t("risksPage.approved") : t("risksPage.unapproved")}
+                      </Pill>
+                      {row.approvedBy && <div className="id">{row.approvedBy}</div>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -325,9 +401,25 @@ export function RisksPage() {
               />
             </div>
           </div>
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={form.approved}
+              onChange={(event) => setForm({ ...form, approved: event.target.checked })}
+            />
+            {t("risksPage.approve")}
+          </label>
           <button className="btn primary" type="submit" disabled={busy}>
             {t("risksPage.save")}
           </button>
+          {form.code && (
+            <AssignTask
+              tenantId={tenantId}
+              linkedKind="Risk"
+              linkedCode={form.code}
+              canWrite={Boolean(workspace?.canWrite)}
+            />
+          )}
         </form>
       )}
     </>

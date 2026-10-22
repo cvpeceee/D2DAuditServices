@@ -8,6 +8,7 @@ import {
   type DemoRequest,
   type DemoWorld,
 } from "./catalog";
+import { assetCsv, handleProgram } from "./program";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -138,6 +139,10 @@ async function route(
   const actor = requireUser();
   const data = await world();
   seedActivity(data);
+  const handled = await handleProgram(method, path, query, body, data, actor, (action, detail) =>
+    record(actor, action, "ok", detail),
+  );
+  if (handled) return handled;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -217,6 +222,7 @@ async function route(
         "Checking the hash chain",
         "Packing evidence files",
         "Writing the manifest and control matrix",
+        "Writing the asset inventory",
         "Storing the package",
       ],
       "Package ready",
@@ -955,6 +961,7 @@ async function finishPackage(data: DemoWorld, scoped: DemoWorld, job: Job | unde
       }),
     },
     { name: "control-matrix.csv", text: csv },
+    { name: "assets.csv", text: assetCsv(data) },
     ...files.map((file) => ({ name: file.path, text: file.text })),
   ]);
 }
@@ -1196,6 +1203,13 @@ function onScale(value: number) {
   return Number.isInteger(value) && value >= 1 && value <= 5;
 }
 
+function bandOf(score: number) {
+  if (score >= 15) return "critical";
+  if (score >= 8) return "high";
+  if (score >= 4) return "medium";
+  return "low";
+}
+
 function saveRisk(data: DemoWorld, actor: Session, body: Record<string, unknown>) {
   requireWrite(actor);
   const likelihood = Number(body.likelihood);
@@ -1227,6 +1241,9 @@ function saveRisk(data: DemoWorld, actor: Session, body: Record<string, unknown>
   const code = requested || nextRiskCode(data);
   const score = likelihood * impact;
   const residualScore = residualLikelihood * residualImpact;
+  const existing = data.risks.find((item) => item.code === code);
+  const approved =
+    typeof body.approved === "boolean" ? body.approved : (existing?.approved ?? false);
   const row = {
     code,
     title,
@@ -1252,6 +1269,14 @@ function saveRisk(data: DemoWorld, actor: Session, body: Record<string, unknown>
             ? "medium"
             : "low",
     controlCodes,
+    approved,
+    approvedBy: approved
+      ? String(body.approvedBy ?? "").trim() || existing?.approvedBy || actor.name
+      : "",
+    approvedOn: approved
+      ? String(body.approvedOn ?? existing?.approvedOn ?? new Date().toISOString().slice(0, 10))
+      : null,
+    libraryCode: existing?.libraryCode ?? "",
   };
   const index = data.risks.findIndex((item) => item.code === code);
   if (index >= 0) data.risks[index] = row;
@@ -1308,6 +1333,12 @@ function personList(person: DemoWorld["people"][number]) {
     role: person.role,
     hireOn: person.hireOn,
     leftOn: person.leftOn,
+    mfaEnrolled: person.mfaEnrolled ?? false,
+    background: person.background ?? "NotStarted",
+    backgroundOn: person.backgroundOn ?? null,
+    device: person.device ?? "Missing",
+    statusReason: person.statusReason ?? "",
+    trainingCompletedOn: person.trainingCompletedOn ?? null,
   };
 }
 
@@ -1423,6 +1454,30 @@ function saveVendor(data: DemoWorld, actor: Session, body: Record<string, unknow
         };
       })
     : [];
+  const decisions = ["Pending", "Approved", "Renew"];
+  if (typeof body.decision === "string" && decisions.includes(body.decision)) {
+    row.decision = body.decision;
+  } else if (!row.decision) {
+    row.decision = "Pending";
+  }
+  if (body.residualLikelihood != null && onScale(Number(body.residualLikelihood))) {
+    row.residualLikelihood = Number(body.residualLikelihood);
+  }
+  if (body.residualImpact != null && onScale(Number(body.residualImpact))) {
+    row.residualImpact = Number(body.residualImpact);
+  }
+  const residualLikelihood = row.residualLikelihood ?? 2;
+  const residualImpact = row.residualImpact ?? 2;
+  row.residualLikelihood = residualLikelihood;
+  row.residualImpact = residualImpact;
+  row.residualScore = residualLikelihood * residualImpact;
+  row.residualBand = bandOf(row.residualScore);
+  if (Array.isArray(body.questions)) {
+    row.questions = body.questions.map((question) => {
+      const item = question as Record<string, unknown>;
+      return { prompt: String(item.prompt ?? ""), answer: String(item.answer ?? "") };
+    });
+  }
   record(actor, "vendor.saved", "ok", row.name);
   return row;
 }
@@ -1482,8 +1537,15 @@ function decideItem(
   const row = data.campaigns.find((item) => item.id === campaignId);
   const item = row?.items.find((entry) => entry.id === itemId);
   if (!row || !item) throw new DemoError(404, "not_found");
-  if (row.state !== "Open") throw new DemoError(400, "campaign_closed");
+  if (row.state !== "Open" && row.state !== "Remediation")
+    throw new DemoError(400, "campaign_closed");
   item.decision = decision;
+  if (decision === "Revoked") {
+    item.needsRemediation = true;
+    if (!item.remediationNote) {
+      item.remediationNote = "Remove the account before the review is submitted.";
+    }
+  }
   record(actor, "access.decided", "ok", decision);
   return campaignDetail(data, row.id);
 }
@@ -1493,6 +1555,7 @@ async function completeCampaign(data: DemoWorld, actor: Session, id: string) {
   const row = data.campaigns.find((item) => item.id === id);
   if (!row) throw new DemoError(404, "not_found");
   if (row.state === "Completed") return campaignDetail(data, id);
+  if (row.state === "Draft") throw new DemoError(400, "campaign_draft");
   if (row.items.length === 0) throw new DemoError(400, "empty_campaign");
   if (row.items.some((item) => item.decision !== "Approved" && item.decision !== "Revoked")) {
     throw new DemoError(400, "decisions_pending");
@@ -1543,6 +1606,7 @@ function campaignDetail(data: DemoWorld, id: string) {
     evidenceId: row.evidenceId,
     evidenceSha256: evidence?.sha256 ?? null,
     items: row.items,
+    providers: row.providers ?? [],
   };
 }
 

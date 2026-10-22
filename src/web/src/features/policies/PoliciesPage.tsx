@@ -11,6 +11,7 @@ import {
 } from "../../shared/api/client";
 import { Pager } from "../../shared/ui/Pager";
 import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
+import { AssignTask } from "../program/AssignTask";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
@@ -267,6 +268,12 @@ export function PoliciesPage() {
                   {version.approvedByName ? ` · ${version.approvedByName}` : ""}
                 </div>
               ))}
+              <AssignTask
+                tenantId={tenantId}
+                linkedKind="Policy"
+                linkedCode={detail.code}
+                canWrite={Boolean(workspace?.canWrite)}
+              />
             </>
           )}
         </div>

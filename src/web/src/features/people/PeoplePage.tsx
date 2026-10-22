@@ -5,6 +5,7 @@ import {
   ApiError,
   api,
   type PersonDetail,
+  type PersonListItem,
   type PersonPage,
   type Workspace,
 } from "../../shared/api/client";
@@ -13,13 +14,104 @@ import { formatDate, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
+type PersonExtras = {
+  mfaEnrolled?: boolean;
+  background?: string;
+  backgroundOn?: string | null;
+  device?: string;
+  statusReason?: string;
+  trainingCompletedOn?: string | null;
+};
+
+type RichPerson = PersonDetail & PersonExtras;
+
+const states = ["Active", "Offboarding", "Offboarded"] as const;
+
+function StatusOverride({
+  person,
+  tenantId,
+  canWrite,
+  onSaved,
+}: {
+  person: RichPerson;
+  tenantId: string;
+  canWrite: boolean;
+  onSaved: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [state, setState] = useState(person.state);
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  if (!canWrite) return null;
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/v1/people/${person.id}/status`, {
+        method: "POST",
+        tenantId,
+        body: { state, reason },
+      });
+      setReason("");
+      await onSaved();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={(event) => void save(event)}>
+      <h3>{t("peoplePage.override")}</h3>
+      <div className="split-fields">
+        <div className="field">
+          <label htmlFor="person-state">{t("peoplePage.state")}</label>
+          <select
+            id="person-state"
+            value={state}
+            onChange={(event) => setState(event.target.value)}
+          >
+            {states.map((item) => (
+              <option key={item} value={item}>
+                {t(`peoplePage.states.${item}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="person-reason">{t("peoplePage.reason")}</label>
+          <input
+            id="person-reason"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <button className="btn" type="submit" disabled={busy}>
+        {t("peoplePage.saveStatus")}
+      </button>
+      {error && (
+        <div className="error" role="alert">
+          {t("errors.load")}
+        </div>
+      )}
+    </form>
+  );
+}
+
 export function PeoplePage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [result, setResult] = useState<PersonPage | null>(null);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
-  const [detail, setDetail] = useState<PersonDetail | null>(null);
+  const [detail, setDetail] = useState<RichPerson | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +132,7 @@ export function PeoplePage() {
 
   async function open(id: string) {
     if (!tenantId) return;
-    const next = await api<PersonDetail>(`/api/v1/people/${id}`, { tenantId });
+    const next = await api<RichPerson>(`/api/v1/people/${id}`, { tenantId });
     setDetail(next);
   }
 
@@ -62,7 +154,7 @@ export function PeoplePage() {
 
   async function toggle(taskCode: string, done: boolean) {
     if (!tenantId || !detail) return;
-    const next = await api<PersonDetail>(`/api/v1/people/${detail.id}/tasks`, {
+    const next = await api<RichPerson>(`/api/v1/people/${detail.id}/tasks`, {
       method: "POST",
       tenantId,
       body: { taskCode, done },
@@ -129,6 +221,19 @@ export function PeoplePage() {
                       </button>
                       <div className="id">{row.email}</div>
                       <div className="id">{row.department}</div>
+                      <div className="id">
+                        {(row as PersonListItem & PersonExtras).mfaEnrolled
+                          ? t("peoplePage.enrolled")
+                          : t("peoplePage.missingMfa")}
+                        {" · "}
+                        {t(
+                          `peoplePage.backgrounds.${(row as PersonListItem & PersonExtras).background ?? "NotStarted"}`,
+                        )}
+                        {" · "}
+                        {t(
+                          `peoplePage.devices.${(row as PersonListItem & PersonExtras).device ?? "Missing"}`,
+                        )}
+                      </div>
                       {row.leaverStillHasAccess && (
                         <Pill status="fail">{t("peoplePage.leaver")}</Pill>
                       )}
@@ -179,6 +284,52 @@ export function PeoplePage() {
       {detail && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{detail.name}</h3>
+          <div className="kv">
+            <div>
+              <small>{t("peoplePage.mfa")}</small>
+              {detail.mfaEnrolled ? t("peoplePage.enrolled") : t("peoplePage.missingMfa")}
+            </div>
+            <div>
+              <small>{t("peoplePage.background")}</small>
+              {t(`peoplePage.backgrounds.${detail.background ?? "NotStarted"}`)}
+              {detail.backgroundOn ? ` · ${formatDate(detail.backgroundOn)}` : ""}
+            </div>
+            <div>
+              <small>{t("peoplePage.device")}</small>
+              {t(`peoplePage.devices.${detail.device ?? "Missing"}`)}
+            </div>
+            <div>
+              <small>{t("peoplePage.training")}</small>
+              {t(`peoplePage.trainingStates.${detail.training}`)}
+              {detail.trainingCompletedOn ? ` · ${formatDate(detail.trainingCompletedOn)}` : ""}
+            </div>
+            <div>
+              <small>{t("peoplePage.hired")}</small>
+              {detail.hireOn ? formatDate(detail.hireOn) : "—"}
+            </div>
+            <div>
+              <small>{t("peoplePage.left")}</small>
+              {detail.leftOn ? formatDate(detail.leftOn) : "—"}
+            </div>
+          </div>
+          {detail.statusReason && (
+            <p className="m">
+              {t("peoplePage.reason")}: {detail.statusReason}
+            </p>
+          )}
+          {tenantId && (
+            <StatusOverride
+              key={detail.id}
+              person={detail}
+              tenantId={tenantId}
+              canWrite={Boolean(workspace?.canWrite)}
+              onSaved={async () => {
+                setNotice(t("peoplePage.savedStatus"));
+                await open(detail.id);
+                load();
+              }}
+            />
+          )}
           {detail.leaverStillHasAccess && (
             <div className="error" role="status">
               {t("peoplePage.leaver")}

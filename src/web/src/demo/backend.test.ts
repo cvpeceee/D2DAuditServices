@@ -182,4 +182,102 @@ describe("demo backend", () => {
     });
     expect(denied.status).toBe(403);
   }, 60_000);
+
+  it("serves the employee portal, training, assets, tasks, and settings", async () => {
+    await resetDemo();
+    await login("chandra.vell@harborline.example");
+    const cards = (await get("/api/v1/me/cards")) as { kind: string; status: string }[];
+    expect(cards.map((card) => card.kind)).toEqual([
+      "Policy",
+      "Training",
+      "Mfa",
+      "Device",
+      "BackgroundCheck",
+    ]);
+    expect(cards.every((card) => card.status === "Complete")).toBe(true);
+
+    const modules = (await get("/api/v1/training")) as { id: string; code: string; type: string }[];
+    expect(modules.map((item) => item.code)).toEqual(["SEC-ANNUAL", "SEC-LMS"]);
+    await demoResponse("/api/v1/auth/logout", { method: "POST" });
+    await login("dev.patel@harborline.example");
+    const quiz = await demoResponse("/api/v1/training/module-annual/quiz", {
+      method: "POST",
+      headers: { "X-Tenant-Id": "acme" },
+      body: JSON.stringify({ answers: [0, 0, 0] }),
+    });
+    expect(quiz.status).toBe(200);
+    const passed = (await quiz.json()) as { passed: boolean; evidenceSha256: string | null };
+    expect(passed.passed).toBe(true);
+    expect(passed.evidenceSha256).toMatch(/^[a-f0-9]{64}$/);
+    await demoResponse("/api/v1/auth/logout", { method: "POST" });
+    await login("chandra.vell@harborline.example");
+
+    const trainingControl = (await get("/api/v1/controls/HR-06")) as {
+      status: string;
+      tests: { name: string; outcome: string }[];
+    };
+    expect(trainingControl.status).toBe("failing");
+    expect(
+      trainingControl.tests.find(
+        (item) => item.name === "Personnel completed training within 12 months",
+      )?.outcome,
+    ).toBe("fail");
+
+    const assets = (await get("/api/v1/assets?page=1&pageSize=40")) as {
+      items: { type: string; name: string }[];
+      total: number;
+      pageSize: number;
+    };
+    expect(assets.pageSize).toBe(40);
+    expect(assets.total).toBeGreaterThan(assets.pageSize);
+    expect(assets.items.length).toBeLessThanOrEqual(40);
+    const exported = await demoResponse("/api/v1/assets/export", {
+      headers: { "X-Tenant-Id": "acme" },
+    });
+    expect(exported.status).toBe(200);
+    const csv = await exported.text();
+    expect(csv).toContain("marketing-site");
+    expect(csv).toContain("Laptop");
+
+    const tasks = (await get("/api/v1/tasks?mine=true")) as { title: string; overdue: boolean }[];
+    expect(tasks.some((task) => task.title === "Prepare the next access review")).toBe(true);
+    const allTasks = (await get("/api/v1/tasks")) as { overdue: boolean }[];
+    expect(allTasks.some((task) => task.overdue)).toBe(true);
+
+    const members = (await get("/api/v1/settings/members")) as {
+      email: string;
+      active: boolean;
+      role: string;
+    }[];
+    expect(
+      members.some(
+        (member) => member.email === "chandra.vell@harborline.example" && member.role === "Admin",
+      ),
+    ).toBe(true);
+    expect(members.some((member) => member.active === false)).toBe(true);
+    const sso = (await get("/api/v1/settings/sso")) as { connected: boolean };
+    expect(sso.connected).toBe(false);
+
+    const risks = (await get("/api/v1/risks")) as { code: string; approved: boolean }[];
+    expect(risks.find((risk) => risk.code === "R-03")?.approved).toBe(false);
+    expect(risks.some((risk) => risk.approved)).toBe(true);
+    const library = (await get("/api/v1/risks/library")) as { code: string; added: boolean }[];
+    expect(library.find((item) => item.code === "LIB-01")?.added).toBe(false);
+
+    const vendors = (await get("/api/v1/vendors")) as {
+      name: string;
+      decision: string;
+      questions: { prompt: string }[];
+    }[];
+    const vendor = vendors.find((item) => item.questions.length > 0);
+    expect(vendor?.decision).toBeTruthy();
+
+    const campaigns = (await get("/api/v1/access-reviews")) as {
+      id: string;
+      name: string;
+      state: string;
+    }[];
+    const draft = campaigns.find((item) => item.name === "Q1 contractor review");
+    expect(draft?.state).toBe("Draft");
+  });
 });

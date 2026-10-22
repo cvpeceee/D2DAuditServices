@@ -153,7 +153,7 @@ public sealed class TenantContext
 
     public bool IsAuditor => Role == TenantRole.Auditor;
 
-    public bool CanWrite => Role is TenantRole.Admin or TenantRole.ControlOwner;
+    public bool CanWrite => Role is TenantRole.Admin or TenantRole.ControlOwner or TenantRole.Editor;
 
     public bool IsAdmin => Role == TenantRole.Admin;
 

@@ -9,13 +9,15 @@ import {
   type Workspace,
 } from "../../shared/api/client";
 import { Pill } from "../../shared/ui/ui";
+import { AssignTask } from "../program/AssignTask";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
 export function TestsPage() {
   const { t } = useTranslation();
-  const { tenantId } = useOutletContext<ShellContext>();
+  const { tenantId, workspace } = useOutletContext<ShellContext>();
   const [rows, setRows] = useState<AutomatedTest[] | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,9 +68,15 @@ export function TestsPage() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id}>
+                  <tr key={row.id} className={selected === row.name ? "sel" : ""}>
                     <td>
-                      <div className="t">{row.name}</div>
+                      <button
+                        className="linkish"
+                        type="button"
+                        onClick={() => setSelected(row.name)}
+                      >
+                        <div className="t">{row.name}</div>
+                      </button>
                       {row.remediation && <div className="m">{row.remediation}</div>}
                     </td>
                     <td className="id">{row.controlCode}</td>
@@ -90,6 +98,17 @@ export function TestsPage() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+      {selected && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <h3>{selected}</h3>
+          <AssignTask
+            tenantId={tenantId}
+            linkedKind="Test"
+            linkedCode={selected}
+            canWrite={Boolean(workspace?.canWrite)}
+          />
         </div>
       )}
     </>
