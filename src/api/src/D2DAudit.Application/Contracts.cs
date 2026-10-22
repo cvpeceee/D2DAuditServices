@@ -335,7 +335,11 @@ public sealed record DashboardResponse(
     AuditSummary? Audit,
     IReadOnlyList<FailingTestRow> FailingTests,
     ControlHealth Health,
-    IReadOnlyList<DueItem> DueItems);
+    IReadOnlyList<DueItem> DueItems,
+    IReadOnlyList<HistoryPoint> History,
+    int DevicesReporting);
+
+public sealed record HistoryPoint(DateOnly WeekOf, int Passing, int Failing);
 
 public sealed record FrameworkListItem(
     string Key,

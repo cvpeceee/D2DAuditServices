@@ -41,7 +41,11 @@ describe("RisksPage", () => {
             element={
               <Outlet
                 context={{
-                  workspace: { canWrite: true, role: "Admin", email: "chandra@acme.example" },
+                  workspace: {
+                    canWrite: true,
+                    role: "Admin",
+                    email: "chandra.vell@harborline.example",
+                  },
                   tenantId: "tenant-1",
                 }}
               />

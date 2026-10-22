@@ -1,5 +1,6 @@
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Persistence;
+using D2DAudit.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 
 namespace D2DAudit.Infrastructure.Governance;
@@ -14,34 +15,76 @@ internal static class GovernanceExample
         }
 
         var today = DateOnly.FromDateTime(now.UtcDateTime);
-        AddRisk(db, "R-01", "Public storage", "The marketing site bucket can be read by anyone on the internet.", 4, 5, "Priya N.", "priya@acme.example", RiskTreatment.Mitigate, "Turn on Block Public Access and confirm the next collection.", today.AddDays(7), 2, 3, ["CFG-01"]);
-        AddRisk(db, "R-02", "Missing MFA", "Two workforce accounts can sign in with a password alone.", 4, 4, "Priya N.", "priya@acme.example", RiskTreatment.Mitigate, "Require a second factor before the account is marked active.", today.AddDays(14), 2, 2, ["AC-07"]);
-        AddRisk(db, "R-03", "Leaver still has access", "An offboarded person still has a GitHub account.", 3, 5, "Lena K.", "lena@acme.example", RiskTreatment.Mitigate, "Remove the GitHub account and record it in the access review.", today.AddDays(-2), 1, 2, ["HR-08"]);
-        AddRisk(db, "R-04", "Unprotected branch", "The experiments repository can be changed without a second reviewer.", 3, 3, "Dev T.", "dev@acme.example", RiskTreatment.Mitigate, "Protect the default branch.", today.AddDays(21), 1, 2, ["CM-11"]);
-        AddRisk(db, "R-05", "Vendor concentration", "Source hosting and identity both sit with one or two suppliers.", 2, 4, "Chandra V.", "chandra@acme.example", RiskTreatment.Transfer, "Keep the suppliers' SOC 2 reports and a named exit path.", today.AddDays(40), 2, 3, []);
+        foreach (var item in ClientSeed.Risks)
+        {
+            AddRisk(db, item, today);
+        }
 
         await SyncPeopleAsync(db, today, cancellationToken);
-        AddVendor(db, "GitHub", "Source hosting", VendorCriticality.Critical, "Source code and pull requests", VendorReviewState.Approved, today.AddDays(60), 3, "GitHub SOC 2 report", "soc2", today.AddDays(-40));
-        AddVendor(db, "Google Workspace", "Email and directory", VendorCriticality.High, "Mail, files, and the employee directory", VendorReviewState.InReview, today.AddDays(10), 3, "Workspace security whitepaper", "whitepaper", today.AddDays(-80));
-        AddVendor(db, "Amazon Web Services", "Production hosting", VendorCriticality.Critical, "Customer application data in example buckets", VendorReviewState.Approved, today.AddDays(90), 4, "AWS SOC 2 report", "soc2", today.AddDays(-20));
-        AddVendor(db, "Pixel Fonts", "Marketing site fonts", VendorCriticality.Low, "No customer data", VendorReviewState.Expired, today.AddDays(-12), 1, "Font license", "license", today.AddDays(-400));
+        foreach (var item in ClientSeed.Vendors)
+        {
+            AddVendor(db, item, today);
+        }
+
+        foreach (var week in ClientSeed.History)
+        {
+            db.CheckWeeks.Add(new CheckWeek
+            {
+                Id = Guid.NewGuid(),
+                WeekOf = today.AddDays(week.Week * 7),
+                Passing = week.Passing,
+                Failing = week.Failing,
+            });
+        }
+
+        foreach (var note in ClientSeed.Notifications)
+        {
+            db.Notifications.Add(new WorkspaceNotification
+            {
+                Id = Guid.NewGuid(),
+                Title = note.Title,
+                Body = note.Body,
+                Href = note.Href,
+                At = ClientSeed.Moment(now, note.DayOffset),
+            });
+        }
+
+        foreach (var device in ClientSeed.Devices)
+        {
+            db.Devices.Add(new EnrolledDevice
+            {
+                Id = Guid.NewGuid(),
+                OwnerName = device.OwnerName,
+                OwnerEmail = device.OwnerEmail,
+                Platform = device.Platform,
+                Serial = device.Serial,
+                LastSeenOn = today.AddDays(device.SeenOffset),
+            });
+        }
 
         if (!await db.Resources.AnyAsync(item => item.Kind == "user", cancellationToken) || await db.AccessCampaigns.AnyAsync(cancellationToken))
         {
             return;
         }
 
+        var review = ClientSeed.AccessReview;
         var campaign = new AccessCampaign
         {
             Id = Guid.NewGuid(),
-            Name = "Q4 access review",
-            DueOn = today.AddDays(12),
+            Name = review.Name,
+            DueOn = today.AddDays(review.DueOffset),
             State = CampaignState.Open,
-            CreatedAt = now.AddDays(-1),
+            CreatedAt = ClientSeed.Moment(now, review.StartedOffset),
         };
         var accounts = await db.PersonAccounts.Include(item => item.Person).ToListAsync(cancellationToken);
-        foreach (var account in accounts)
+        var ordered = accounts
+            .OrderBy(item => item.Person?.Email ?? "", StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.Provider, StringComparer.Ordinal)
+            .ToArray();
+        for (var index = 0; index < ordered.Length; index++)
         {
+            var account = ordered[index];
+            var decision = ClientSeed.DecisionFor(index);
             var item = new AccessReviewItem
             {
                 Id = Guid.NewGuid(),
@@ -50,7 +93,8 @@ internal static class GovernanceExample
                 PersonEmail = account.Person?.Email ?? "",
                 Provider = account.Provider,
                 AccountName = account.AccountName,
-                Decision = AccessDecision.Pending,
+                Decision = decision,
+                ReviewerName = decision == AccessDecision.Pending ? null : "Priya Nair",
             };
             campaign.Items.Add(item);
             db.AccessItems.Add(item);
@@ -64,16 +108,20 @@ internal static class GovernanceExample
         var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user").ToListAsync(cancellationToken);
         foreach (var person in DirectorySync.People(snapshots.Select(Read).OfType<DirectoryAccount>()))
         {
+            var profile = ClientSeed.Person(person.Email);
             var row = new DirectoryPerson
             {
                 Id = Guid.NewGuid(),
                 Name = person.Name,
                 Email = person.Email,
-                Department = Department(person.Email),
+                Department = profile?.Department ?? "Workforce",
+                Role = profile?.Role ?? "",
+                HireOn = profile is null ? null : today.AddDays(profile.HireOffset),
+                LeftOn = profile?.LeaveOffset is int leave ? today.AddDays(leave) : null,
                 Source = DirectorySync.SourceOf(person.Accounts),
                 State = person.State,
-                Training = Training(person.Email),
-                TrainingDueOn = TrainingDue(person.Email, today),
+                Training = profile is not null && Enum.TryParse<TrainingState>(profile.Training, out var training) ? training : TrainingState.Assigned,
+                TrainingDueOn = today.AddDays(profile?.TrainingDueOffset ?? 20),
             };
             foreach (var code in ChecklistTasks.Onboarding())
             {
@@ -135,39 +183,25 @@ internal static class GovernanceExample
         return new DirectoryAccount(snapshot.Provider, snapshot.ExternalId, snapshot.Name, email, offboarded == "true", status == "active");
     }
 
-    private static void AddRisk(
-        TenantDbContext db,
-        string code,
-        string title,
-        string statement,
-        int likelihood,
-        int impact,
-        string owner,
-        string email,
-        RiskTreatment treatment,
-        string plan,
-        DateOnly reviewOn,
-        int residualLikelihood,
-        int residualImpact,
-        IReadOnlyList<string> controls)
+    private static void AddRisk(TenantDbContext db, ClientRisk item, DateOnly today)
     {
         var risk = new RiskItem
         {
             Id = Guid.NewGuid(),
-            Code = code,
-            Title = title,
-            Statement = statement,
-            Likelihood = likelihood,
-            Impact = impact,
-            OwnerName = owner,
-            OwnerEmail = email,
-            Treatment = treatment,
-            TreatmentPlan = plan,
-            ReviewOn = reviewOn,
-            ResidualLikelihood = residualLikelihood,
-            ResidualImpact = residualImpact,
+            Code = item.Code,
+            Title = item.Title,
+            Statement = item.Statement,
+            Likelihood = item.Likelihood,
+            Impact = item.Impact,
+            OwnerName = item.OwnerName,
+            OwnerEmail = item.OwnerEmail,
+            Treatment = Enum.Parse<RiskTreatment>(item.Treatment),
+            TreatmentPlan = item.TreatmentPlan,
+            ReviewOn = today.AddDays(item.ReviewOffset),
+            ResidualLikelihood = item.ResidualLikelihood,
+            ResidualImpact = item.ResidualImpact,
         };
-        foreach (var controlCode in controls)
+        foreach (var controlCode in item.ControlCodes)
         {
             var link = new RiskControlLink { RiskId = risk.Id, ControlCode = controlCode };
             risk.Controls.Add(link);
@@ -177,62 +211,33 @@ internal static class GovernanceExample
         db.Risks.Add(risk);
     }
 
-    private static void AddVendor(
-        TenantDbContext db,
-        string name,
-        string service,
-        VendorCriticality criticality,
-        string dataAccess,
-        VendorReviewState review,
-        DateOnly due,
-        int rating,
-        string documentTitle,
-        string kind,
-        DateOnly issued)
+    private static void AddVendor(TenantDbContext db, ClientVendor item, DateOnly today)
     {
         var vendor = new VendorRecord
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            Service = service,
-            Criticality = criticality,
-            DataAccess = dataAccess,
-            ReviewState = review,
-            ReviewDueOn = due,
-            RiskRating = rating,
+            Name = item.Name,
+            Service = item.Service,
+            Criticality = Enum.Parse<VendorCriticality>(item.Criticality),
+            DataAccess = item.DataAccess,
+            ReviewState = Enum.Parse<VendorReviewState>(item.ReviewState),
+            ReviewDueOn = today.AddDays(item.ReviewOffset),
+            RiskRating = item.RiskRating,
         };
-        var document = new VendorDocument
+        foreach (var file in item.Documents)
         {
-            Id = Guid.NewGuid(),
-            VendorId = vendor.Id,
-            Title = documentTitle,
-            Kind = kind,
-            IssuedOn = issued,
-        };
-        vendor.Documents.Add(document);
-        db.VendorDocuments.Add(document);
+            var document = new VendorDocument
+            {
+                Id = Guid.NewGuid(),
+                VendorId = vendor.Id,
+                Title = file.Title,
+                Kind = file.Kind,
+                IssuedOn = today.AddDays(file.IssuedOffset),
+            };
+            vendor.Documents.Add(document);
+            db.VendorDocuments.Add(document);
+        }
+
         db.Vendors.Add(vendor);
     }
-
-    private static string Department(string email) => email switch
-    {
-        "priya@acme.example" => "Security",
-        "lena@acme.example" => "People",
-        "dev@acme.example" => "Engineering",
-        _ => "Workforce",
-    };
-
-    private static TrainingState Training(string email) => email switch
-    {
-        "priya@acme.example" => TrainingState.Complete,
-        "lena@acme.example" or "sam.leaved@acme.example" => TrainingState.Overdue,
-        _ => TrainingState.Assigned,
-    };
-
-    private static DateOnly TrainingDue(string email, DateOnly today) => email switch
-    {
-        "priya@acme.example" => today.AddDays(-30),
-        "lena@acme.example" or "sam.leaved@acme.example" => today.AddDays(-6),
-        _ => today.AddDays(20),
-    };
 }

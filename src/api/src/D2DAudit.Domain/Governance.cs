@@ -219,6 +219,12 @@ public sealed class DirectoryPerson
 
     public string Department { get; set; } = "";
 
+    public string Role { get; set; } = "";
+
+    public DateOnly? HireOn { get; set; }
+
+    public DateOnly? LeftOn { get; set; }
+
     public DirectorySource Source { get; set; }
 
     public PersonState State { get; set; }

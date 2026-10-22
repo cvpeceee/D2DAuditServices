@@ -98,7 +98,8 @@ export function PeoplePage() {
               <thead>
                 <tr>
                   <th>{t("peoplePage.title")}</th>
-                  <th>{t("peoplePage.source")}</th>
+                  <th>{t("peoplePage.role")}</th>
+                  <th>{t("peoplePage.hired")}</th>
                   <th>{t("peoplePage.state")}</th>
                   <th>{t("peoplePage.training")}</th>
                 </tr>
@@ -111,11 +112,20 @@ export function PeoplePage() {
                         <b>{row.name}</b>
                       </button>
                       <div className="id">{row.email}</div>
+                      <div className="id">{row.department}</div>
                       {row.leaverStillHasAccess && (
                         <Pill status="fail">{t("peoplePage.leaver")}</Pill>
                       )}
                     </td>
-                    <td>{t(`peoplePage.sources.${row.source}`, { defaultValue: row.source })}</td>
+                    <td>{row.role}</td>
+                    <td>
+                      {row.hireOn ? formatDate(row.hireOn) : "—"}
+                      {row.leftOn && (
+                        <div className="id">
+                          {t("peoplePage.left")} {formatDate(row.leftOn)}
+                        </div>
+                      )}
+                    </td>
                     <td>
                       <Pill status={row.state === "Offboarded" ? "fail" : "pass"}>
                         {t(`peoplePage.states.${row.state}`)}

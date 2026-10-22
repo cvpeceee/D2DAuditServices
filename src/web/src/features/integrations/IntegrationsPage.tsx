@@ -7,6 +7,7 @@ import {
   type ConnectResult,
   type Integration,
   type Job,
+  type Resource,
   type Workspace,
 } from "../../shared/api/client";
 import { Pill } from "../../shared/ui/ui";
@@ -19,6 +20,7 @@ export function IntegrationsPage() {
   const { t } = useTranslation();
   const { workspace, tenantId, jobs } = useOutletContext<ShellContext>();
   const [rows, setRows] = useState<Integration[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [roleArn, setRoleArn] = useState("");
@@ -30,6 +32,9 @@ export function IntegrationsPage() {
     void api<Integration[]>("/api/v1/integrations", { tenantId })
       .then(setRows)
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
+    void api<Resource[]>("/api/v1/resources", { tenantId })
+      .then(setResources)
+      .catch(() => setResources([]));
   };
 
   useEffect(() => {
@@ -260,6 +265,33 @@ export function IntegrationsPage() {
           );
         })}
       </div>
+      {resources.length > 0 && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <h3>{t("integrations.resources")}</h3>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("integrations.provider")}</th>
+                  <th>{t("integrations.kind")}</th>
+                  <th>{t("integrations.resource")}</th>
+                  <th>{t("integrations.detail")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.map((resource) => (
+                  <tr key={`${resource.provider}-${resource.kind}-${resource.name}`}>
+                    <td>{providerLabel(resource.provider)}</td>
+                    <td>{resource.kind}</td>
+                    <td>{resource.name}</td>
+                    <td className="m">{resource.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
       {connect?.trustPolicy && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{t("integrations.trust")}</h3>

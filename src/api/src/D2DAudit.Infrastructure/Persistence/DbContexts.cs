@@ -148,6 +148,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<AccessReviewItem> AccessItems => Set<AccessReviewItem>();
 
+    public DbSet<CheckWeek> CheckWeeks => Set<CheckWeek>();
+
+    public DbSet<WorkspaceNotification> Notifications => Set<WorkspaceNotification>();
+
+    public DbSet<EnrolledDevice> Devices => Set<EnrolledDevice>();
+
+    public DbSet<FindingComment> FindingComments => Set<FindingComment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -343,6 +351,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         person.Property(x => x.Name).HasMaxLength(200).IsRequired();
         person.Property(x => x.Email).HasMaxLength(320).IsRequired();
         person.Property(x => x.Department).HasMaxLength(200).IsRequired();
+        person.Property(x => x.Role).HasMaxLength(200).IsRequired();
         person.Property(x => x.Source).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.Training).HasConversion<string>().HasMaxLength(32);
@@ -406,6 +415,34 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         reviewItem.Property(x => x.Decision).HasConversion<string>().HasMaxLength(32);
         reviewItem.Property(x => x.ReviewerName).HasMaxLength(200);
         reviewItem.HasOne(x => x.Campaign).WithMany(x => x.Items).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+
+        var week = modelBuilder.Entity<CheckWeek>();
+        week.ToTable("check_weeks");
+        week.HasKey(x => x.Id);
+        week.HasIndex(x => x.WeekOf).IsUnique();
+
+        var note = modelBuilder.Entity<WorkspaceNotification>();
+        note.ToTable("notifications");
+        note.HasKey(x => x.Id);
+        note.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        note.Property(x => x.Body).HasMaxLength(1000).IsRequired();
+        note.Property(x => x.Href).HasMaxLength(200).IsRequired();
+
+        var device = modelBuilder.Entity<EnrolledDevice>();
+        device.ToTable("devices");
+        device.HasKey(x => x.Id);
+        device.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        device.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        device.Property(x => x.Platform).HasMaxLength(32).IsRequired();
+        device.Property(x => x.Serial).HasMaxLength(64).IsRequired();
+        device.HasIndex(x => x.Serial).IsUnique();
+
+        var comment = modelBuilder.Entity<FindingComment>();
+        comment.ToTable("finding_comments");
+        comment.HasKey(x => x.Id);
+        comment.Property(x => x.AuthorName).HasMaxLength(200).IsRequired();
+        comment.Property(x => x.Body).HasMaxLength(2000).IsRequired();
+        comment.HasOne(x => x.Finding).WithMany(x => x.Comments).HasForeignKey(x => x.FindingId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

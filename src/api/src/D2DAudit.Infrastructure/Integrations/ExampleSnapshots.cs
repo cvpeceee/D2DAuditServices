@@ -1,4 +1,5 @@
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Seed;
 
 namespace D2DAudit.Infrastructure.Integrations;
 
@@ -10,22 +11,7 @@ public static class ExampleSnapshots
         return all.Where(item => item.Provider == provider).ToArray();
     }
 
-    private static IReadOnlyList<NormalizedResource> Acme() =>
-    [
-        Root("aws", "111122223333", mfa: true),
-        Bucket("aws", "logs-prod", publicAccess: false, encrypted: true),
-        Bucket("aws", "marketing-site", publicAccess: true, encrypted: false),
-        Trail("aws", "management-events", enabled: true),
-        User("google", "priya", "Priya N.", "priya@acme.example", mfa: true, offboarded: false, active: true),
-        User("google", "sam", "Sam Leaved", "sam.leaved@acme.example", mfa: true, offboarded: true, active: false),
-        User("microsoft", "jordan", "Jordan P.", "jordan@acme.example", mfa: false, offboarded: false, active: true),
-        User("microsoft", "lena", "Lena K.", "lena@acme.example", mfa: true, offboarded: false, active: true),
-        User("github", "casey", "Casey R.", "casey@acme.example", mfa: false, offboarded: false, active: true),
-        User("github", "sam-gh", "Sam Leaved", "sam.leaved@acme.example", mfa: true, offboarded: false, active: true),
-        Repo("github", "acme-api", protectedBranch: true),
-        Repo("github", "acme-web", protectedBranch: true),
-        Repo("github", "experiments", protectedBranch: false),
-    ];
+    private static IReadOnlyList<NormalizedResource> Acme() => ClientSeed.Resources;
 
     private static IReadOnlyList<NormalizedResource> Northwind() =>
     [

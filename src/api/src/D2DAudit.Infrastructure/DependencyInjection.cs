@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<IDemoSeeder, DemoSeeder>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IWorkspaceQuery, WorkspaceQuery>();
+        services.AddScoped<IClientRead, ClientPortal>();
         services.AddSingleton<SecretBox>();
         services.AddSingleton<EvidenceWriter>();
         if (string.IsNullOrWhiteSpace(configuration["Storage:Endpoint"]))

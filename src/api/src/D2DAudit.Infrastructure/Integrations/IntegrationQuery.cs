@@ -126,7 +126,7 @@ public sealed class IntegrationQuery(
             row.Fixture = fixture;
             row.Secret = null;
             row.LastError = null;
-            row.AccountLabel = fixture == "northwind" ? "Northwind Labs example" : "Acme Robotics example";
+            row.AccountLabel = fixture == "northwind" ? "Northwind Labs example" : "Harborline example";
             row.SetupHint = "Example fixture. No customer account is connected.";
         }
 

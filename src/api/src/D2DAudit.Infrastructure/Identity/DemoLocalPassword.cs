@@ -10,10 +10,11 @@ public static class DemoLocalPassword
 
     public static readonly string[] Emails =
     [
-        "chandra@acme.example",
-        "priya@acme.example",
-        "marcus@acme.example",
-        "dev@acme.example",
+        "chandra.vell@harborline.example",
+        "priya.nair@harborline.example",
+        "marcus.lee@harborline.example",
+        "dev.patel@harborline.example",
+        "lena.cho@harborline.example",
         "auditor@northgate.example",
         "owner@northwind.example",
     ];

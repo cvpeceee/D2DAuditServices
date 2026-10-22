@@ -728,6 +728,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeviceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResourceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/integrations": {
         parameters: {
             query?: never;
@@ -2476,6 +2581,16 @@ export interface components {
             failingTests: components["schemas"]["FailingTestRow"][];
             health: components["schemas"]["ControlHealth"];
             dueItems: components["schemas"]["DueItem"][];
+            history: components["schemas"]["HistoryPoint"][];
+            /** Format: int32 */
+            devicesReporting: number | string;
+        };
+        DeviceDto: {
+            ownerName: string;
+            platform: string;
+            serial: string;
+            /** Format: date */
+            lastSeenOn: string;
         };
         DueItem: {
             kind: string;
@@ -2551,6 +2666,12 @@ export interface components {
             /** Format: byte */
             body: string;
         };
+        FindingCommentDto: {
+            authorName: string;
+            body: string;
+            /** Format: date-time */
+            at: string;
+        };
         FindingDto: {
             code: string;
             title: string;
@@ -2559,6 +2680,7 @@ export interface components {
             requirementCode: string;
             managementResponse: null | string;
             responseByName: null | string;
+            comments: components["schemas"]["FindingCommentDto"][];
         };
         ForgotBody: {
             email: string;
@@ -2593,6 +2715,14 @@ export interface components {
             total: number | string;
             /** Format: int32 */
             percent: number | string;
+        };
+        HistoryPoint: {
+            /** Format: date */
+            weekOf: string;
+            /** Format: int32 */
+            passing: number | string;
+            /** Format: int32 */
+            failing: number | string;
         };
         IntegrationDto: {
             /** Format: uuid */
@@ -2643,6 +2773,13 @@ export interface components {
             id: string;
             type: string;
         };
+        NotificationDto: {
+            title: string;
+            body: string;
+            href: string;
+            /** Format: date-time */
+            at: string;
+        };
         PasswordLoginBody: {
             email: string;
             password: string;
@@ -2675,6 +2812,11 @@ export interface components {
             accounts: components["schemas"]["PersonAccountDto"][];
             tasks: components["schemas"]["PersonTaskDto"][];
             acknowledgements: components["schemas"]["PersonAcknowledgementDto"][];
+            role: string;
+            /** Format: date */
+            hireOn: null | string;
+            /** Format: date */
+            leftOn: null | string;
         };
         PersonListItem: {
             /** Format: uuid */
@@ -2690,6 +2832,11 @@ export interface components {
             leaverStillHasAccess: boolean;
             /** Format: int32 */
             openTasks: number | string;
+            role: string;
+            /** Format: date */
+            hireOn: null | string;
+            /** Format: date */
+            leftOn: null | string;
         };
         PersonTaskDto: {
             kind: string;
@@ -2734,6 +2881,12 @@ export interface components {
             summary: string;
             controls: components["schemas"]["MappedControlDto"][];
             children: components["schemas"]["RequirementNodeDto"][];
+        };
+        ResourceDto: {
+            provider: string;
+            kind: string;
+            name: string;
+            detail: string;
         };
         RespondSampleRequest: {
             body: string;

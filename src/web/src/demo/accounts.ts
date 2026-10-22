@@ -5,6 +5,6 @@
 export const examplePassword = "Example-Only-1!";
 
 export const exampleAccounts = [
-  { email: "chandra@acme.example", name: "Chandra V.", role: "Admin" },
+  { email: "chandra.vell@harborline.example", name: "Chandra Vell", role: "Admin" },
   { email: "auditor@northgate.example", name: "Rachel Ortiz", role: "Auditor" },
 ] as const;

@@ -14,7 +14,8 @@ public sealed class WorkspaceQuery(
     ControlPlaneDbContext control,
     IActivityWriter activity,
     IValidator<AssignOwnerRequest> owners,
-    IGovernance governance) : IWorkspaceQuery
+    IGovernance governance,
+    IClientRead client) : IWorkspaceQuery
 {
     public async Task<WorkspaceResponse> GetAsync(CancellationToken cancellationToken)
     {
@@ -81,7 +82,9 @@ public sealed class WorkspaceQuery(
             summary,
             failingTests,
             health,
-            await governance.DueItemsAsync(cancellationToken));
+            await governance.DueItemsAsync(cancellationToken),
+            await client.HistoryAsync(cancellationToken),
+            await client.DeviceCountAsync(cancellationToken));
     }
 
     public async Task<IReadOnlyList<FrameworkListItem>> FrameworksAsync(CancellationToken cancellationToken)

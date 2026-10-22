@@ -20,7 +20,7 @@ async function get(path: string) {
 describe("demo backend", () => {
   it("signs in the example accounts and keeps the auditor inside SOC 2", async () => {
     await resetDemo();
-    const admin = await login("chandra@acme.example");
+    const admin = await login("chandra.vell@harborline.example");
     expect(admin.tenants[0].role).toBe("Admin");
     const policies = (await get("/api/v1/policies")) as { code: string }[];
     expect(policies.map((item) => item.code)).toContain("POL-PRI");
@@ -91,7 +91,7 @@ describe("demo backend", () => {
 
   it("serves the statement of applicability, leaver flag, and a hashed access review", async () => {
     await resetDemo();
-    await login("chandra@acme.example");
+    await login("chandra.vell@harborline.example");
     const soa = (await get("/api/v1/soa")) as { code: string; applicable: boolean }[];
     expect(soa).toHaveLength(93);
     expect(soa[0]?.code).toBe("A.5.1");
@@ -108,7 +108,8 @@ describe("demo backend", () => {
       email: string;
       leaverStillHasAccess: boolean;
     }[];
-    const sam = people.find((person) => person.email === "sam.leaved@acme.example");
+    const sam = people.find((person) => person.email === "sam.leaved@harborline.example");
+    expect(people).toHaveLength(120);
     expect(sam?.leaverStillHasAccess).toBe(true);
 
     const campaigns = (await get("/api/v1/access-reviews")) as { id: string; name: string }[];
@@ -139,9 +140,18 @@ describe("demo backend", () => {
     expect(review.evidenceSha256).toMatch(/^[a-f0-9]{64}$/);
 
     const dashboard = (await get("/api/v1/dashboard")) as {
+      tenantName: string;
       dueItems: { title: string; overdue: boolean }[];
       frameworks: { key: string; percent: number }[];
+      history: { weekOf: string }[];
+      devicesReporting: number;
+      readinessPercent: number;
     };
+    expect(dashboard.tenantName).toBe("Harborline");
+    expect(dashboard.history.length).toBeGreaterThanOrEqual(26);
+    expect(dashboard.devicesReporting).toBeGreaterThan(0);
+    expect(dashboard.readinessPercent).toBeGreaterThanOrEqual(70);
+    expect(dashboard.readinessPercent).toBeLessThanOrEqual(80);
     expect(
       dashboard.dueItems.some((item) => item.title === "Leaver still has access" && item.overdue),
     ).toBe(true);

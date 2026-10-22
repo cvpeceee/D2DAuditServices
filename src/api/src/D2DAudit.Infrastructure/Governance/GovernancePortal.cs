@@ -4,6 +4,7 @@ using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Persistence;
+using D2DAudit.Infrastructure.Seed;
 using D2DAudit.Infrastructure.Tenancy;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -398,7 +399,12 @@ public sealed class GovernancePortal(
         var access = await db.AccessCampaigns.AsNoTracking().Where(item => item.State == CampaignState.Open && item.DueOn <= horizon).ToListAsync(cancellationToken);
         items.AddRange(access.Select(item => new DueItem("access", item.Name, item.DueOn, "/access-reviews", item.DueOn < today)));
         var acknowledgements = await db.Acknowledgements.AsNoTracking().Include(item => item.Version).ThenInclude(version => version!.Policy).Where(item => item.AcknowledgedAt == null && item.DueOn <= horizon).ToListAsync(cancellationToken);
-        items.AddRange(acknowledgements.Select(item => new DueItem("policy", item.Version?.Policy?.Title ?? item.PersonName, item.DueOn, "/policies", item.DueOn < today)));
+        items.AddRange(acknowledgements.Select(item => new DueItem(
+            "policy",
+            item.Version?.Policy?.Title is string title ? title + " · " + item.PersonName : item.PersonName,
+            item.DueOn,
+            "/policies",
+            item.DueOn < today)));
         return items.OrderBy(item => item.DueOn).ThenBy(item => item.Title, StringComparer.Ordinal).ToArray();
     }
 
@@ -434,6 +440,7 @@ public sealed class GovernancePortal(
             row.Name = person.Name;
             row.State = person.State;
             row.Source = DirectorySync.SourceOf(person.Accounts);
+            ApplyProfile(row, person.Email, today);
             db.PersonAccounts.RemoveRange(row.Accounts);
             row.Accounts.Clear();
             foreach (var account in person.Accounts)
@@ -454,6 +461,31 @@ public sealed class GovernancePortal(
 
         await db.SaveChangesAsync(cancellationToken);
         return added;
+    }
+
+    private static void ApplyProfile(DirectoryPerson row, string email, DateOnly today)
+    {
+        var profile = ClientSeed.Person(email);
+        if (profile is null)
+        {
+            if (string.IsNullOrWhiteSpace(row.Department))
+            {
+                row.Department = "Workforce";
+            }
+
+            return;
+        }
+
+        row.Department = profile.Department;
+        row.Role = profile.Role;
+        row.HireOn = today.AddDays(profile.HireOffset);
+        row.LeftOn = profile.LeaveOffset is int leave ? today.AddDays(leave) : null;
+        if (Enum.TryParse<TrainingState>(profile.Training, out var training))
+        {
+            row.Training = training;
+        }
+
+        row.TrainingDueOn = today.AddDays(profile.TrainingDueOffset);
     }
 
     private async Task EnsureSoaAsync(TenantDbContext db, CancellationToken cancellationToken)
@@ -611,7 +643,10 @@ public sealed class GovernancePortal(
             LeaverAccess.Flagged(person.State, person.Accounts.Select(account => account.Active)),
             person.Accounts.OrderBy(account => account.Provider, StringComparer.Ordinal).Select(account => new PersonAccountDto(account.Provider, account.AccountName, account.Active)).ToArray(),
             person.Tasks.OrderBy(task => task.Kind).ThenBy(task => task.TaskCode, StringComparer.Ordinal).Select(task => new PersonTaskDto(task.Kind.ToString(), task.TaskCode, task.Done)).ToArray(),
-            acknowledgements.Select(item => new PersonAcknowledgementDto(item.Version?.Policy?.Code ?? "", item.Version?.Policy?.Title ?? "", item.DueOn, item.AcknowledgedAt)).ToArray());
+            acknowledgements.Select(item => new PersonAcknowledgementDto(item.Version?.Policy?.Code ?? "", item.Version?.Policy?.Title ?? "", item.DueOn, item.AcknowledgedAt)).ToArray(),
+            person.Role,
+            person.HireOn,
+            person.LeftOn);
     }
 
     private static RiskListItem ToRisk(RiskItem row)
@@ -648,7 +683,10 @@ public sealed class GovernancePortal(
         person.Training.ToString(),
         person.TrainingDueOn,
         LeaverAccess.Flagged(person.State, person.Accounts.Select(account => account.Active)),
-        person.Tasks.Count(task => !task.Done && (person.State == PersonState.Offboarded ? task.Kind == ChecklistKind.Offboarding : task.Kind == ChecklistKind.Onboarding)));
+        person.Tasks.Count(task => !task.Done && (person.State == PersonState.Offboarded ? task.Kind == ChecklistKind.Offboarding : task.Kind == ChecklistKind.Onboarding)),
+        person.Role,
+        person.HireOn,
+        person.LeftOn);
 
     private static SoaRow ToSoa(SoaEntry row) => new(row.Code, row.Title, row.Applicable, row.Justification, row.Implementation.ToString());
 

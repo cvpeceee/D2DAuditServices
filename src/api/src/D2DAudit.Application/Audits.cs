@@ -37,7 +37,10 @@ public sealed record FindingDto(
     string Detail,
     string RequirementCode,
     string? ManagementResponse,
-    string? ResponseByName);
+    string? ResponseByName,
+    IReadOnlyList<FindingCommentDto> Comments);
+
+public sealed record FindingCommentDto(string AuthorName, string Body, DateTimeOffset At);
 
 public sealed record AuditPortalPage(
     AuditEngagementDto? Engagement,

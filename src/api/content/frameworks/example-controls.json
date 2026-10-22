@@ -6,8 +6,8 @@
       "description": "Management approves a written security policy and employees can find it.",
       "status": "Passing",
       "frequency": "Annual",
-      "ownerName": "Chandra V.",
-      "ownerEmail": "chandra@acme.example",
+      "ownerName": "Chandra Vell",
+      "ownerEmail": "chandra.vell@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -25,7 +25,7 @@
           "name": "Policy approval record",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -35,8 +35,8 @@
       "description": "Security responsibilities have a named owner.",
       "status": "Passing",
       "frequency": "Annual",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -54,7 +54,7 @@
           "name": "Role catalog review",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -64,8 +64,8 @@
       "description": "The person who requests a privileged change is not the only person who approves it.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -83,7 +83,7 @@
           "name": "Privileged change sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -93,8 +93,8 @@
       "description": "Someone outside the team that runs the controls reviews the program.",
       "status": "Manual",
       "frequency": "Annual",
-      "ownerName": "Chandra V.",
-      "ownerEmail": "chandra@acme.example",
+      "ownerName": "Chandra Vell",
+      "ownerEmail": "chandra.vell@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -122,8 +122,8 @@
       "description": "Security objectives, risks, and significant changes are assessed on a schedule.",
       "status": "Passing",
       "frequency": "Annual",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "soc2",
@@ -151,7 +151,7 @@
           "name": "Annual risk assessment",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -161,8 +161,8 @@
       "description": "People are screened before they receive production access.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "People Ops",
-      "ownerEmail": "people@acme.example",
+      "ownerName": "Lena Cho",
+      "ownerEmail": "lena.cho@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -180,7 +180,7 @@
           "name": "Screening completion check",
           "kind": "attestation",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -190,8 +190,8 @@
       "description": "People finish security training for their role.",
       "status": "Passing",
       "frequency": "Annual",
-      "ownerName": "People Ops",
-      "ownerEmail": "people@acme.example",
+      "ownerName": "Lena Cho",
+      "ownerEmail": "lena.cho@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -209,7 +209,7 @@
           "name": "Training completion",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -219,8 +219,8 @@
       "description": "Access ends quickly after someone leaves.",
       "status": "DueSoon",
       "frequency": "Continuous",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -253,8 +253,8 @@
       "description": "Access is reviewed every quarter and adjusted.",
       "status": "DueSoon",
       "frequency": "Quarterly",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -287,8 +287,8 @@
       "description": "Workforce accounts use a second factor.",
       "status": "Failing",
       "frequency": "Continuous",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -311,7 +311,7 @@
           "name": "Identity provider second-factor policy",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         },
         {
           "name": "Accounts missing a second factor",
@@ -327,8 +327,8 @@
       "description": "Administrator access expires instead of staying open.",
       "status": "NeedsEvidence",
       "frequency": "Continuous",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -356,8 +356,8 @@
       "description": "Moving to a new role replaces access instead of only adding to it.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Priya N.",
-      "ownerEmail": "priya@acme.example",
+      "ownerName": "Priya Nair",
+      "ownerEmail": "priya.nair@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -380,7 +380,7 @@
           "name": "Role-change sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -390,8 +390,8 @@
       "description": "Production data stores are encrypted at rest.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -409,7 +409,7 @@
           "name": "Storage encryption configuration",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -419,8 +419,8 @@
       "description": "Production traffic uses current TLS.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -443,7 +443,7 @@
           "name": "TLS configuration check",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -453,8 +453,8 @@
       "description": "Production code changes are reviewed by someone other than the author.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Dev T.",
-      "ownerEmail": "dev@acme.example",
+      "ownerName": "Dev Patel",
+      "ownerEmail": "dev.patel@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -477,7 +477,7 @@
           "name": "Peer review on protected branches",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -487,8 +487,8 @@
       "description": "Production is not the place where unreleased changes are tried out.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Dev T.",
-      "ownerEmail": "dev@acme.example",
+      "ownerName": "Dev Patel",
+      "ownerEmail": "dev.patel@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -506,7 +506,7 @@
           "name": "Environment separation",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -516,8 +516,8 @@
       "description": "Company laptops encrypt their disks.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "IT Ops",
-      "ownerEmail": "itops@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -540,7 +540,7 @@
           "name": "Disk encryption report",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -550,8 +550,8 @@
       "description": "Screens lock after a short idle period.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "IT Ops",
-      "ownerEmail": "itops@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -574,7 +574,7 @@
           "name": "Screen lock policy",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -584,8 +584,8 @@
       "description": "Vendors with access to systems or data are reviewed each year.",
       "status": "Manual",
       "frequency": "Annual",
-      "ownerName": "Lena K.",
-      "ownerEmail": "lena@acme.example",
+      "ownerName": "Lena Cho",
+      "ownerEmail": "lena.cho@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -623,8 +623,8 @@
       "description": "Backups are proven by restoring them, not only by watching a success light.",
       "status": "Passing",
       "frequency": "Quarterly",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -652,7 +652,7 @@
           "name": "Quarterly restore sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -662,8 +662,8 @@
       "description": "Someone looks at capacity before it becomes an outage.",
       "status": "Passing",
       "frequency": "Quarterly",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -681,7 +681,7 @@
           "name": "Capacity review",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -691,8 +691,8 @@
       "description": "The incident plan is exercised, not only written.",
       "status": "NeedsEvidence",
       "frequency": "Annual",
-      "ownerName": "Chandra V.",
-      "ownerEmail": "chandra@acme.example",
+      "ownerName": "Chandra Vell",
+      "ownerEmail": "chandra.vell@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -735,8 +735,8 @@
       "description": "Security logs stay available for at least a year.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -759,7 +759,7 @@
           "name": "Log retention configuration",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -769,8 +769,8 @@
       "description": "Alerts are looked at before they go stale.",
       "status": "Failing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -803,8 +803,8 @@
       "description": "Vulnerabilities are fixed within the window the risk calls for.",
       "status": "Failing",
       "frequency": "Continuous",
-      "ownerName": "Marcus L.",
-      "ownerEmail": "marcus@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -832,8 +832,8 @@
       "description": "The public privacy notice matches how personal information is actually handled.",
       "status": "Passing",
       "frequency": "Annual",
-      "ownerName": "Lena K.",
-      "ownerEmail": "lena@acme.example",
+      "ownerName": "Lena Cho",
+      "ownerEmail": "lena.cho@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -846,7 +846,7 @@
           "name": "Privacy notice review",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -856,8 +856,8 @@
       "description": "Entry to rooms that hold production systems is recorded.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "IT Ops",
-      "ownerEmail": "itops@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -875,7 +875,7 @@
           "name": "Entry log sample",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -885,8 +885,8 @@
       "description": "Production systems have a baseline configuration to compare against.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "Dev T.",
-      "ownerEmail": "dev@acme.example",
+      "ownerName": "Dev Patel",
+      "ownerEmail": "dev.patel@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -904,7 +904,7 @@
           "name": "Baseline drift check",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     },
@@ -914,8 +914,8 @@
       "description": "Managed endpoints run anti-malware and report it.",
       "status": "Passing",
       "frequency": "Continuous",
-      "ownerName": "IT Ops",
-      "ownerEmail": "itops@acme.example",
+      "ownerName": "Marcus Lee",
+      "ownerEmail": "marcus.lee@harborline.example",
       "mappings": [
         {
           "framework": "iso27001",
@@ -933,7 +933,7 @@
           "name": "Anti-malware status",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Acme Robotics workspace."
+          "detail": "Example data in the Harborline workspace."
         }
       ]
     }

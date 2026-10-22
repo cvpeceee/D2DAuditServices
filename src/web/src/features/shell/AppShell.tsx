@@ -2,7 +2,13 @@ import { HubConnectionBuilder } from "@microsoft/signalr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { api, type Job, type Workspace } from "../../shared/api/client";
+import {
+  api,
+  type Device,
+  type Job,
+  type Notification,
+  type Workspace,
+} from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
 import { initials } from "../../shared/ui/ui";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
@@ -37,6 +43,9 @@ export function AppShell() {
   const [tray, setTray] = useState(false);
   const [account, setAccount] = useState(false);
   const [assist, setAssist] = useState(false);
+  const [notes, setNotes] = useState<Notification[]>([]);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [deviceCount, setDeviceCount] = useState(0);
   const paletteSearch = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,6 +59,20 @@ export function AppShell() {
     void api<Job[]>("/api/v1/jobs", { tenantId }).then((value) => {
       if (!cancelled) setJobs(value);
     });
+    void api<Notification[]>("/api/v1/notifications", { tenantId })
+      .then((value) => {
+        if (!cancelled) setNotes(value);
+      })
+      .catch(() => {
+        if (!cancelled) setNotes([]);
+      });
+    void api<Device[]>("/api/v1/devices", { tenantId })
+      .then((value) => {
+        if (!cancelled) setDeviceCount(value.length);
+      })
+      .catch(() => {
+        if (!cancelled) setDeviceCount(0);
+      });
     const pushJob = (job: Job) => {
       setJobs((current) => [job, ...current.filter((item) => item.id !== job.id)].slice(0, 20));
     };
@@ -249,9 +272,9 @@ export function AppShell() {
         )}
         <div className="agentcard">
           <b>{t("shell.deviceAgent")}</b>
-          {t("shell.noDevices")}
+          {t("shell.devices", { count: deviceCount })}
           <div className="bar" style={{ marginTop: 8 }}>
-            <i style={{ width: "0%" }} />
+            <i style={{ width: deviceCount > 0 ? "100%" : "0%" }} />
           </div>
         </div>
       </aside>
@@ -291,6 +314,38 @@ export function AppShell() {
                 {t(`theme.${theme === "high-contrast" ? "contrast" : theme}`)}
               </button>
             ))}
+          </div>
+          <div className="note-wrap">
+            <button
+              className="btn icon-btn"
+              type="button"
+              aria-label={t("shell.notifications")}
+              onClick={() => setNotesOpen((open) => !open)}
+            >
+              {notes.length > 0 ? notes.length : "○"}
+            </button>
+            {notesOpen && (
+              <div className="note-pop" role="dialog" aria-label={t("shell.notifications")}>
+                {notes.length === 0 ? (
+                  <div className="m">{t("shell.notificationsEmpty")}</div>
+                ) : (
+                  notes.map((note) => (
+                    <button
+                      key={`${note.at}-${note.title}`}
+                      className="note-item"
+                      type="button"
+                      onClick={() => {
+                        setNotesOpen(false);
+                        void navigate(note.href);
+                      }}
+                    >
+                      <b>{note.title}</b>
+                      <span>{note.body}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           <button
             className="btn icon-btn"

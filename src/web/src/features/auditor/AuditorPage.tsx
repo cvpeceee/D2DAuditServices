@@ -8,7 +8,7 @@ import {
   type Job,
   type Workspace,
 } from "../../shared/api/client";
-import { formatDate, Pill } from "../../shared/ui/ui";
+import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
@@ -423,6 +423,15 @@ export function AuditorPage() {
                   ? `${item.managementResponse}${item.responseByName ? ` · ${item.responseByName}` : ""}`
                   : t("auditorPage.noResponse")}
               </div>
+              {(item.comments ?? []).length > 0 && (
+                <ul>
+                  {(item.comments ?? []).map((comment) => (
+                    <li key={`${comment.at}-${comment.authorName}`}>
+                      <b>{comment.authorName}</b> · {formatWhen(comment.at)} · {comment.body}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {workspace?.canWrite && !item.managementResponse && (
                 <form
                   className="stack"

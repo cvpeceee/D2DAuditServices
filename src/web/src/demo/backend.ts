@@ -1,5 +1,6 @@
 import { exampleAccounts, examplePassword } from "./accounts";
 import {
+  company,
   createWorld,
   type DemoEvidence,
   type DemoFinding,
@@ -40,6 +41,7 @@ let worldPromise: Promise<DemoWorld> | null = null;
 let session: Session | null = null;
 let jobs: Job[] = [];
 let activity: Activity[] = [];
+let activitySeeded = false;
 let stepDelayMs = 400;
 let idCounter = 1;
 
@@ -49,11 +51,13 @@ export function setDemoStepDelay(milliseconds: number) {
 
 export async function resetDemo() {
   worldPromise = createWorld();
-  await worldPromise;
+  const data = await worldPromise;
   session = null;
   jobs = [];
   activity = [];
+  activitySeeded = false;
   idCounter = 1;
+  seedActivity(data);
   sessionStorage.removeItem(sessionKey);
 }
 
@@ -133,6 +137,7 @@ async function route(
 
   const actor = requireUser();
   const data = await world();
+  seedActivity(data);
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -279,6 +284,9 @@ async function route(
       campaignDetail(data, decodeURIComponent(path.slice("/api/v1/access-reviews/".length))),
     );
   }
+  if (path === "/api/v1/notifications") return json(data.notifications);
+  if (path === "/api/v1/devices") return json(data.devices);
+  if (path === "/api/v1/resources") return json(data.resources);
   if (path === "/api/v1/jobs") return json(jobs.map(publicJob));
   if (path === "/api/v1/activity") {
     if (actor.role !== "Admin") throw new DemoError(403, "forbidden");
@@ -337,9 +345,9 @@ function authBody() {
     tenants: [
       {
         tenantId,
-        name: "Acme Robotics",
-        slug: "acme-robotics",
-        region: "US",
+        name: company.name,
+        slug: company.slug,
+        region: company.region,
         role: session.role,
         exampleData: true,
       },
@@ -354,8 +362,8 @@ function authBody() {
 function workspace(data: DemoWorld, actor: Session) {
   return {
     tenantId,
-    name: "Acme Robotics",
-    region: "US",
+    name: company.name,
+    region: company.region,
     role: actor.role,
     exampleData: true,
     canWrite: actor.role !== "Auditor",
@@ -392,8 +400,8 @@ function dashboard(data: DemoWorld, actor: Session) {
   ).length;
   return {
     displayName: actor.name,
-    tenantName: "Acme Robotics",
-    region: "US",
+    tenantName: company.name,
+    region: company.region,
     exampleData: true,
     readinessPercent: percent(health.passing, data.controls.length),
     frameworkCount: data.frameworks.length,
@@ -417,6 +425,8 @@ function dashboard(data: DemoWorld, actor: Session) {
     failingTests,
     health,
     dueItems: dueItems(data),
+    history: data.history,
+    devicesReporting: data.devices.length,
   };
 }
 
@@ -595,7 +605,7 @@ function integrations() {
             : "GitHub",
     status: "connected",
     example: true,
-    accountLabel: "Acme Robotics example",
+    accountLabel: `${company.name} example`,
     externalId: null,
     roleArn: null,
     domain: null,
@@ -777,7 +787,7 @@ function auditPage(data: DemoWorld) {
       name: "SOC 2 Type II — Fieldwork",
       firmName: "Northgate Assurance LLP",
       frameworkKey: "soc2",
-      scope: "SOC 2 Type II (Security, Availability). Example engagement for Acme Robotics.",
+      scope: `SOC 2 Type II (Security, Availability). Example engagement for ${company.name}.`,
       periodStart: "2026-04-01",
       periodEnd: "2026-09-30",
       fieldworkOn: "2026-11-30",
@@ -875,6 +885,7 @@ function createFinding(data: DemoWorld, actor: Session, body: Record<string, unk
     requirementCode: String(body.requirementCode ?? ""),
     managementResponse: null,
     responseByName: null,
+    comments: [],
   };
   data.findings.unshift(row);
   record(actor, "audit.finding.created", "ok", row.code);
@@ -1078,7 +1089,7 @@ function dueItems(data: DemoWorld) {
       if (item.version === approved?.number && !item.acknowledgedAt && item.dueOn <= horizon) {
         items.push({
           kind: "policy",
-          title: policy.title,
+          title: `${policy.title} · ${item.personName}`,
           dueOn: item.dueOn,
           href: "/policies",
           overdue: item.dueOn < today,
@@ -1269,6 +1280,9 @@ function personList(person: DemoWorld["people"][number]) {
       (task) =>
         !task.done && task.kind === (person.state === "Offboarded" ? "Offboarding" : "Onboarding"),
     ).length,
+    role: person.role,
+    hireOn: person.hireOn,
+    leftOn: person.leftOn,
   };
 }
 
@@ -1569,6 +1583,21 @@ function requireWrite(actor: Session) {
 
 function requireAudit(actor: Session) {
   if (actor.role !== "Auditor" && actor.role !== "Admin") throw new DemoError(403, "forbidden");
+}
+
+function seedActivity(data: DemoWorld) {
+  if (activitySeeded) return;
+  activity = [...data.activity]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .map((item) => ({
+      at: item.at,
+      action: item.action,
+      result: item.result,
+      detail: item.detail,
+      actorEmail: item.actor,
+      ipAddress: null,
+    }));
+  activitySeeded = true;
 }
 
 function record(actor: Session, action: string, result: string, detail: string | null) {

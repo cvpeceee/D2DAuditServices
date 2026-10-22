@@ -52,7 +52,10 @@ public sealed record PersonListItem(
     string Training,
     DateOnly? TrainingDueOn,
     bool LeaverStillHasAccess,
-    int OpenTasks);
+    int OpenTasks,
+    string Role,
+    DateOnly? HireOn,
+    DateOnly? LeftOn);
 
 public sealed record PersonDetail(
     Guid Id,
@@ -66,7 +69,10 @@ public sealed record PersonDetail(
     bool LeaverStillHasAccess,
     IReadOnlyList<PersonAccountDto> Accounts,
     IReadOnlyList<PersonTaskDto> Tasks,
-    IReadOnlyList<PersonAcknowledgementDto> Acknowledgements);
+    IReadOnlyList<PersonAcknowledgementDto> Acknowledgements,
+    string Role,
+    DateOnly? HireOn,
+    DateOnly? LeftOn);
 
 public sealed record SetTaskRequest(string TaskCode, bool Done);
 

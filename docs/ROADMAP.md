@@ -16,8 +16,12 @@ Done. Policy workflow, the auditor's request and finding loop, and an exportable
 
 ## M4a — Audit-critical gaps
 
-This milestone. Risk register with scoring and a treatment-plan export, people synced from the directories with leaver access called out, the ISO 27001 statement of applicability, vendor reviews, access-review campaigns stored as evidence, and a readiness view of failing tests and upcoming due items.
+Done. Risk register with scoring and a treatment-plan export, people synced from the directories with leaver access called out, the ISO 27001 statement of applicability, vendor reviews, access-review campaigns stored as evidence, and a readiness view of failing tests and upcoming due items.
+
+## M4b — Realistic example client
+
+This milestone. One fictional client, Harborline, is seeded the same way in the development database and the Pages demo. The workspace shows people, integrations, six months of test history, evidence, policies, risks, vendors, an open access review, the statement of applicability, an active audit, activity, and notifications.
 
 ## M4 — Demo polish
 
-Tighten the example workspace, empty and error states, and the walkthrough used with a customer.
+Tighten the walkthrough used with a customer.

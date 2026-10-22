@@ -1,13 +1,21 @@
+using System.Text;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Persistence;
+using D2DAudit.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 
 namespace D2DAudit.Infrastructure.Tenancy;
 
 internal static class DemoPortal
 {
-    public static async Task SeedAsync(TenantDatabases databases, Tenant tenant, DateTimeOffset now, CancellationToken cancellationToken)
+    public static async Task SeedAsync(
+        TenantDatabases databases,
+        Tenant tenant,
+        DateTimeOffset now,
+        EvidenceWriter evidence,
+        CancellationToken cancellationToken)
     {
         await using var db = databases.Create(tenant.DatabaseName!);
         var audit = await db.Audits.FirstOrDefaultAsync(cancellationToken);
@@ -18,7 +26,7 @@ internal static class DemoPortal
 
         if (string.IsNullOrWhiteSpace(audit.Scope))
         {
-            audit.Scope = "SOC 2 Type II (Security, Availability). Example engagement for Acme Robotics.";
+            audit.Scope = "SOC 2 Type II (Security, Availability). Example engagement for Harborline.";
             audit.PeriodStart = new DateOnly(2026, 4, 1);
             audit.PeriodEnd = new DateOnly(2026, 9, 30);
         }
@@ -30,21 +38,23 @@ internal static class DemoPortal
 
         if (!await db.SampleRequests.AnyAsync(cancellationToken))
         {
-            var evidenceId = await db.Evidence.OrderBy(item => item.Title).Select(item => (Guid?)item.Id).FirstOrDefaultAsync(cancellationToken);
-            AddRequests(db, audit.Id, now, evidenceId);
+            AddRequests(db, audit.Id, now);
         }
 
         if (!await db.Findings.AnyAsync(cancellationToken))
         {
-            AddFindings(db, audit.Id);
+            AddFindings(db, audit.Id, now);
         }
 
         await GovernanceExample.SeedAsync(db, now, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        await AddEvidenceAsync(db, tenant, evidence, now, cancellationToken);
     }
 
     private static void AddPolicies(TenantDbContext db, DateTimeOffset now)
     {
+        var lena = ClientSeed.People.First(person => person.Name == "Lena Cho");
+        var priya = ClientSeed.People.First(person => person.Name == "Priya Nair");
         foreach (var template in PolicyTemplates.Core)
         {
             var document = new PolicyDocument
@@ -52,7 +62,7 @@ internal static class DemoPortal
                 Id = Guid.NewGuid(),
                 Code = template.Code,
                 Title = template.Title,
-                OwnerName = "Priya N.",
+                OwnerName = priya.Name,
             };
             var approved = new PolicyVersion
             {
@@ -62,7 +72,7 @@ internal static class DemoPortal
                 State = PolicyState.Approved,
                 CreatedAt = now.AddDays(-20),
                 ApprovedAt = now.AddDays(-18),
-                ApprovedByName = "Chandra V.",
+                ApprovedByName = "Chandra Vell",
             };
             document.Versions.Add(approved);
             foreach (var code in template.ControlCodes)
@@ -80,14 +90,23 @@ internal static class DemoPortal
                     State = PolicyState.InReview,
                     CreatedAt = now.AddDays(-2),
                 });
-                approved.Acknowledgements.Add(Row("Lena K.", "lena@acme.example", now.AddDays(-3), null, now.AddDays(-1)));
-                approved.Acknowledgements.Add(Row("Priya N.", "priya@acme.example", now.AddDays(10), null, null));
+                approved.Acknowledgements.Add(Row(lena.Name, lena.Email, now.AddDays(-3), null, now.AddDays(-1)));
+                approved.Acknowledgements.Add(Row(priya.Name, priya.Email, now.AddDays(10), null, null));
             }
 
             if (template.Code == "POL-ISP")
             {
-                approved.Acknowledgements.Add(Row("Dev T.", "dev@acme.example", now.AddDays(-5), now.AddDays(-4), null));
-                approved.Acknowledgements.Add(Row("People Ops", "people@acme.example", now.AddDays(-5), now.AddDays(-3), null));
+                foreach (var person in ClientSeed.People)
+                {
+                    if (person.LeaveOffset is int leave && leave <= -30)
+                    {
+                        continue;
+                    }
+
+                    var dueOffset = person.Training == "Overdue" ? person.TrainingDueOffset : 20;
+                    var acknowledged = person.Training == "Complete" ? now.AddDays(-2) : (DateTimeOffset?)null;
+                    approved.Acknowledgements.Add(Row(person.Name, person.Email, now.AddDays(dueOffset), acknowledged, null));
+                }
             }
 
             db.Policies.Add(document);
@@ -104,13 +123,25 @@ internal static class DemoPortal
         RemindedAt = reminded,
     };
 
-    private static void AddRequests(TenantDbContext db, Guid engagementId, DateTimeOffset now, Guid? evidenceId)
+    private static void AddRequests(TenantDbContext db, Guid engagementId, DateTimeOffset now)
     {
-        db.SampleRequests.Add(Request(engagementId, "REQ-14", "New-hire onboarding", "23 hires", 5, "HR system", new DateOnly(2026, 10, 24), SampleStatus.Open, now.AddDays(-1), null));
-        db.SampleRequests.Add(Request(engagementId, "REQ-13", "Change tickets", "612 PRs", 25, "GitHub", new DateOnly(2026, 10, 23), SampleStatus.Submitted, now.AddDays(-2), Response("The pull request list for the sample is attached.", "Priya N.", now.AddHours(-30), null)));
-        db.SampleRequests.Add(Request(engagementId, "REQ-12", "Terminations", "9 leavers", 4, "Workspace", new DateOnly(2026, 10, 22), SampleStatus.Open, now.AddDays(-3), null));
-        db.SampleRequests.Add(Request(engagementId, "REQ-11", "Q2 access review", "Full population", null, "Manual", new DateOnly(2026, 10, 18), SampleStatus.Accepted, now.AddDays(-8), Response("The completed review is in the evidence library.", "Priya N.", now.AddDays(-6), evidenceId)));
-        db.SampleRequests.Add(Request(engagementId, "REQ-10", "Backup restores", "6 restores", 2, "Azure", new DateOnly(2026, 10, 16), SampleStatus.Accepted, now.AddDays(-10), Response("Both restore records are in the evidence library.", "Dev T.", now.AddDays(-7), null)));
+        foreach (var item in ClientSeed.Requests)
+        {
+            SampleResponse? response = item.Response is null
+                ? null
+                : Response(item.Response, "Priya Nair", ClientSeed.Moment(now, item.CreatedOffset + 1));
+            db.SampleRequests.Add(Request(
+                engagementId,
+                item.Code,
+                item.Title,
+                item.Population,
+                item.SampleSize,
+                item.Source,
+                DateOnly.FromDateTime(now.UtcDateTime).AddDays(item.DueOffset),
+                Enum.Parse<SampleStatus>(item.Status),
+                ClientSeed.Moment(now, item.CreatedOffset),
+                response));
+        }
     }
 
     private static SampleRequest Request(
@@ -138,40 +169,83 @@ internal static class DemoPortal
         Response = response,
     };
 
-    private static SampleResponse Response(string body, string name, DateTimeOffset at, Guid? evidenceId) => new()
+    private static SampleResponse Response(string body, string name, DateTimeOffset at) => new()
     {
         Id = Guid.NewGuid(),
         Body = body,
         RespondedByName = name,
         RespondedAt = at,
-        EvidenceId = evidenceId,
     };
 
-    private static void AddFindings(TenantDbContext db, Guid engagementId)
+    private static void AddFindings(TenantDbContext db, Guid engagementId, DateTimeOffset now)
     {
-        db.Findings.Add(new Finding
+        foreach (var item in ClientSeed.Findings)
         {
-            Id = Guid.NewGuid(),
-            EngagementId = engagementId,
-            Code = "F-02",
-            Title = "MFA gap",
-            Severity = FindingSeverity.Exception,
-            Detail = "3 GitHub accounts lacked MFA for 11 days in July.",
-            RequirementCode = "CC6.1",
-            ManagementResponse = "Those accounts are enrolled now. The access review will check MFA before the account is marked active.",
-            ResponseByName = "Priya N.",
-        });
-        db.Findings.Add(new Finding
+            var finding = new Finding
+            {
+                Id = Guid.NewGuid(),
+                EngagementId = engagementId,
+                Code = item.Code,
+                Title = item.Title,
+                Severity = Enum.Parse<FindingSeverity>(item.Severity),
+                Detail = item.Detail,
+                RequirementCode = item.RequirementCode,
+                ManagementResponse = item.ManagementResponse,
+                ResponseByName = item.ResponseByName,
+            };
+            foreach (var comment in item.Comments)
+            {
+                var row = new FindingComment
+                {
+                    Id = Guid.NewGuid(),
+                    FindingId = finding.Id,
+                    AuthorName = comment.Author,
+                    Body = comment.Body,
+                    At = ClientSeed.Moment(now, comment.DayOffset),
+                };
+                finding.Comments.Add(row);
+                db.FindingComments.Add(row);
+            }
+
+            db.Findings.Add(finding);
+        }
+    }
+
+    private static async Task AddEvidenceAsync(TenantDbContext db, Tenant tenant, EvidenceWriter evidence, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var controls = await db.Controls.ToDictionaryAsync(item => item.Code, cancellationToken);
+        foreach (var item in ClientSeed.Evidence)
         {
-            Id = Guid.NewGuid(),
-            EngagementId = engagementId,
-            Code = "F-01",
-            Title = "Late access review",
-            Severity = FindingSeverity.Observation,
-            Detail = "The Q2 review was completed 9 days after the due date.",
-            RequirementCode = "CC6.2",
-            ManagementResponse = "The review calendar now reminds the owner a week before the due date. Evidence is on REQ-11.",
-            ResponseByName = "Priya N.",
-        });
+            if (!controls.TryGetValue(item.Control, out var controlItem))
+            {
+                continue;
+            }
+
+            if (await db.Evidence.AnyAsync(row => row.Title == item.Title, cancellationToken))
+            {
+                continue;
+            }
+
+            var evidenceId = Guid.NewGuid();
+            var stored = new EvidenceItem
+            {
+                Id = evidenceId,
+                ControlId = controlItem.Id,
+                Title = item.Title,
+                Source = "Manual",
+                ObjectKey = tenant.Id.ToString("N") + "/" + evidenceId.ToString("N") + ".txt",
+                Integrity = EvidenceIntegrity.NotStored,
+            };
+            db.Evidence.Add(stored);
+            await evidence.AppendAsync(
+                db,
+                tenant.Id,
+                stored,
+                Encoding.UTF8.GetBytes(item.Body),
+                "text/plain",
+                now.AddYears(tenant.RetentionYears),
+                cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 }

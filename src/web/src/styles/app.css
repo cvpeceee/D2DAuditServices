@@ -1058,6 +1058,63 @@ button.row-hit::after {
 code {
   overflow-wrap: anywhere;
 }
+.trend {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 56px;
+  margin: 8px 0 12px;
+}
+.trend-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 8px;
+  height: 48px;
+}
+.trend-col i {
+  display: block;
+  width: 100%;
+}
+.trend-col i.pass {
+  background: var(--good, #2f8f4e);
+}
+.trend-col i.fail {
+  background: var(--bad, #b42318);
+}
+.note-wrap {
+  position: relative;
+}
+.note-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 20;
+  width: min(360px, 80vw);
+  max-height: 360px;
+  overflow: auto;
+  background: var(--panel, #fff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+}
+.note-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  text-align: start;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 8px;
+  cursor: pointer;
+}
+.note-item:hover {
+  background: var(--hover, rgba(0, 0, 0, 0.04));
+}
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton,

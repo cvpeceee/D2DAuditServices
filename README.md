@@ -2,7 +2,7 @@
 
 D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
-A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra@acme.example` or `auditor@northgate.example`. The example password is on the login screen.
+A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra.vell@harborline.example` or `auditor@northgate.example`. The example password is on the login screen.
 
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
@@ -58,10 +58,10 @@ Local identity mode only. Password for every example account: `Example-Only-1!`
 
 | Email | Workspace | Role |
 | --- | --- | --- |
-| chandra@acme.example | Acme Robotics (US) | Admin |
-| priya@acme.example, marcus@acme.example, lena@acme.example | Acme Robotics | Control owner |
-| dev@acme.example | Acme Robotics | Employee, read-only |
-| auditor@northgate.example | Acme Robotics | Auditor, read-only, SOC 2 only, through 2026-12-15 |
+| chandra.vell@harborline.example | Harborline (US) | Admin |
+| priya.nair@harborline.example, marcus.lee@harborline.example, lena.cho@harborline.example | Harborline | Control owner |
+| dev.patel@harborline.example | Harborline | Employee, read-only |
+| auditor@northgate.example | Harborline | Auditor, read-only, SOC 2 only, through 2026-12-15 |
 | owner@northwind.example | Northwind Labs (EU) | Admin |
 
 Acme and Northwind are separate databases. A user of one cannot read the other. The auditor does not see ISO-only controls.
@@ -89,7 +89,7 @@ There is no public signup endpoint. Tenants are created by the provisioner (the 
 
 ## Integrations
 
-Example workspaces (Acme Robotics and Northwind Labs) load fixture resources and do not call AWS, Google, Microsoft, or GitHub. A real workspace connects with the credentials below. Leave them unset until you are ready. `TENANT_DATA_KEY` is 32 bytes, base64, and is required before a Google refresh token is stored. Production and Staging also require `TEMPORAL_ADDRESS`, `Storage__Endpoint`, and `Storage__ObjectLock=true`.
+Example workspaces (Harborline and Northwind Labs) load fixture resources and do not call AWS, Google, Microsoft, or GitHub. A real workspace connects with the credentials below. Leave them unset until you are ready. `TENANT_DATA_KEY` is 32 bytes, base64, and is required before a Google refresh token is stored. Production and Staging also require `TEMPORAL_ADDRESS`, `Storage__Endpoint`, and `Storage__ObjectLock=true`.
 
 ### AWS
 

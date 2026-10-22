@@ -21,7 +21,7 @@ describe("IntegrationsPage", () => {
             element={
               <Outlet
                 context={{
-                  workspace: { canWrite: true, exampleData: true, name: "Acme Robotics" },
+                  workspace: { canWrite: true, exampleData: true, name: "Harborline" },
                   tenantId: "tenant-1",
                   jobs: [],
                 }}

@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:5088/"
+      "url": "http://127.0.0.1:5099/"
     }
   ],
   "paths": {
@@ -472,6 +472,72 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ActivityDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/resources": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceDto"
                   }
                 }
               }
@@ -2677,7 +2743,9 @@
           "audit",
           "failingTests",
           "health",
-          "dueItems"
+          "dueItems",
+          "history",
+          "devicesReporting"
         ],
         "type": "object",
         "properties": {
@@ -2739,6 +2807,44 @@
             "items": {
               "$ref": "#/components/schemas/DueItem"
             }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            }
+          },
+          "devicesReporting": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "DeviceDto": {
+        "required": [
+          "ownerName",
+          "platform",
+          "serial",
+          "lastSeenOn"
+        ],
+        "type": "object",
+        "properties": {
+          "ownerName": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "lastSeenOn": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -3034,6 +3140,26 @@
           }
         }
       },
+      "FindingCommentDto": {
+        "required": [
+          "authorName",
+          "body",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "authorName": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "FindingDto": {
         "required": [
           "code",
@@ -3042,7 +3168,8 @@
           "detail",
           "requirementCode",
           "managementResponse",
-          "responseByName"
+          "responseByName",
+          "comments"
         ],
         "type": "object",
         "properties": {
@@ -3072,6 +3199,12 @@
               "null",
               "string"
             ]
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FindingCommentDto"
+            }
           }
         }
       },
@@ -3208,6 +3341,36 @@
             "format": "int32"
           },
           "percent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "HistoryPoint": {
+        "required": [
+          "weekOf",
+          "passing",
+          "failing"
+        ],
+        "type": "object",
+        "properties": {
+          "weekOf": {
+            "type": "string",
+            "format": "date"
+          },
+          "passing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "failing": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -3423,6 +3586,30 @@
           }
         }
       },
+      "NotificationDto": {
+        "required": [
+          "title",
+          "body",
+          "href",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PasswordLoginBody": {
         "required": [
           "email",
@@ -3498,7 +3685,10 @@
           "leaverStillHasAccess",
           "accounts",
           "tasks",
-          "acknowledgements"
+          "acknowledgements",
+          "role",
+          "hireOn",
+          "leftOn"
         ],
         "type": "object",
         "properties": {
@@ -3551,6 +3741,23 @@
             "items": {
               "$ref": "#/components/schemas/PersonAcknowledgementDto"
             }
+          },
+          "role": {
+            "type": "string"
+          },
+          "hireOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leftOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -3565,7 +3772,10 @@
           "training",
           "trainingDueOn",
           "leaverStillHasAccess",
-          "openTasks"
+          "openTasks",
+          "role",
+          "hireOn",
+          "leftOn"
         ],
         "type": "object",
         "properties": {
@@ -3608,6 +3818,23 @@
               "string"
             ],
             "format": "int32"
+          },
+          "role": {
+            "type": "string"
+          },
+          "hireOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "leftOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -3801,6 +4028,29 @@
             "items": {
               "$ref": "#/components/schemas/RequirementNodeDto"
             }
+          }
+        }
+      },
+      "ResourceDto": {
+        "required": [
+          "provider",
+          "kind",
+          "name",
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
           }
         }
       },

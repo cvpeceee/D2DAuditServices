@@ -1,6 +1,27 @@
 import exampleControls from "../../../api/content/frameworks/example-controls.json";
 import iso27001 from "../../../api/content/frameworks/iso27001.json";
 import soc2 from "../../../api/content/frameworks/soc2.json";
+import {
+  company,
+  evaluateCheck,
+  resourceRows,
+  reviewAccounts,
+  seedAccess,
+  seedActivity,
+  seedControls,
+  seedDevices,
+  seedDirectory,
+  seedEvidence,
+  seedFindings,
+  seedHistory,
+  seedNotifications,
+  seedPeople,
+  seedRequests,
+  seedRisks,
+  seedVendors,
+} from "./client";
+
+export { company };
 
 export type DemoControl = {
   code: string;
@@ -92,6 +113,7 @@ export type DemoFinding = {
   requirementCode: string;
   managementResponse: string | null;
   responseByName: string | null;
+  comments: { authorName: string; body: string; at: string }[];
 };
 
 export type DemoRisk = {
@@ -119,6 +141,9 @@ export type DemoPerson = {
   name: string;
   email: string;
   department: string;
+  role: string;
+  hireOn: string | null;
+  leftOn: string | null;
   source: string;
   state: string;
   training: string;
@@ -176,6 +201,11 @@ export type DemoWorld = {
   soa: DemoSoa[];
   vendors: DemoVendor[];
   campaigns: DemoCampaign[];
+  history: { weekOf: string; passing: number; failing: number }[];
+  notifications: { title: string; body: string; href: string; at: string }[];
+  devices: { ownerName: string; platform: string; serial: string; lastSeenOn: string }[];
+  resources: { provider: string; kind: string; name: string; detail: string }[];
+  activity: { at: string; action: string; result: string; detail: string; actor: string }[];
   frameworks: {
     key: string;
     name: string;
@@ -209,72 +239,51 @@ const automated = [
     key: "s3-public-access",
     name: "S3 public access blocked",
     controlCode: "CFG-01",
-    outcome: "fail",
-    detail: "Public access is not blocked: marketing-site.",
     remediation: "Turn on Block Public Access for every bucket.",
     requirements: ["soc2 CC6.1", "iso27001 A.8.3"],
-    body: "Example snapshot, Acme Robotics. Bucket marketing-site does not block public access. This is example data.",
   },
   {
     key: "mfa-all-users",
     name: "MFA enforced for all users",
     controlCode: "AC-07",
-    outcome: "fail",
-    detail: "These active users have no MFA: Jordan P., Casey R.",
     remediation: "Turn on MFA for every active user. Suspend accounts that cannot enroll.",
     requirements: ["soc2 CC6.1", "iso27001 A.5.17", "iso27001 A.8.5"],
-    body: "Example snapshot, Acme Robotics. Jordan P. and Casey R. are active without a second factor. This is example data.",
   },
   {
     key: "branch-protection",
     name: "Branch protection on the default branch",
     controlCode: "CM-11",
-    outcome: "fail",
-    detail: "The default branch is not protected: experiments.",
     remediation: "Require a pull request on the default branch of every repository.",
     requirements: ["soc2 CC8.1", "iso27001 A.8.4", "iso27001 A.8.32"],
-    body: "Example snapshot, Acme Robotics. Repository experiments has an unprotected default branch. This is example data.",
   },
   {
     key: "offboarded-removed",
     name: "Offboarded users removed",
     controlCode: "HR-08",
-    outcome: "fail",
-    detail: "Leavers still have an active account: Sam Leaved.",
     remediation: "Remove or suspend the leaver in every connected system.",
     requirements: ["soc2 CC6.2", "soc2 CC6.3", "iso27001 A.6.5"],
-    body: "Example snapshot, Acme Robotics. Sam Leaved is offboarded in the directory and still active on GitHub. This is example data.",
   },
   {
     key: "encryption-at-rest",
     name: "Encryption at rest",
     controlCode: "CR-02",
-    outcome: "fail",
-    detail: "Encryption at rest is off: marketing-site.",
     remediation: "Turn on default encryption for every bucket.",
     requirements: ["soc2 CC6.7", "iso27001 A.8.24"],
-    body: "Example snapshot, Acme Robotics. Bucket marketing-site has no default encryption. This is example data.",
   },
   {
     key: "root-mfa",
     name: "Root account MFA",
     controlCode: "AC-07",
-    outcome: "pass",
-    detail: "1 root resources match.",
     remediation:
       "Enable MFA on the AWS root account and keep the device with the break-glass owners.",
     requirements: ["soc2 CC6.1", "iso27001 A.5.17"],
-    body: "Example snapshot, Acme Robotics. The example root account has MFA. This is example data.",
   },
   {
     key: "cloudtrail-enabled",
     name: "CloudTrail enabled",
     controlCode: "LG-03",
-    outcome: "pass",
-    detail: "CloudTrail is logging.",
     remediation: "Create a trail that is logging, and keep it from being stopped.",
     requirements: ["soc2 CC7.2", "iso27001 A.8.15"],
-    body: "Example snapshot, Acme Robotics. The management-events trail is logging. This is example data.",
   },
 ] as const;
 
@@ -335,7 +344,7 @@ function decorate(nodes: RawNode[], framework: string, controls: DemoControl[]):
 
 export async function createWorld(now = new Date()): Promise<DemoWorld> {
   let nextId = 1;
-  const source = exampleControls.controls as {
+  const source = [...exampleControls.controls, ...seedControls] as {
     code: string;
     title: string;
     description: string;
@@ -372,16 +381,19 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
   const checks: DemoCheck[] = [];
   const evidence: DemoEvidence[] = [];
   for (const check of automated) {
+    const result = evaluateCheck(check.key);
+    const outcome = result.outcome === "pass" ? "pass" : "fail";
+    const body = `Harborline example snapshot. ${result.detail} Example record.`;
     const control = controls.find((item) => item.code === check.controlCode);
-    if (check.outcome === "fail" && control) control.status = "failing";
+    if (outcome === "fail" && control) control.status = "failing";
     const checkId = id(nextId++);
     checks.push({
       id: checkId,
       key: check.key,
       name: check.name,
       controlCode: check.controlCode,
-      outcome: check.outcome,
-      detail: check.detail,
+      outcome,
+      detail: result.detail,
       remediation: check.remediation,
       requirements: [...check.requirements],
     });
@@ -390,12 +402,12 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
         id: checkId,
         name: check.name,
         kind: "automated",
-        outcome: check.outcome,
-        detail: check.detail,
+        outcome,
+        detail: result.detail,
         remediation: check.remediation,
       });
     }
-    const hash = await sha256(check.body);
+    const hash = await sha256(body);
     evidence.push({
       id: id(nextId++),
       title: check.name,
@@ -405,7 +417,21 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
       integrity: "verified",
       sha256: hash,
       lockedUntil: iso(addDays(now, 365 * 3)),
-      body: check.body,
+      body,
+    });
+  }
+  for (const item of seedEvidence) {
+    const hash = await sha256(item.body);
+    evidence.push({
+      id: id(nextId++),
+      title: item.title,
+      controlCode: item.control,
+      source: "Manual",
+      collectedAt: iso(addDays(now, -8)),
+      integrity: "verified",
+      sha256: hash,
+      lockedUntil: iso(addDays(now, 365 * 3)),
+      body: item.body,
     });
   }
 
@@ -463,121 +489,64 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
       approvedAt: null,
       approvedByName: null,
     });
-    access.acknowledgements.push(
-      ack(1, "Lena K.", "lena@acme.example", day(addDays(now, -3)), null, iso(addDays(now, -1))),
-      ack(1, "Priya N.", "priya@acme.example", day(addDays(now, 10)), null, null),
+    const lena = seedDirectory.find((person) => person.name === "Lena Cho");
+    const priya = seedDirectory.find((person) => person.name === "Priya Nair");
+    if (lena) {
+      access.acknowledgements.push(
+        ack(1, lena.name, lena.email, day(addDays(now, -3)), null, iso(addDays(now, -1))),
+      );
+    }
+    if (priya) {
+      access.acknowledgements.push(
+        ack(1, priya.name, priya.email, day(addDays(now, 10)), null, null),
+      );
+    }
+  }
+  const isp = policies.find((item) => item.code === "POL-ISP");
+  for (const person of seedDirectory) {
+    if (person.leaveOffset !== null && person.leaveOffset <= -30) continue;
+    const dueOffset = person.training === "Overdue" ? person.trainingDueOffset : 20;
+    const acknowledged = person.training === "Complete" ? iso(addDays(now, -2)) : null;
+    isp?.acknowledgements.push(
+      ack(1, person.name, person.email, day(addDays(now, dueOffset)), acknowledged, null),
     );
   }
-  policies
-    .find((item) => item.code === "POL-ISP")
-    ?.acknowledgements.push(
-      ack(1, "Dev T.", "dev@acme.example", day(addDays(now, -5)), iso(addDays(now, -4)), null),
-      ack(
-        1,
-        "People Ops",
-        "people@acme.example",
-        day(addDays(now, -5)),
-        iso(addDays(now, -3)),
-        null,
-      ),
-    );
 
-  const review = evidence.find((item) => item.controlCode === "AC-07");
-  const requests: DemoRequest[] = [
+  const requests: DemoRequest[] = seedRequests.map((item) =>
     request(
-      "REQ-14",
-      "New-hire onboarding",
-      "23 hires",
-      5,
-      "HR system",
-      "2026-10-24",
-      "Open",
-      addDays(now, -1),
-      null,
+      item.code,
+      item.title,
+      item.population,
+      item.sampleSize,
+      item.source,
+      day(addDays(now, item.dueOffset)),
+      item.status,
+      addDays(now, item.createdOffset),
+      item.response
+        ? {
+            body: item.response,
+            respondedByName: "Priya Nair",
+            respondedAt: iso(addDays(now, item.createdOffset + 1)),
+            evidenceTitle: null,
+          }
+        : null,
     ),
-    request(
-      "REQ-13",
-      "Change tickets",
-      "612 PRs",
-      25,
-      "GitHub",
-      "2026-10-23",
-      "Submitted",
-      addDays(now, -2),
-      {
-        body: "The pull request list for the sample is attached.",
-        respondedByName: "Priya N.",
-        respondedAt: iso(addDays(now, -1)),
-        evidenceTitle: null,
-      },
-    ),
-    request(
-      "REQ-12",
-      "Terminations",
-      "9 leavers",
-      4,
-      "Workspace",
-      "2026-10-22",
-      "Open",
-      addDays(now, -3),
-      null,
-    ),
-    request(
-      "REQ-11",
-      "Q2 access review",
-      "Full population",
-      null,
-      "Manual",
-      "2026-10-18",
-      "Accepted",
-      addDays(now, -8),
-      {
-        body: "The completed review is in the evidence library.",
-        respondedByName: "Priya N.",
-        respondedAt: iso(addDays(now, -6)),
-        evidenceTitle: review?.title ?? null,
-      },
-    ),
-    request(
-      "REQ-10",
-      "Backup restores",
-      "6 restores",
-      2,
-      "Azure",
-      "2026-10-16",
-      "Accepted",
-      addDays(now, -10),
-      {
-        body: "Both restore records are in the evidence library.",
-        respondedByName: "Dev T.",
-        respondedAt: iso(addDays(now, -7)),
-        evidenceTitle: null,
-      },
-    ),
-  ];
+  );
 
-  const findings: DemoFinding[] = [
-    {
-      code: "F-02",
-      title: "MFA gap",
-      severity: "Exception",
-      detail: "3 GitHub accounts lacked MFA for 11 days in July.",
-      requirementCode: "CC6.1",
-      managementResponse:
-        "Those accounts are enrolled now. The access review will check MFA before the account is marked active.",
-      responseByName: "Priya N.",
-    },
-    {
-      code: "F-01",
-      title: "Late access review",
-      severity: "Observation",
-      detail: "The Q2 review was completed 9 days after the due date.",
-      requirementCode: "CC6.2",
-      managementResponse:
-        "The review calendar now reminds the owner a week before the due date. Evidence is on REQ-11.",
-      responseByName: "Priya N.",
-    },
-  ];
+  const findings: DemoFinding[] = seedFindings.map((item) => ({
+    code: item.code,
+    title: item.title,
+    severity: item.severity,
+    detail: item.detail,
+    requirementCode: item.requirementCode,
+    managementResponse: item.managementResponse,
+    responseByName: item.responseByName,
+    comments: item.comments.map((comment) => ({
+      authorName: comment.author,
+      body: comment.body,
+      at: iso(addDays(now, comment.dayOffset)),
+    })),
+  }));
 
   const governed = governance(now, controls);
   return {
@@ -588,6 +557,31 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
     requests,
     findings,
     ...governed,
+    history: seedHistory.map((item) => ({
+      weekOf: day(addDays(now, item.week * 7)),
+      passing: item.passing,
+      failing: item.failing,
+    })),
+    notifications: seedNotifications.map((item) => ({
+      title: item.title,
+      body: item.body,
+      href: item.href,
+      at: iso(addDays(now, item.dayOffset)),
+    })),
+    devices: seedDevices.map((item) => ({
+      ownerName: item.ownerName,
+      platform: item.platform,
+      serial: item.serial,
+      lastSeenOn: day(addDays(now, item.seenOffset)),
+    })),
+    resources: resourceRows(),
+    activity: seedActivity.map((item) => ({
+      at: iso(addDays(now, item.dayOffset)),
+      action: item.action,
+      result: item.result,
+      detail: item.detail,
+      actor: item.actor,
+    })),
     frameworks: frameworks.map((framework) => ({
       key: framework.key,
       name: framework.name,
@@ -602,7 +596,7 @@ function policy(code: string, title: string, control: string, body: string, now:
   return {
     code,
     title,
-    ownerName: "Priya N.",
+    ownerName: "Priya Nair",
     controlCodes: [control],
     versions: [
       {
@@ -611,7 +605,7 @@ function policy(code: string, title: string, control: string, body: string, now:
         body,
         createdAt: iso(addDays(now, -20)),
         approvedAt: iso(addDays(now, -18)),
-        approvedByName: "Chandra V.",
+        approvedByName: "Chandra Vell",
       },
     ],
     acknowledgements: [],
@@ -710,118 +704,32 @@ function annexLeaves(nodes: RawNode[]): { code: string; title: string }[] {
 
 function governance(now: Date, controls: DemoControl[]) {
   const plus = (days: number) => day(addDays(now, days));
-  const directory = [
-    [
-      "google",
-      "priya",
-      "Priya N.",
-      "priya@acme.example",
-      "Security",
-      "Google",
-      "Active",
-      "Complete",
-      -30,
-      false,
-      true,
+  const people: DemoPerson[] = seedPeople(plus).map((person, index) => ({
+    id: `person-${index + 1}`,
+    name: person.name,
+    email: person.email,
+    department: person.department,
+    role: person.role,
+    hireOn: person.hireOn,
+    leftOn: person.leftOn,
+    source: person.source,
+    state: person.state,
+    training: person.training,
+    trainingDueOn: person.trainingDueOn,
+    tasks: [
+      ...["account", "mfa", "policies", "training", "equipment"].map((taskCode) => ({
+        kind: "Onboarding",
+        taskCode,
+        done: person.state !== "Offboarded" && taskCode !== "equipment",
+      })),
+      ...["disable", "assets", "access", "interview"].map((taskCode) => ({
+        kind: "Offboarding",
+        taskCode,
+        done: false,
+      })),
     ],
-    [
-      "google",
-      "sam",
-      "Sam Leaved",
-      "sam.leaved@acme.example",
-      "Workforce",
-      "Mixed",
-      "Offboarded",
-      "Overdue",
-      -6,
-      true,
-      false,
-    ],
-    [
-      "microsoft",
-      "jordan",
-      "Jordan P.",
-      "jordan@acme.example",
-      "Workforce",
-      "Microsoft",
-      "Active",
-      "Assigned",
-      20,
-      false,
-      true,
-    ],
-    [
-      "microsoft",
-      "lena",
-      "Lena K.",
-      "lena@acme.example",
-      "People",
-      "Microsoft",
-      "Active",
-      "Overdue",
-      -6,
-      false,
-      true,
-    ],
-    [
-      "github",
-      "casey",
-      "Casey R.",
-      "casey@acme.example",
-      "Engineering",
-      "Mixed",
-      "Active",
-      "Assigned",
-      20,
-      false,
-      true,
-    ],
-    [
-      "github",
-      "sam-gh",
-      "Sam Leaved",
-      "sam.leaved@acme.example",
-      "Workforce",
-      "Mixed",
-      "Offboarded",
-      "Overdue",
-      -6,
-      false,
-      true,
-    ],
-  ] as const;
-  const peopleMap = new Map<string, DemoPerson>();
-  directory.forEach((row, index) => {
-    const [provider, accountName, name, email, department, source, state, training, due, , active] =
-      row;
-    const person = peopleMap.get(email) ?? {
-      id: `person-${index + 1}`,
-      name,
-      email,
-      department,
-      source,
-      state,
-      training,
-      trainingDueOn: plus(due),
-      tasks: [
-        ...["account", "mfa", "policies", "training", "equipment"].map((taskCode) => ({
-          kind: "Onboarding",
-          taskCode,
-          done: state !== "Offboarded" && taskCode !== "equipment",
-        })),
-        ...["disable", "assets", "access", "interview"].map((taskCode) => ({
-          kind: "Offboarding",
-          taskCode,
-          done: false,
-        })),
-      ],
-      accounts: [],
-    };
-    person.source = source;
-    person.accounts.push({ provider, accountName, active });
-    peopleMap.set(email, person);
-  });
-  const people = [...peopleMap.values()];
+    accounts: person.accounts,
+  }));
   const soa = annexLeaves((iso27001 as RawFramework).requirements)
     .map((leaf) => {
       const related = controls.filter((control) =>
@@ -842,160 +750,66 @@ function governance(now: Date, controls: DemoControl[]) {
         title: leaf.title,
         applicable: !excluded,
         justification: excluded
-          ? "The example company does not run its own data center. The office building is covered by the landlord."
-          : "This control applies to the way the company handles information.",
+          ? "Harborline does not run its own data center. The office is covered by the landlord."
+          : "This control applies to the way Harborline handles information.",
         implementation,
       };
     })
     .sort((left, right) => annexRank(left.code) - annexRank(right.code));
+  const accounts = reviewAccounts();
   const campaigns: DemoCampaign[] = [
     {
       id: "campaign-q4",
-      name: "Q4 access review",
-      dueOn: plus(12),
+      name: seedAccess.name,
+      dueOn: plus(seedAccess.dueOffset),
       state: "Open",
       completedAt: null,
       evidenceId: null,
-      items: directory.map((row, index) => ({
+      items: accounts.map((row, index) => ({
         id: `review-${index + 1}`,
-        personName: row[2],
-        personEmail: row[3],
-        provider: row[0],
-        accountName: row[1],
-        decision: "Pending",
+        personName: row.personName,
+        personEmail: row.personEmail,
+        provider: row.provider,
+        accountName: row.accountName,
+        decision: row.decision,
       })),
     },
   ];
   return {
-    risks: [
+    risks: seedRisks.map((item) =>
       risk(
-        "R-01",
-        "Public storage",
-        "The marketing site bucket can be read by anyone on the internet.",
-        4,
-        5,
-        "Priya N.",
-        "priya@acme.example",
-        "Mitigate",
-        "Turn on Block Public Access and confirm the next collection.",
-        plus(7),
-        2,
-        3,
-        ["CFG-01"],
+        item.code,
+        item.title,
+        item.statement,
+        item.likelihood,
+        item.impact,
+        item.ownerName,
+        item.ownerEmail,
+        item.treatment,
+        item.treatmentPlan,
+        plus(item.reviewOffset),
+        item.residualLikelihood,
+        item.residualImpact,
+        item.controlCodes,
       ),
-      risk(
-        "R-02",
-        "Missing MFA",
-        "Two workforce accounts can sign in with a password alone.",
-        4,
-        4,
-        "Priya N.",
-        "priya@acme.example",
-        "Mitigate",
-        "Require a second factor before the account is marked active.",
-        plus(14),
-        2,
-        2,
-        ["AC-07"],
-      ),
-      risk(
-        "R-03",
-        "Leaver still has access",
-        "An offboarded person still has a GitHub account.",
-        3,
-        5,
-        "Lena K.",
-        "lena@acme.example",
-        "Mitigate",
-        "Remove the GitHub account and record it in the access review.",
-        plus(-2),
-        1,
-        2,
-        ["HR-08"],
-      ),
-      risk(
-        "R-04",
-        "Unprotected branch",
-        "The experiments repository can be changed without a second reviewer.",
-        3,
-        3,
-        "Dev T.",
-        "dev@acme.example",
-        "Mitigate",
-        "Protect the default branch.",
-        plus(21),
-        1,
-        2,
-        ["CM-11"],
-      ),
-      risk(
-        "R-05",
-        "Vendor concentration",
-        "Source hosting and identity both sit with one or two suppliers.",
-        2,
-        4,
-        "Chandra V.",
-        "chandra@acme.example",
-        "Transfer",
-        "Keep the suppliers' SOC 2 reports and a named exit path.",
-        plus(40),
-        2,
-        3,
-        [],
-      ),
-    ],
+    ),
     people,
     soa,
-    vendors: [
-      vendor(
-        "vendor-github",
-        "GitHub",
-        "Source hosting",
-        "Critical",
-        "Source code and pull requests",
-        "Approved",
-        plus(60),
-        3,
-        "GitHub SOC 2 report",
-        plus(-40),
-      ),
-      vendor(
-        "vendor-google",
-        "Google Workspace",
-        "Email and directory",
-        "High",
-        "Mail, files, and the employee directory",
-        "InReview",
-        plus(10),
-        3,
-        "Workspace security whitepaper",
-        plus(-80),
-      ),
-      vendor(
-        "vendor-aws",
-        "Amazon Web Services",
-        "Production hosting",
-        "Critical",
-        "Customer application data in example buckets",
-        "Approved",
-        plus(90),
-        4,
-        "AWS SOC 2 report",
-        plus(-20),
-      ),
-      vendor(
-        "vendor-fonts",
-        "Pixel Fonts",
-        "Marketing site fonts",
-        "Low",
-        "No customer data",
-        "Expired",
-        plus(-12),
-        1,
-        "Font license",
-        plus(-400),
-      ),
-    ],
+    vendors: seedVendors.map((item, index) => ({
+      id: `vendor-${index + 1}`,
+      name: item.name,
+      service: item.service,
+      criticality: item.criticality,
+      dataAccess: item.dataAccess,
+      reviewState: item.reviewState,
+      reviewDueOn: plus(item.reviewOffset),
+      riskRating: item.riskRating,
+      documents: item.documents.map((file) => ({
+        title: file.title,
+        kind: file.kind,
+        issuedOn: plus(file.issuedOffset),
+      })),
+    })),
     campaigns,
   };
 }
@@ -1003,29 +817,4 @@ function governance(now: Date, controls: DemoControl[]) {
 function annexRank(code: string) {
   const parts = code.split(".").map((part) => Number(part.replace("A", "0")));
   return (parts[1] ?? 0) * 100 + (parts[2] ?? 0);
-}
-
-function vendor(
-  id: string,
-  name: string,
-  service: string,
-  criticality: string,
-  dataAccess: string,
-  reviewState: string,
-  reviewDueOn: string,
-  riskRating: number,
-  documentTitle: string,
-  issuedOn: string,
-): DemoVendor {
-  return {
-    id,
-    name,
-    service,
-    criticality,
-    dataAccess,
-    reviewState,
-    reviewDueOn,
-    riskRating,
-    documents: [{ title: documentTitle, kind: "soc2", issuedOn }],
-  };
 }
