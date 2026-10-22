@@ -1,7 +1,8 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === "demo" ? "/D2DAuditServices/app/" : "/",
   plugins: [react()],
   test: {
     environment: "jsdom",
@@ -16,4 +17,4 @@ export default defineConfig({
       "/openapi": process.env.D2D_API_PROXY ?? "http://localhost:8080",
     },
   },
-});
+}));

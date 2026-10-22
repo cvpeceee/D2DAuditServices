@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { examplePassword } from "../../demo/accounts";
 import { ApiError, api, type AuthMode, type AuthResponse } from "../../shared/api/client";
 import { useAuth } from "./AuthContext";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
@@ -33,6 +34,23 @@ export function LoginPage() {
       .then(setMode)
       .catch(() => setMode(null));
   }, []);
+
+  async function signInAs(account: string) {
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      const session = await api<AuthResponse>("/api/v1/auth/login", {
+        method: "POST",
+        body: { email: account, password: examplePassword },
+        skipRefresh: true,
+      });
+      await finish(session);
+    } catch (caught) {
+      setError(messageFor(t, caught instanceof ApiError ? caught.code : "generic"));
+      setBusy(false);
+    }
+  }
 
   async function finish(session: AuthResponse) {
     if (session.mfaRequired && session.pendingAuthenticationToken) {
@@ -148,10 +166,16 @@ export function LoginPage() {
           <div className="mark">D2D</div>
           <span>{t("productName")}</span>
         </div>
-        {mode?.localBanner && (
+        {import.meta.env.VITE_DEMO === "true" ? (
           <div className="local-banner" role="status">
-            {t("login.localBanner")}
+            {t("demo.banner")}
           </div>
+        ) : (
+          mode?.localBanner && (
+            <div className="local-banner" role="status">
+              {t("login.localBanner")}
+            </div>
+          )
         )}
         {pending ? (
           <form onSubmit={(event) => void onMfa(event)}>
@@ -277,12 +301,30 @@ export function LoginPage() {
                 {busy ? t("login.working") : t("login.submit")}
               </button>
             </form>
-            {mode?.localBanner && mode.exampleEmails.length > 0 && (
-              <div className="notice">
-                <b>{t("login.exampleAccounts")}</b>
-                <div>{mode.exampleEmails.join(", ")}</div>
-              </div>
-            )}
+            {mode &&
+              mode.exampleEmails.length > 0 &&
+              (mode.localBanner || import.meta.env.VITE_DEMO === "true") && (
+                <div className="notice">
+                  <b>{t("login.exampleAccounts")}</b>
+                  <div>{mode.exampleEmails.join(", ")}</div>
+                  {import.meta.env.VITE_DEMO === "true" && (
+                    <>
+                      <div>{t("demo.passwordHint")}</div>
+                      {mode.exampleEmails.map((account) => (
+                        <button
+                          key={account}
+                          className="btn auth-btn"
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void signInAs(account)}
+                        >
+                          {t("demo.signInAs", { email: account })}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
             <div className="login-note">{t("login.auditorNote")}</div>
           </>
         )}

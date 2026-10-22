@@ -48,12 +48,25 @@ export function AppShell() {
     void api<Job[]>("/api/v1/jobs", { tenantId }).then((value) => {
       if (!cancelled) setJobs(value);
     });
+    const pushJob = (job: Job) => {
+      setJobs((current) => [job, ...current.filter((item) => item.id !== job.id)].slice(0, 20));
+    };
+    if (import.meta.env.VITE_DEMO === "true") {
+      const onJob = (event: Event) => {
+        if (!cancelled) pushJob((event as CustomEvent<Job>).detail);
+      };
+      window.addEventListener("d2d-job", onJob);
+      return () => {
+        cancelled = true;
+        window.removeEventListener("d2d-job", onJob);
+      };
+    }
     const connection = new HubConnectionBuilder()
       .withUrl("/hubs/jobs", { headers: { "X-D2D-Request": "1" } })
       .withAutomaticReconnect()
       .build();
     connection.on("job", (job: Job) => {
-      setJobs((current) => [job, ...current.filter((item) => item.id !== job.id)].slice(0, 20));
+      pushJob(job);
     });
     // Delay the handshake so a strict-mode remount does not abort it mid-negotiate.
     const start = window.setTimeout(() => {
@@ -310,6 +323,11 @@ export function AppShell() {
         </header>
         <div className="body">
           <div className="content" id="content">
+            {import.meta.env.VITE_DEMO === "true" && (
+              <div className="local-banner" role="status">
+                {t("demo.banner")}
+              </div>
+            )}
             {workspace?.role === "Auditor" && (
               <div className="banner">
                 <div className="spark" aria-hidden="true">
