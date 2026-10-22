@@ -69,9 +69,16 @@ public static partial class IntegrationPolicies
         };
     }
 
+    public static IReadOnlyList<string> ExampleProviders(string fixture) =>
+        fixture == "northwind"
+            ? ["aws", "google", "microsoft", "github"]
+            : ["aws", "azure", "gcp", "google", "microsoft", "github"];
+
     public static string DisplayName(string provider) => provider switch
     {
         "aws" => "Amazon Web Services",
+        "azure" => "Microsoft Azure",
+        "gcp" => "Google Cloud",
         "google" => "Google Workspace",
         "microsoft" => "Microsoft 365",
         "github" => "GitHub",

@@ -5,9 +5,10 @@ import {
   ApiError,
   api,
   type PersonDetail,
-  type PersonListItem,
+  type PersonPage,
   type Workspace,
 } from "../../shared/api/client";
+import { Pager } from "../../shared/ui/Pager";
 import { formatDate, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
@@ -15,7 +16,9 @@ type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 export function PeoplePage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
-  const [rows, setRows] = useState<PersonListItem[] | null>(null);
+  const [result, setResult] = useState<PersonPage | null>(null);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<PersonDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -23,15 +26,17 @@ export function PeoplePage() {
 
   const load = () => {
     if (!tenantId) return;
-    void api<PersonListItem[]>("/api/v1/people", { tenantId })
-      .then(setRows)
+    const params = new URLSearchParams({ page: String(page), pageSize: "40" });
+    if (query.trim()) params.set("q", query.trim());
+    void api<PersonPage>(`/api/v1/people?${params}`, { tenantId })
+      .then(setResult)
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
   };
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId]);
+  }, [tenantId, page, query]);
 
   async function open(id: string) {
     if (!tenantId) return;
@@ -89,8 +94,19 @@ export function PeoplePage() {
           {notice}
         </div>
       )}
+      <label className="field">
+        <span>{t("peoplePage.searchLabel")}</span>
+        <input
+          value={query}
+          placeholder={t("peoplePage.search")}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setPage(1);
+          }}
+        />
+      </label>
       <div className="card">
-        {!rows ? null : rows.length === 0 ? (
+        {!result ? null : result.total === 0 ? (
           <div className="empty">{t("peoplePage.empty")}</div>
         ) : (
           <div className="table-wrap">
@@ -105,7 +121,7 @@ export function PeoplePage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
+                {result.items.map((row) => (
                   <tr key={row.id}>
                     <td>
                       <button className="linkish" type="button" onClick={() => void open(row.id)}>
@@ -151,6 +167,12 @@ export function PeoplePage() {
                 ))}
               </tbody>
             </table>
+            <Pager
+              page={result.page}
+              pageSize={result.pageSize}
+              total={result.total}
+              onPage={setPage}
+            />
           </div>
         )}
       </div>

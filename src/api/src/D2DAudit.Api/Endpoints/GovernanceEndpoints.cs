@@ -11,7 +11,8 @@ public static class GovernanceEndpoints
         group.MapGet("/risks", (IGovernance portal, CancellationToken cancellationToken) => portal.RisksAsync(cancellationToken)).Produces<IReadOnlyList<RiskListItem>>();
         group.MapPost("/risks", SaveRisk).RequireAuthorization("TenantWrite").Produces<RiskListItem>();
         group.MapGet("/risks/export", ExportRisks).Produces<FileExport>();
-        group.MapGet("/people", (IGovernance portal, CancellationToken cancellationToken) => portal.PeopleAsync(cancellationToken)).Produces<IReadOnlyList<PersonListItem>>();
+        group.MapGet("/people", (int? page, int? pageSize, string? q, IGovernance portal, CancellationToken cancellationToken) =>
+            portal.PeopleAsync(page ?? 1, pageSize ?? 40, q, cancellationToken)).Produces<PersonPage>();
         group.MapPost("/people/sync", SyncPeople).RequireAuthorization("TenantWrite").Produces<int>();
         group.MapGet("/people/{id:guid}", GetPerson).Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/tasks", SetTask).RequireAuthorization("TenantWrite").Produces<PersonDetail>();

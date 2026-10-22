@@ -7,7 +7,7 @@
       "status": "Passing",
       "frequency": "Annual",
       "ownerName": "Chandra Vell",
-      "ownerEmail": "chandra.vell@harborline.example",
+      "ownerEmail": "chandra.vell@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -18,6 +18,11 @@
           "framework": "soc2",
           "requirement": "CC5.3",
           "coverage": "partial"
+        },
+        {
+          "framework": "iso27018",
+          "requirement": "A.10.2",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -25,7 +30,7 @@
           "name": "Policy approval record",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -36,7 +41,7 @@
       "status": "Passing",
       "frequency": "Annual",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -54,7 +59,7 @@
           "name": "Role catalog review",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -65,7 +70,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -83,7 +88,7 @@
           "name": "Privileged change sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -94,7 +99,7 @@
       "status": "Manual",
       "frequency": "Annual",
       "ownerName": "Chandra Vell",
-      "ownerEmail": "chandra.vell@harborline.example",
+      "ownerEmail": "chandra.vell@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -123,7 +128,7 @@
       "status": "Passing",
       "frequency": "Annual",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "soc2",
@@ -151,7 +156,7 @@
           "name": "Annual risk assessment",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -162,7 +167,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Lena Cho",
-      "ownerEmail": "lena.cho@harborline.example",
+      "ownerEmail": "lena.cho@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -180,7 +185,7 @@
           "name": "Screening completion check",
           "kind": "attestation",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -191,7 +196,7 @@
       "status": "Passing",
       "frequency": "Annual",
       "ownerName": "Lena Cho",
-      "ownerEmail": "lena.cho@harborline.example",
+      "ownerEmail": "lena.cho@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -209,7 +214,7 @@
           "name": "Training completion",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -220,7 +225,7 @@
       "status": "DueSoon",
       "frequency": "Continuous",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -236,6 +241,11 @@
           "framework": "soc2",
           "requirement": "CC6.3",
           "coverage": "full"
+        },
+        {
+          "framework": "iso27018",
+          "requirement": "A.10.3",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -254,7 +264,7 @@
       "status": "DueSoon",
       "frequency": "Quarterly",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -288,7 +298,7 @@
       "status": "Failing",
       "frequency": "Continuous",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -304,6 +314,11 @@
           "framework": "soc2",
           "requirement": "CC6.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "iso27017",
+          "requirement": "CLD.12.1.5",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -311,7 +326,7 @@
           "name": "Identity provider second-factor policy",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         },
         {
           "name": "Accounts missing a second factor",
@@ -328,7 +343,7 @@
       "status": "NeedsEvidence",
       "frequency": "Continuous",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -357,7 +372,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Priya Nair",
-      "ownerEmail": "priya.nair@harborline.example",
+      "ownerEmail": "priya.nair@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -380,7 +395,7 @@
           "name": "Role-change sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -391,7 +406,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -402,6 +417,11 @@
           "framework": "soc2",
           "requirement": "CC6.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "iso27018",
+          "requirement": "A.11.1",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -409,7 +429,7 @@
           "name": "Storage encryption configuration",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -420,7 +440,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -443,7 +463,7 @@
           "name": "TLS configuration check",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -454,7 +474,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Dev Patel",
-      "ownerEmail": "dev.patel@harborline.example",
+      "ownerEmail": "dev.patel@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -477,7 +497,7 @@
           "name": "Peer review on protected branches",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -488,7 +508,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Dev Patel",
-      "ownerEmail": "dev.patel@harborline.example",
+      "ownerEmail": "dev.patel@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -506,7 +526,7 @@
           "name": "Environment separation",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -517,7 +537,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -540,7 +560,7 @@
           "name": "Disk encryption report",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -551,7 +571,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -574,7 +594,7 @@
           "name": "Screen lock policy",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -585,7 +605,7 @@
       "status": "Manual",
       "frequency": "Annual",
       "ownerName": "Lena Cho",
-      "ownerEmail": "lena.cho@harborline.example",
+      "ownerEmail": "lena.cho@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -624,7 +644,7 @@
       "status": "Passing",
       "frequency": "Quarterly",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -652,7 +672,7 @@
           "name": "Quarterly restore sample",
           "kind": "manualSampling",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -663,7 +683,7 @@
       "status": "Passing",
       "frequency": "Quarterly",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -681,7 +701,7 @@
           "name": "Capacity review",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -692,7 +712,7 @@
       "status": "NeedsEvidence",
       "frequency": "Annual",
       "ownerName": "Chandra Vell",
-      "ownerEmail": "chandra.vell@harborline.example",
+      "ownerEmail": "chandra.vell@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -736,7 +756,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -752,6 +772,11 @@
           "framework": "soc2",
           "requirement": "CC7.2",
           "coverage": "partial"
+        },
+        {
+          "framework": "iso27017",
+          "requirement": "CLD.12.4.5",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -759,7 +784,7 @@
           "name": "Log retention configuration",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -770,7 +795,7 @@
       "status": "Failing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -804,7 +829,7 @@
       "status": "Failing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -814,6 +839,11 @@
         {
           "framework": "soc2",
           "requirement": "CC7.1",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27018",
+          "requirement": "A.5.1",
           "coverage": "partial"
         }
       ],
@@ -833,7 +863,7 @@
       "status": "Passing",
       "frequency": "Annual",
       "ownerName": "Lena Cho",
-      "ownerEmail": "lena.cho@harborline.example",
+      "ownerEmail": "lena.cho@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -846,7 +876,7 @@
           "name": "Privacy notice review",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -857,7 +887,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -875,7 +905,7 @@
           "name": "Entry log sample",
           "kind": "document",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -886,7 +916,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Dev Patel",
-      "ownerEmail": "dev.patel@harborline.example",
+      "ownerEmail": "dev.patel@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -897,6 +927,11 @@
           "framework": "soc2",
           "requirement": "CC7.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "iso27017",
+          "requirement": "CLD.9.5.1",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -904,7 +939,7 @@
           "name": "Baseline drift check",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     },
@@ -915,7 +950,7 @@
       "status": "Passing",
       "frequency": "Continuous",
       "ownerName": "Marcus Lee",
-      "ownerEmail": "marcus.lee@harborline.example",
+      "ownerEmail": "marcus.lee@{{domain}}",
       "mappings": [
         {
           "framework": "iso27001",
@@ -933,7 +968,7 @@
           "name": "Anti-malware status",
           "kind": "automated",
           "outcome": "pass",
-          "detail": "Example data in the Harborline workspace."
+          "detail": "Example data in the {{company}} workspace."
         }
       ]
     }

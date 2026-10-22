@@ -1,5 +1,7 @@
 import exampleControls from "../../../api/content/frameworks/example-controls.json";
 import iso27001 from "../../../api/content/frameworks/iso27001.json";
+import iso27017 from "../../../api/content/frameworks/iso27017.json";
+import iso27018 from "../../../api/content/frameworks/iso27018.json";
 import soc2 from "../../../api/content/frameworks/soc2.json";
 import {
   company,
@@ -22,6 +24,19 @@ import {
 } from "./client";
 
 export { company };
+
+function withBrand(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.replaceAll("{{company}}", company.name).replaceAll("{{domain}}", company.domain);
+  }
+  if (Array.isArray(value)) return value.map(withBrand);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, withBrand(item)]));
+  }
+  return value;
+}
+
+const brandedControls = withBrand(exampleControls) as typeof exampleControls;
 
 export type DemoControl = {
   code: string;
@@ -232,7 +247,7 @@ type RawFramework = {
   requirements: RawNode[];
 };
 
-const frameworks = [soc2, iso27001] as RawFramework[];
+const frameworks = [soc2, iso27001, iso27017, iso27018] as RawFramework[];
 
 const automated = [
   {
@@ -344,7 +359,7 @@ function decorate(nodes: RawNode[], framework: string, controls: DemoControl[]):
 
 export async function createWorld(now = new Date()): Promise<DemoWorld> {
   let nextId = 1;
-  const source = [...exampleControls.controls, ...seedControls] as {
+  const source = [...brandedControls.controls, ...seedControls] as {
     code: string;
     title: string;
     description: string;
@@ -383,7 +398,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
   for (const check of automated) {
     const result = evaluateCheck(check.key);
     const outcome = result.outcome === "pass" ? "pass" : "fail";
-    const body = `Harborline example snapshot. ${result.detail} Example record.`;
+    const body = `${company.name} example snapshot. ${result.detail} Example record.`;
     const control = controls.find((item) => item.code === check.controlCode);
     if (outcome === "fail" && control) control.status = "failing";
     const checkId = id(nextId++);
@@ -750,8 +765,8 @@ function governance(now: Date, controls: DemoControl[]) {
         title: leaf.title,
         applicable: !excluded,
         justification: excluded
-          ? "Harborline does not run its own data center. The office is covered by the landlord."
-          : "This control applies to the way Harborline handles information.",
+          ? `${company.name} does not run its own data center. Customer warehouses run on the connected clouds, and the office is covered by the landlord.`
+          : `This control applies to the way ${company.name} handles information.`,
         implementation,
       };
     })

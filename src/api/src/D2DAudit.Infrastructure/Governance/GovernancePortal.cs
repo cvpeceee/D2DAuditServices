@@ -93,11 +93,32 @@ public sealed class GovernancePortal(
         return Result<FileExport>.Ok(GovernanceDocuments.Risks(format, rows));
     }
 
-    public async Task<IReadOnlyList<PersonListItem>> PeopleAsync(CancellationToken cancellationToken)
+    public async Task<PersonPage> PeopleAsync(int page, int pageSize, string? search, CancellationToken cancellationToken)
     {
+        var size = Math.Clamp(pageSize <= 0 ? 40 : pageSize, 1, 100);
+        var index = Math.Max(page, 1);
         await using var db = Open();
-        var people = await db.People.AsNoTracking().Include(item => item.Accounts).Include(item => item.Tasks).ToListAsync(cancellationToken);
-        return people.OrderBy(item => item.Name, StringComparer.Ordinal).Select(ToPersonList).ToArray();
+        var query = db.People.AsNoTracking();
+        var term = search?.Trim();
+        if (!string.IsNullOrEmpty(term))
+        {
+            var pattern = $"%{term}%";
+            query = query.Where(item =>
+                EF.Functions.ILike(item.Name, pattern)
+                || EF.Functions.ILike(item.Email, pattern)
+                || EF.Functions.ILike(item.Department, pattern)
+                || EF.Functions.ILike(item.Role, pattern));
+        }
+
+        var total = await query.CountAsync(cancellationToken);
+        var people = await query
+            .OrderBy(item => item.Name)
+            .Skip((index - 1) * size)
+            .Take(size)
+            .Include(item => item.Accounts)
+            .Include(item => item.Tasks)
+            .ToListAsync(cancellationToken);
+        return new PersonPage(people.Select(ToPersonList).ToArray(), total, index, size);
     }
 
     public async Task<Result<PersonDetail>> PersonAsync(Guid id, CancellationToken cancellationToken)

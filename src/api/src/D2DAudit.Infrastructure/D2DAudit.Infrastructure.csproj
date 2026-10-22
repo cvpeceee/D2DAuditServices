@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\content\frameworks\*.json" Link="content\frameworks\%(Filename)%(Extension)" />
-    <EmbeddedResource Include="..\..\..\seed\harborline.json" Link="seed\harborline.json" LogicalName="harborline.json" />
+    <EmbeddedResource Include="..\..\..\seed\client.json" Link="seed\client.json" LogicalName="client.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -55,6 +55,7 @@ export type PolicyDetail = Model<"PolicyDetail">;
 export type AuditPortalPage = Model<"AuditPortalPage">;
 export type RiskListItem = Model<"RiskListItem">;
 export type PersonListItem = Model<"PersonListItem">;
+export type PersonPage = Model<"PersonPage">;
 export type Notification = Model<"NotificationDto">;
 export type Device = Model<"DeviceDto">;
 export type Resource = Model<"ResourceDto">;

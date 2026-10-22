@@ -136,6 +136,7 @@
     },
     "export": "Export report",
     "history": "Automated test results over the last six months",
+    "moreDue": "{{count}} more due items are on the people, policy, and risk pages.",
     "addFramework": "Add framework"
   },
   "frameworks": {
@@ -209,6 +210,11 @@
     "succeeded": "Done",
     "failed": "Failed"
   },
+  "pager": {
+    "range": "{{from}}–{{to}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next"
+  },
   "palette": {
     "placeholder": "Search actions and pages",
     "empty": "No matching actions."
@@ -242,6 +248,7 @@
     "kind": "Kind",
     "resource": "Resource",
     "detail": "Detail",
+    "search": "Search resources",
     "status": {
       "connected": "Connected",
       "pending": "Pending",
@@ -249,6 +256,8 @@
     },
     "providers": {
       "aws": "Cross-account read-only role with an external id.",
+      "azure": "Example inventory of subscriptions, storage, and activity logs.",
+      "gcp": "Example inventory of projects, buckets, and audit logs.",
       "google": "Directory user read-only. An admin grants consent.",
       "microsoft": "Application permissions. Admin consent returns the directory tenant id.",
       "github": "GitHub App. Repository administration read, metadata read, and organization members read."
@@ -312,7 +321,8 @@
   },
   "policiesPage": {
     "title": "Policies",
-    "sub": "SOC 2 and ISO 27001 core policies. Each version is approved before people acknowledge it.",
+    "sub": "Core policies for the security program. Each version is approved before people acknowledge it.",
+    "search": "Search acknowledgements",
     "remind": "Send reminders",
     "policy": "Policy",
     "state": "State",
@@ -429,7 +439,9 @@
   },
   "peoplePage": {
     "title": "People",
-    "sub": "Directory accounts from Google Workspace and Microsoft 365, plus access that is still live.",
+    "sub": "The workforce directory, with roles, hire dates, and access that is still live.",
+    "search": "Search people",
+    "searchLabel": "Search by name, email, department, or role",
     "sync": "Sync directory",
     "synced": "Directory sync finished.",
     "empty": "No people yet. Sync the directory after a collection.",
@@ -530,6 +542,7 @@
     "progress": "Decisions",
     "start": "Start review",
     "empty": "No review is open.",
+    "search": "Search accounts",
     "approve": "Approve",
     "revoke": "Revoke",
     "complete": "Complete and save evidence",

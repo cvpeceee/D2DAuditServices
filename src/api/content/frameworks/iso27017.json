@@ -1,0 +1,57 @@
+{
+  "key": "iso27017",
+  "name": "ISO 27017",
+  "version": "2015",
+  "description": "Cloud controls that sit on top of ISO 27002. Titles name the topic. Descriptions are our own short guidance, not the standard's text.",
+  "requirements": [
+    {
+      "code": "CLD",
+      "title": "Cloud service controls",
+      "summary": "Controls that apply because the service runs on cloud infrastructure shared with other customers.",
+      "children": [
+        {
+          "code": "CLD.6.3.1",
+          "title": "Shared roles and responsibilities",
+          "summary": "Write down which security duties belong to the cloud customer and which belong to each cloud provider.",
+          "children": []
+        },
+        {
+          "code": "CLD.8.1.5",
+          "title": "Removal of customer assets",
+          "summary": "When a customer leaves, return or delete their data and show that the copies are gone.",
+          "children": []
+        },
+        {
+          "code": "CLD.9.5.1",
+          "title": "Separation between customers",
+          "summary": "Keep one customer's data and compute from being reached by another customer.",
+          "children": []
+        },
+        {
+          "code": "CLD.9.5.2",
+          "title": "Hardening of virtual machines",
+          "summary": "Start virtual machines from a hardened image and keep that image current.",
+          "children": []
+        },
+        {
+          "code": "CLD.12.1.5",
+          "title": "Administrator operations",
+          "summary": "Limit who can administer the cloud service, and record what those administrators do.",
+          "children": []
+        },
+        {
+          "code": "CLD.12.4.5",
+          "title": "Monitoring of the cloud service",
+          "summary": "Collect logs from each cloud and review them often enough to notice a problem.",
+          "children": []
+        },
+        {
+          "code": "CLD.13.1.4",
+          "title": "Virtual and physical networks",
+          "summary": "Match the virtual network controls to the physical network the cloud provider runs.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

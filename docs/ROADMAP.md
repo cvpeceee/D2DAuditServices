@@ -20,7 +20,7 @@ Done. Risk register with scoring and a treatment-plan export, people synced from
 
 ## M4b — Realistic example client
 
-This milestone. One fictional client, Harborline, is seeded the same way in the development database and the Pages demo. The workspace shows people, integrations, six months of test history, evidence, policies, risks, vendors, an open access review, the statement of applicability, an active audit, activity, and notifications.
+This milestone. One fictional client is seeded the same way in the development database and the Pages demo. The default brand is Harborline, a cloud data platform of about 1,080 people, and the name, domain, and product live in `src/seed/brand.json`. Regenerate with `node src/seed/build.mjs` before a private rename. The workspace shows the workforce (paged), AWS, Azure, and Google Cloud plus the directories and GitHub, six months of test history, evidence, policies, risks, vendors, an open access review, the ISO 27001 statement of applicability, ISO 27017 and ISO 27018 catalogs, an active audit, activity, and notifications.
 
 ## M4 — Demo polish
 

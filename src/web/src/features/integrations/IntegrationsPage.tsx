@@ -10,9 +10,18 @@ import {
   type Resource,
   type Workspace,
 } from "../../shared/api/client";
+import { Pager } from "../../shared/ui/Pager";
 import { Pill } from "../../shared/ui/ui";
 
 const providers = ["aws", "google", "microsoft", "github"] as const;
+const providerNames: Record<string, string> = {
+  aws: "Amazon Web Services",
+  azure: "Microsoft Azure",
+  gcp: "Google Cloud",
+  google: "Google Workspace",
+  microsoft: "Microsoft 365",
+  github: "GitHub",
+};
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
@@ -26,6 +35,8 @@ export function IntegrationsPage() {
   const [roleArn, setRoleArn] = useState("");
   const [installationId, setInstallationId] = useState("");
   const [connect, setConnect] = useState<ConnectResult | null>(null);
+  const [resourceQuery, setResourceQuery] = useState("");
+  const [resourcePage, setResourcePage] = useState(1);
 
   const load = () => {
     if (!tenantId) return;
@@ -133,6 +144,22 @@ export function IntegrationsPage() {
     }
   }
 
+  const resourceTerm = resourceQuery.trim().toLowerCase();
+  const filteredResources = resources
+    .filter((resource) => {
+      if (!resourceTerm) return true;
+      return `${resource.provider} ${resource.kind} ${resource.name} ${resource.detail}`
+        .toLowerCase()
+        .includes(resourceTerm);
+    })
+    .sort(
+      (left, right) =>
+        Number(left.kind === "user") - Number(right.kind === "user") ||
+        left.provider.localeCompare(right.provider) ||
+        left.name.localeCompare(right.name),
+    );
+  const shownResources = filteredResources.slice((resourcePage - 1) * 20, resourcePage * 20);
+
   return (
     <>
       <div className="head">
@@ -186,7 +213,12 @@ export function IntegrationsPage() {
         </div>
       )}
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-        {providers.map((provider) => {
+        {[
+          ...providers,
+          ...[...new Set(rows.map((item) => item.provider))].filter(
+            (provider) => !providers.includes(provider as (typeof providers)[number]),
+          ),
+        ].map((provider) => {
           const row = rows.find((item) => item.provider === provider);
           return (
             <div className="card" key={provider}>
@@ -268,6 +300,16 @@ export function IntegrationsPage() {
       {resources.length > 0 && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{t("integrations.resources")}</h3>
+          <label className="field">
+            <span>{t("integrations.search")}</span>
+            <input
+              value={resourceQuery}
+              onChange={(event) => {
+                setResourceQuery(event.target.value);
+                setResourcePage(1);
+              }}
+            />
+          </label>
           <div className="table-wrap">
             <table>
               <thead>
@@ -279,7 +321,7 @@ export function IntegrationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {resources.map((resource) => (
+                {shownResources.map((resource) => (
                   <tr key={`${resource.provider}-${resource.kind}-${resource.name}`}>
                     <td>{providerLabel(resource.provider)}</td>
                     <td>{resource.kind}</td>
@@ -289,6 +331,12 @@ export function IntegrationsPage() {
                 ))}
               </tbody>
             </table>
+            <Pager
+              page={resourcePage}
+              pageSize={20}
+              total={filteredResources.length}
+              onPage={setResourcePage}
+            />
           </div>
         </div>
       )}
@@ -310,10 +358,7 @@ export function IntegrationsPage() {
 }
 
 function providerLabel(provider: string) {
-  if (provider === "aws") return "Amazon Web Services";
-  if (provider === "google") return "Google Workspace";
-  if (provider === "microsoft") return "Microsoft 365";
-  return "GitHub";
+  return providerNames[provider] ?? provider;
 }
 
 function redirectUri() {

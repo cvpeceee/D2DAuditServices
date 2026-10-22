@@ -1,6 +1,6 @@
-import harborline from "../../../seed/harborline.json";
+import clientSeed from "../../../seed/client.json";
 
-export const company = harborline.company;
+export const company = clientSeed.company;
 
 type SeedResource = {
   provider: string;
@@ -10,7 +10,7 @@ type SeedResource = {
   attributes: Record<string, string>;
 };
 
-const resources = harborline.resources as unknown as SeedResource[];
+const resources = clientSeed.resources as unknown as SeedResource[];
 
 export function decisionFor(index: number) {
   if (index % 11 === 0) return "Revoked";
@@ -155,7 +155,7 @@ function sourceOf(providers: string[]) {
 }
 
 export function seedPeople(onDay: (offset: number) => string) {
-  const profiles = new Map(harborline.people.map((person) => [person.email.toLowerCase(), person]));
+  const profiles = new Map(clientSeed.people.map((person) => [person.email.toLowerCase(), person]));
   const grouped = new Map<
     string,
     {
@@ -250,15 +250,15 @@ export function resourceRows() {
     );
 }
 
-export const seedRisks = harborline.risks;
-export const seedVendors = harborline.vendors;
-export const seedHistory = harborline.history;
-export const seedNotifications = harborline.notifications;
-export const seedDevices = harborline.devices;
-export const seedActivity = harborline.activity;
-export const seedFindings = harborline.findings;
-export const seedRequests = harborline.requests;
-export const seedEvidence = harborline.evidence;
-export const seedControls = harborline.controls;
-export const seedAccess = harborline.accessReview;
-export const seedDirectory = harborline.people;
+export const seedRisks = clientSeed.risks;
+export const seedVendors = clientSeed.vendors;
+export const seedHistory = clientSeed.history;
+export const seedNotifications = clientSeed.notifications;
+export const seedDevices = clientSeed.devices;
+export const seedActivity = clientSeed.activity;
+export const seedFindings = clientSeed.findings;
+export const seedRequests = clientSeed.requests;
+export const seedEvidence = clientSeed.evidence;
+export const seedControls = clientSeed.controls;
+export const seedAccess = clientSeed.accessReview;
+export const seedDirectory = clientSeed.people;

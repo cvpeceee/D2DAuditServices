@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { examplePassword } from "./accounts";
+import { company } from "./client";
 import { demoResponse, resetDemo, setDemoStepDelay } from "./backend";
 
 async function login(email: string) {
@@ -91,7 +92,7 @@ describe("demo backend", () => {
 
   it("serves the statement of applicability, leaver flag, and a hashed access review", async () => {
     await resetDemo();
-    await login("chandra.vell@harborline.example");
+    await login(`chandra.vell@${company.domain}`);
     const soa = (await get("/api/v1/soa")) as { code: string; applicable: boolean }[];
     expect(soa).toHaveLength(93);
     expect(soa[0]?.code).toBe("A.5.1");
@@ -103,13 +104,17 @@ describe("demo backend", () => {
     expect(pdfText.startsWith("%PDF-")).toBe(true);
     expect(pdfText).toContain("A.8.34");
 
-    const people = (await get("/api/v1/people")) as {
-      name: string;
-      email: string;
-      leaverStillHasAccess: boolean;
-    }[];
-    const sam = people.find((person) => person.email === "sam.leaved@harborline.example");
-    expect(people).toHaveLength(120);
+    const people = (await get(`/api/v1/people?q=sam.leaved@${company.domain}`)) as {
+      items: { name: string; email: string; leaverStillHasAccess: boolean }[];
+      total: number;
+    };
+    const directory = (await get("/api/v1/people?pageSize=1")) as {
+      total: number;
+      items: unknown[];
+    };
+    expect(directory.total).toBeGreaterThanOrEqual(1000);
+    expect(directory.items).toHaveLength(1);
+    const sam = people.items.find((person) => person.email === `sam.leaved@${company.domain}`);
     expect(sam?.leaverStillHasAccess).toBe(true);
 
     const campaigns = (await get("/api/v1/access-reviews")) as { id: string; name: string }[];
@@ -147,7 +152,7 @@ describe("demo backend", () => {
       devicesReporting: number;
       readinessPercent: number;
     };
-    expect(dashboard.tenantName).toBe("Harborline");
+    expect(dashboard.tenantName).toBe(company.name);
     expect(dashboard.history.length).toBeGreaterThanOrEqual(26);
     expect(dashboard.devicesReporting).toBeGreaterThan(0);
     expect(dashboard.readinessPercent).toBeGreaterThanOrEqual(70);
@@ -156,8 +161,12 @@ describe("demo backend", () => {
       dashboard.dueItems.some((item) => item.title === "Leaver still has access" && item.overdue),
     ).toBe(true);
     expect(dashboard.frameworks.map((item) => item.key)).toEqual(
-      expect.arrayContaining(["soc2", "iso27001"]),
+      expect.arrayContaining(["soc2", "iso27001", "iso27017", "iso27018"]),
     );
+    const resources = (await get("/api/v1/resources")) as { provider: string; name: string }[];
+    expect(resources.some((item) => item.provider === "azure")).toBe(true);
+    expect(resources.some((item) => item.provider === "gcp")).toBe(true);
+    expect(resources.some((item) => item.name === "marketing-site")).toBe(true);
 
     await demoResponse("/api/v1/auth/logout", { method: "POST" });
     await login("auditor@northgate.example");
@@ -172,5 +181,5 @@ describe("demo backend", () => {
       }),
     });
     expect(denied.status).toBe(403);
-  });
+  }, 60_000);
 });

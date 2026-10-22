@@ -1,0 +1,9 @@
+{
+  "name": "Harborline",
+  "legalName": "Harborline Data, Inc.",
+  "slug": "harborline",
+  "domain": "harborline.example",
+  "region": "US",
+  "product": "multi-cloud data platform",
+  "summary": "Fictional cloud data platform with about 1,080 people. Customer warehouses run on three public clouds. The program is preparing for SOC 2 Type II, ISO 27001, ISO 27017, and ISO 27018."
+}

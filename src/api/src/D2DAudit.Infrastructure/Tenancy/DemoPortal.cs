@@ -26,7 +26,7 @@ internal static class DemoPortal
 
         if (string.IsNullOrWhiteSpace(audit.Scope))
         {
-            audit.Scope = "SOC 2 Type II (Security, Availability). Example engagement for Harborline.";
+            audit.Scope = Scope();
             audit.PeriodStart = new DateOnly(2026, 4, 1);
             audit.PeriodEnd = new DateOnly(2026, 9, 30);
         }
@@ -49,6 +49,12 @@ internal static class DemoPortal
         await GovernanceExample.SeedAsync(db, now, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await AddEvidenceAsync(db, tenant, evidence, now, cancellationToken);
+    }
+
+    private static string Scope()
+    {
+        var company = ClientSeed.Company;
+        return $"{company.Name} ({company.LegalName}), a {company.Product}. SOC 2 Type II (Security, Availability) example engagement. The program also covers ISO 27001, ISO 27017, and ISO 27018.";
     }
 
     private static void AddPolicies(TenantDbContext db, DateTimeOffset now)

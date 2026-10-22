@@ -162,8 +162,8 @@ public sealed class GovernanceTests(GovernanceFixture fixture) : IClassFixture<G
         var admin = await fixture.LoginAsync("gov-admin@example.com");
         var synced = await GovernanceFixture.SendAsync(admin, HttpMethod.Post, "/api/v1/people/sync", new { }, fixture.TenantId);
         Assert.Equal(HttpStatusCode.OK, synced.StatusCode);
-        var people = await (await GovernanceFixture.SendAsync(admin, HttpMethod.Get, "/api/v1/people", tenantId: fixture.TenantId)).Content.ReadFromJsonAsync<List<PersonListItem>>();
-        var sam = Assert.Single(people!, person => person.Email == "sam.leaved@acme.example");
+        var people = await (await GovernanceFixture.SendAsync(admin, HttpMethod.Get, "/api/v1/people", tenantId: fixture.TenantId)).Content.ReadFromJsonAsync<PersonPage>();
+        var sam = Assert.Single(people!.Items, person => person.Email == "sam.leaved@acme.example");
         Assert.Equal("Offboarded", sam.State);
         Assert.True(sam.LeaverStillHasAccess);
         var detail = await (await GovernanceFixture.SendAsync(admin, HttpMethod.Get, "/api/v1/people/" + sam.Id, tenantId: fixture.TenantId)).Content.ReadFromJsonAsync<PersonDetail>();

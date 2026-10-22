@@ -28,11 +28,12 @@ public sealed class DemoSeeder(
         await provisioner.SeedExampleControlsAsync(northwind.Id, cancellationToken);
         await EnsureAuditAsync(acme.Id, cancellationToken);
 
-        var chandra = await EnsureUserAsync("chandra.vell@harborline.example", "Chandra Vell", cancellationToken);
-        var priya = await EnsureUserAsync("priya.nair@harborline.example", "Priya Nair", cancellationToken);
-        var marcus = await EnsureUserAsync("marcus.lee@harborline.example", "Marcus Lee", cancellationToken);
-        var dev = await EnsureUserAsync("dev.patel@harborline.example", "Dev Patel", cancellationToken);
-        var lena = await EnsureUserAsync("lena.cho@harborline.example", "Lena Cho", cancellationToken);
+        var domain = ClientSeed.Company.Domain;
+        var chandra = await EnsureUserAsync($"chandra.vell@{domain}", "Chandra Vell", cancellationToken);
+        var priya = await EnsureUserAsync($"priya.nair@{domain}", "Priya Nair", cancellationToken);
+        var marcus = await EnsureUserAsync($"marcus.lee@{domain}", "Marcus Lee", cancellationToken);
+        var dev = await EnsureUserAsync($"dev.patel@{domain}", "Dev Patel", cancellationToken);
+        var lena = await EnsureUserAsync($"lena.cho@{domain}", "Lena Cho", cancellationToken);
         var auditor = await EnsureUserAsync("auditor@northgate.example", "Rachel Ortiz", cancellationToken);
         var northwindOwner = await EnsureUserAsync("owner@northwind.example", "Alex Kim", cancellationToken);
 
@@ -101,7 +102,7 @@ public sealed class DemoSeeder(
             return false;
         }
 
-        foreach (var provider in new[] { "aws", "google", "microsoft", "github" })
+        foreach (var provider in IntegrationPolicies.ExampleProviders(fixture))
         {
             db.Integrations.Add(new IntegrationConnection
             {

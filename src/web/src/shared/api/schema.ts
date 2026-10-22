@@ -1848,7 +1848,11 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    q?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1861,7 +1865,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["PersonListItem"][];
+                        "application/json": components["schemas"]["PersonPage"];
                     };
                 };
             };
@@ -2837,6 +2841,15 @@ export interface components {
             hireOn: null | string;
             /** Format: date */
             leftOn: null | string;
+        };
+        PersonPage: {
+            items: components["schemas"]["PersonListItem"][];
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
         };
         PersonTaskDto: {
             kind: string;

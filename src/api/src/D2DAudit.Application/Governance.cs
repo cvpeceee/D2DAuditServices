@@ -42,6 +42,8 @@ public sealed record PersonTaskDto(string Kind, string TaskCode, bool Done);
 
 public sealed record PersonAcknowledgementDto(string PolicyCode, string PolicyTitle, DateOnly DueOn, DateTimeOffset? AcknowledgedAt);
 
+public sealed record PersonPage(IReadOnlyList<PersonListItem> Items, int Total, int Page, int PageSize);
+
 public sealed record PersonListItem(
     Guid Id,
     string Name,
@@ -140,7 +142,7 @@ public interface IGovernance
 
     Task<Result<FileExport>> ExportRisksAsync(string format, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<PersonListItem>> PeopleAsync(CancellationToken cancellationToken);
+    Task<PersonPage> PeopleAsync(int page, int pageSize, string? search, CancellationToken cancellationToken);
 
     Task<Result<PersonDetail>> PersonAsync(Guid id, CancellationToken cancellationToken);
 

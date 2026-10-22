@@ -2,6 +2,7 @@ using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Persistence;
+using D2DAudit.Infrastructure.Seed;
 using D2DAudit.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -107,7 +108,7 @@ public sealed class IntegrationQuery(
         }
 
         await using var db = databases.Create(Database());
-        foreach (var provider in new[] { "aws", "google", "microsoft", "github" })
+        foreach (var provider in IntegrationPolicies.ExampleProviders(fixture))
         {
             var row = await db.Integrations.FirstOrDefaultAsync(item => item.Provider == provider, cancellationToken);
             if (row is null)
@@ -126,7 +127,7 @@ public sealed class IntegrationQuery(
             row.Fixture = fixture;
             row.Secret = null;
             row.LastError = null;
-            row.AccountLabel = fixture == "northwind" ? "Northwind Labs example" : "Harborline example";
+            row.AccountLabel = fixture == "northwind" ? "Northwind Labs example" : ClientSeed.Company.Name + " example";
             row.SetupHint = "Example fixture. No customer account is connected.";
         }
 

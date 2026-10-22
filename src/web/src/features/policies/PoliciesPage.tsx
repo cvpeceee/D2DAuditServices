@@ -9,6 +9,7 @@ import {
   type PolicyListItem,
   type Workspace,
 } from "../../shared/api/client";
+import { Pager } from "../../shared/ui/Pager";
 import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
@@ -28,6 +29,8 @@ export function PoliciesPage() {
   const [detail, setDetail] = useState<PolicyDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ackQuery, setAckQuery] = useState("");
+  const [ackPage, setAckPage] = useState(1);
 
   const load = () => {
     if (!tenantId) return;
@@ -43,6 +46,8 @@ export function PoliciesPage() {
   }, [tenantId]);
 
   useEffect(() => {
+    setAckQuery("");
+    setAckPage(1);
     if (!tenantId || !selected) {
       setDetail(null);
       return;
@@ -68,6 +73,12 @@ export function PoliciesPage() {
   }
 
   const latest = detail?.versions[0];
+  const ackTerm = ackQuery.trim().toLowerCase();
+  const matchingAcks = (detail?.acknowledgements ?? []).filter((item) => {
+    if (!ackTerm) return true;
+    return `${item.personName} ${item.personEmail}`.toLowerCase().includes(ackTerm);
+  });
+  const ackRows = matchingAcks.slice((ackPage - 1) * 20, ackPage * 20);
   const mine = detail?.acknowledgements.find(
     (item) =>
       item.personEmail.toLowerCase() === (workspace?.email ?? "").toLowerCase() &&
@@ -195,38 +206,58 @@ export function PoliciesPage() {
                 </button>
               )}
               <h3 style={{ marginTop: 16 }}>{t("policiesPage.acknowledgements")}</h3>
+              <label className="field">
+                <span>{t("policiesPage.search")}</span>
+                <input
+                  value={ackQuery}
+                  onChange={(event) => {
+                    setAckQuery(event.target.value);
+                    setAckPage(1);
+                  }}
+                />
+              </label>
               {detail.acknowledgements.length === 0 ? (
                 <div className="empty">{t("policiesPage.noAcknowledgements")}</div>
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{t("policiesPage.person")}</th>
-                      <th>{t("policiesPage.due")}</th>
-                      <th>{t("policiesPage.ack")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detail.acknowledgements.map((item) => (
-                      <tr key={item.personEmail}>
-                        <td>
-                          <div className="t">{item.personName}</div>
-                          <div className="m">{item.personEmail}</div>
-                        </td>
-                        <td className="m">{formatDate(item.dueOn)}</td>
-                        <td className="m">
-                          {item.acknowledgedAt
-                            ? formatWhen(item.acknowledgedAt)
-                            : item.reminderDue
-                              ? t("policiesPage.reminderDue")
-                              : item.remindedAt
-                                ? t("policiesPage.reminded", { date: formatWhen(item.remindedAt) })
-                                : t("policiesPage.waiting")}
-                        </td>
+                <>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>{t("policiesPage.person")}</th>
+                        <th>{t("policiesPage.due")}</th>
+                        <th>{t("policiesPage.ack")}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ackRows.map((item) => (
+                        <tr key={item.personEmail}>
+                          <td>
+                            <div className="t">{item.personName}</div>
+                            <div className="m">{item.personEmail}</div>
+                          </td>
+                          <td className="m">{formatDate(item.dueOn)}</td>
+                          <td className="m">
+                            {item.acknowledgedAt
+                              ? formatWhen(item.acknowledgedAt)
+                              : item.reminderDue
+                                ? t("policiesPage.reminderDue")
+                                : item.remindedAt
+                                  ? t("policiesPage.reminded", {
+                                      date: formatWhen(item.remindedAt),
+                                    })
+                                  : t("policiesPage.waiting")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <Pager
+                    page={ackPage}
+                    pageSize={20}
+                    total={matchingAcks.length}
+                    onPage={setAckPage}
+                  />
+                </>
               )}
               <h3 style={{ marginTop: 16 }}>{t("policiesPage.history")}</h3>
               {detail.versions.map((version) => (

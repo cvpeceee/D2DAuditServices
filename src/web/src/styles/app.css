@@ -1115,6 +1115,13 @@ code {
 .note-item:hover {
   background: var(--hover, rgba(0, 0, 0, 0.04));
 }
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton,

@@ -65,9 +65,9 @@ internal static class ClientSeed
     private static ClientDocument Load()
     {
         var assembly = typeof(ClientSeed).Assembly;
-        var name = assembly.GetManifestResourceNames().First(item => item.EndsWith("harborline.json", StringComparison.OrdinalIgnoreCase));
-        using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException("Missing Harborline seed.");
-        return JsonSerializer.Deserialize<ClientDocument>(stream, Json) ?? throw new InvalidOperationException("Harborline seed is empty.");
+        var name = assembly.GetManifestResourceNames().First(item => item.EndsWith("client.json", StringComparison.OrdinalIgnoreCase));
+        using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException("Missing example client seed.");
+        return JsonSerializer.Deserialize<ClientDocument>(stream, Json) ?? throw new InvalidOperationException("Example client seed is empty.");
     }
 }
 
@@ -106,11 +106,15 @@ internal sealed class ClientCompany
 {
     public string Name { get; set; } = "";
 
+    public string LegalName { get; set; } = "";
+
     public string Slug { get; set; } = "";
 
     public string Domain { get; set; } = "";
 
     public string Region { get; set; } = "";
+
+    public string Product { get; set; } = "";
 
     public string Summary { get; set; } = "";
 }

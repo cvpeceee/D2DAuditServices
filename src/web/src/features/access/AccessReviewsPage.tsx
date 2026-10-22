@@ -8,6 +8,7 @@ import {
   type AccessCampaignListItem,
   type Workspace,
 } from "../../shared/api/client";
+import { Pager } from "../../shared/ui/Pager";
 import { formatDate, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
@@ -21,6 +22,8 @@ export function AccessReviewsPage() {
   const [dueOn, setDueOn] = useState(new Date().toISOString().slice(0, 10));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [itemQuery, setItemQuery] = useState("");
+  const [itemPage, setItemPage] = useState(1);
 
   const load = () => {
     if (!tenantId) return;
@@ -36,6 +39,8 @@ export function AccessReviewsPage() {
 
   async function open(id: string) {
     if (!tenantId) return;
+    setItemQuery("");
+    setItemPage(1);
     setDetail(await api<AccessCampaignDetail>(`/api/v1/access-reviews/${id}`, { tenantId }));
   }
 
@@ -51,6 +56,8 @@ export function AccessReviewsPage() {
         body: { name, dueOn },
       });
       setDetail(created);
+      setItemQuery("");
+      setItemPage(1);
       setName("");
       load();
     } catch (caught: unknown) {
@@ -93,6 +100,15 @@ export function AccessReviewsPage() {
   }
 
   const pending = detail?.items.some((item) => item.decision === "Pending") ?? true;
+
+  const accountTerm = itemQuery.trim().toLowerCase();
+  const matching = (detail?.items ?? []).filter((item) => {
+    if (!accountTerm) return true;
+    return `${item.personName} ${item.personEmail} ${item.provider} ${item.accountName}`
+      .toLowerCase()
+      .includes(accountTerm);
+  });
+  const accountPage = matching.slice((itemPage - 1) * 25, itemPage * 25);
 
   return (
     <>
@@ -175,6 +191,16 @@ export function AccessReviewsPage() {
       {detail && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{detail.name}</h3>
+          <label className="field">
+            <span>{t("accessPage.search")}</span>
+            <input
+              value={itemQuery}
+              onChange={(event) => {
+                setItemQuery(event.target.value);
+                setItemPage(1);
+              }}
+            />
+          </label>
           <div className="table-wrap">
             <table>
               <thead>
@@ -185,7 +211,7 @@ export function AccessReviewsPage() {
                 </tr>
               </thead>
               <tbody>
-                {detail.items.map((item) => (
+                {accountPage.map((item) => (
                   <tr key={item.id}>
                     <td>
                       <b>{item.personName}</b>
@@ -229,6 +255,7 @@ export function AccessReviewsPage() {
                 ))}
               </tbody>
             </table>
+            <Pager page={itemPage} pageSize={25} total={matching.length} onPage={setItemPage} />
           </div>
           {detail.evidenceSha256 && (
             <p>

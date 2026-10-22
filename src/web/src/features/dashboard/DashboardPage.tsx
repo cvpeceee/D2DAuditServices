@@ -251,7 +251,7 @@ export function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.dueItems.map((item) => (
+                {data.dueItems.slice(0, 8).map((item) => (
                   <tr key={`${item.kind}-${item.title}-${item.dueOn}`}>
                     <td>
                       <Link to={item.href}>{item.title}</Link>
@@ -269,6 +269,9 @@ export function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            {data.dueItems.length > 8 && (
+              <p className="m">{t("dashboard.moreDue", { count: data.dueItems.length - 8 })}</p>
+            )}
           </div>
         )}
       </div>

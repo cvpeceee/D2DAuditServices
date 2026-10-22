@@ -234,7 +234,7 @@ async function route(
     return exportDocument(riskDocument(data), query.get("format"), "iso27001-risk-treatment-plan");
   }
   if (path === "/api/v1/risks" && method === "POST") return json(saveRisk(data, actor, body));
-  if (path === "/api/v1/people" && method === "GET") return json(data.people.map(personList));
+  if (path === "/api/v1/people" && method === "GET") return json(peoplePage(data, query));
   if (path === "/api/v1/people/sync" && method === "POST") {
     requireWrite(actor);
     record(actor, "people.synced", "ok", String(data.people.length));
@@ -591,18 +591,20 @@ async function upload(data: DemoWorld, actor: Session, body: Record<string, unkn
   return publicEvidence(item);
 }
 
+const providerNames: Record<string, string> = {
+  aws: "Amazon Web Services",
+  azure: "Microsoft Azure",
+  gcp: "Google Cloud",
+  google: "Google Workspace",
+  microsoft: "Microsoft 365",
+  github: "GitHub",
+};
+
 function integrations() {
-  return ["aws", "google", "microsoft", "github"].map((provider, index) => ({
+  return ["aws", "azure", "gcp", "google", "microsoft", "github"].map((provider, index) => ({
     id: idOf(20 + index),
     provider,
-    displayName:
-      provider === "aws"
-        ? "Amazon Web Services"
-        : provider === "google"
-          ? "Google Workspace"
-          : provider === "microsoft"
-            ? "Microsoft 365"
-            : "GitHub",
+    displayName: providerNames[provider] ?? provider,
     status: "connected",
     example: true,
     accountLabel: `${company.name} example`,
@@ -787,7 +789,7 @@ function auditPage(data: DemoWorld) {
       name: "SOC 2 Type II — Fieldwork",
       firmName: "Northgate Assurance LLP",
       frameworkKey: "soc2",
-      scope: `SOC 2 Type II (Security, Availability). Example engagement for ${company.name}.`,
+      scope: `${company.name} (${company.legalName}), a ${company.product}. SOC 2 Type II (Security, Availability) example engagement. The program also covers ISO 27001, ISO 27017, and ISO 27018.`,
       periodStart: "2026-04-01",
       periodEnd: "2026-09-30",
       fieldworkOn: "2026-11-30",
@@ -1263,6 +1265,29 @@ function nextRiskCode(data: DemoWorld) {
     .map((item) => Number(item.code.replace("R-", "")))
     .filter((item) => !Number.isNaN(item));
   return `R-${String(Math.max(0, ...numbers) + 1).padStart(2, "0")}`;
+}
+
+function peoplePage(data: DemoWorld, query: URLSearchParams) {
+  const term = (query.get("q") ?? "").trim().toLowerCase();
+  const parsedSize = Number(query.get("pageSize"));
+  const parsedPage = Number(query.get("page"));
+  const pageSize =
+    Number.isFinite(parsedSize) && parsedSize > 0 ? Math.min(100, Math.floor(parsedSize)) : 40;
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+  const filtered = data.people.filter((person) => {
+    if (!term) return true;
+    return [person.name, person.email, person.department, person.role]
+      .join(" ")
+      .toLowerCase()
+      .includes(term);
+  });
+  const start = (page - 1) * pageSize;
+  return {
+    items: filtered.slice(start, start + pageSize).map(personList),
+    total: filtered.length,
+    page,
+    pageSize,
+  };
 }
 
 function personList(person: DemoWorld["people"][number]) {
