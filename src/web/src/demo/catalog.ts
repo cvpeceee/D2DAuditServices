@@ -94,6 +94,76 @@ export type DemoFinding = {
   responseByName: string | null;
 };
 
+export type DemoRisk = {
+  code: string;
+  title: string;
+  statement: string;
+  likelihood: number;
+  impact: number;
+  score: number;
+  band: string;
+  ownerName: string;
+  ownerEmail: string;
+  treatment: string;
+  treatmentPlan: string;
+  reviewOn: string;
+  residualLikelihood: number;
+  residualImpact: number;
+  residualScore: number;
+  residualBand: string;
+  controlCodes: string[];
+};
+
+export type DemoPerson = {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  source: string;
+  state: string;
+  training: string;
+  trainingDueOn: string | null;
+  tasks: { kind: string; taskCode: string; done: boolean }[];
+  accounts: { provider: string; accountName: string; active: boolean }[];
+};
+
+export type DemoSoa = {
+  code: string;
+  title: string;
+  applicable: boolean;
+  justification: string;
+  implementation: string;
+};
+
+export type DemoVendor = {
+  id: string;
+  name: string;
+  service: string;
+  criticality: string;
+  dataAccess: string;
+  reviewState: string;
+  reviewDueOn: string;
+  riskRating: number;
+  documents: { title: string; kind: string; issuedOn: string | null }[];
+};
+
+export type DemoCampaign = {
+  id: string;
+  name: string;
+  dueOn: string;
+  state: string;
+  completedAt: string | null;
+  evidenceId: string | null;
+  items: {
+    id: string;
+    personName: string;
+    personEmail: string;
+    provider: string;
+    accountName: string;
+    decision: string;
+  }[];
+};
+
 export type DemoWorld = {
   controls: DemoControl[];
   evidence: DemoEvidence[];
@@ -101,6 +171,11 @@ export type DemoWorld = {
   policies: DemoPolicy[];
   requests: DemoRequest[];
   findings: DemoFinding[];
+  risks: DemoRisk[];
+  people: DemoPerson[];
+  soa: DemoSoa[];
+  vendors: DemoVendor[];
+  campaigns: DemoCampaign[];
   frameworks: {
     key: string;
     name: string;
@@ -504,6 +579,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
     },
   ];
 
+  const governed = governance(now, controls);
   return {
     controls,
     evidence,
@@ -511,6 +587,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
     policies,
     requests,
     findings,
+    ...governed,
     frameworks: frameworks.map((framework) => ({
       key: framework.key,
       name: framework.name,
@@ -573,5 +650,382 @@ function request(
     status,
     createdAt: iso(createdAt),
     response,
+  };
+}
+
+function band(score: number) {
+  if (score >= 15) return "critical";
+  if (score >= 8) return "high";
+  if (score >= 4) return "medium";
+  return "low";
+}
+
+function risk(
+  code: string,
+  title: string,
+  statement: string,
+  likelihood: number,
+  impact: number,
+  ownerName: string,
+  ownerEmail: string,
+  treatment: string,
+  treatmentPlan: string,
+  reviewOn: string,
+  residualLikelihood: number,
+  residualImpact: number,
+  controlCodes: string[],
+): DemoRisk {
+  const score = likelihood * impact;
+  const residualScore = residualLikelihood * residualImpact;
+  return {
+    code,
+    title,
+    statement,
+    likelihood,
+    impact,
+    score,
+    band: band(score),
+    ownerName,
+    ownerEmail,
+    treatment,
+    treatmentPlan,
+    reviewOn,
+    residualLikelihood,
+    residualImpact,
+    residualScore,
+    residualBand: band(residualScore),
+    controlCodes,
+  };
+}
+
+function annexLeaves(nodes: RawNode[]): { code: string; title: string }[] {
+  return nodes.flatMap((node) =>
+    node.children && node.children.length > 0
+      ? annexLeaves(node.children)
+      : /^A\.\d+\.\d+$/.test(node.code)
+        ? [{ code: node.code, title: node.title }]
+        : [],
+  );
+}
+
+function governance(now: Date, controls: DemoControl[]) {
+  const plus = (days: number) => day(addDays(now, days));
+  const directory = [
+    [
+      "google",
+      "priya",
+      "Priya N.",
+      "priya@acme.example",
+      "Security",
+      "Google",
+      "Active",
+      "Complete",
+      -30,
+      false,
+      true,
+    ],
+    [
+      "google",
+      "sam",
+      "Sam Leaved",
+      "sam.leaved@acme.example",
+      "Workforce",
+      "Mixed",
+      "Offboarded",
+      "Overdue",
+      -6,
+      true,
+      false,
+    ],
+    [
+      "microsoft",
+      "jordan",
+      "Jordan P.",
+      "jordan@acme.example",
+      "Workforce",
+      "Microsoft",
+      "Active",
+      "Assigned",
+      20,
+      false,
+      true,
+    ],
+    [
+      "microsoft",
+      "lena",
+      "Lena K.",
+      "lena@acme.example",
+      "People",
+      "Microsoft",
+      "Active",
+      "Overdue",
+      -6,
+      false,
+      true,
+    ],
+    [
+      "github",
+      "casey",
+      "Casey R.",
+      "casey@acme.example",
+      "Engineering",
+      "Mixed",
+      "Active",
+      "Assigned",
+      20,
+      false,
+      true,
+    ],
+    [
+      "github",
+      "sam-gh",
+      "Sam Leaved",
+      "sam.leaved@acme.example",
+      "Workforce",
+      "Mixed",
+      "Offboarded",
+      "Overdue",
+      -6,
+      false,
+      true,
+    ],
+  ] as const;
+  const peopleMap = new Map<string, DemoPerson>();
+  directory.forEach((row, index) => {
+    const [provider, accountName, name, email, department, source, state, training, due, , active] =
+      row;
+    const person = peopleMap.get(email) ?? {
+      id: `person-${index + 1}`,
+      name,
+      email,
+      department,
+      source,
+      state,
+      training,
+      trainingDueOn: plus(due),
+      tasks: [
+        ...["account", "mfa", "policies", "training", "equipment"].map((taskCode) => ({
+          kind: "Onboarding",
+          taskCode,
+          done: state !== "Offboarded" && taskCode !== "equipment",
+        })),
+        ...["disable", "assets", "access", "interview"].map((taskCode) => ({
+          kind: "Offboarding",
+          taskCode,
+          done: false,
+        })),
+      ],
+      accounts: [],
+    };
+    person.source = source;
+    person.accounts.push({ provider, accountName, active });
+    peopleMap.set(email, person);
+  });
+  const people = [...peopleMap.values()];
+  const soa = annexLeaves((iso27001 as RawFramework).requirements)
+    .map((leaf) => {
+      const related = controls.filter((control) =>
+        control.mappings.some(
+          (mapping) => mapping.framework === "iso27001" && mapping.requirement === leaf.code,
+        ),
+      );
+      const excluded = leaf.code === "A.7.5";
+      const implementation = excluded
+        ? "NotApplicable"
+        : related.some((control) => control.status === "failing")
+          ? "InProgress"
+          : related.length > 0 && related.every((control) => control.status === "passing")
+            ? "Implemented"
+            : "NotStarted";
+      return {
+        code: leaf.code,
+        title: leaf.title,
+        applicable: !excluded,
+        justification: excluded
+          ? "The example company does not run its own data center. The office building is covered by the landlord."
+          : "This control applies to the way the company handles information.",
+        implementation,
+      };
+    })
+    .sort((left, right) => annexRank(left.code) - annexRank(right.code));
+  const campaigns: DemoCampaign[] = [
+    {
+      id: "campaign-q4",
+      name: "Q4 access review",
+      dueOn: plus(12),
+      state: "Open",
+      completedAt: null,
+      evidenceId: null,
+      items: directory.map((row, index) => ({
+        id: `review-${index + 1}`,
+        personName: row[2],
+        personEmail: row[3],
+        provider: row[0],
+        accountName: row[1],
+        decision: "Pending",
+      })),
+    },
+  ];
+  return {
+    risks: [
+      risk(
+        "R-01",
+        "Public storage",
+        "The marketing site bucket can be read by anyone on the internet.",
+        4,
+        5,
+        "Priya N.",
+        "priya@acme.example",
+        "Mitigate",
+        "Turn on Block Public Access and confirm the next collection.",
+        plus(7),
+        2,
+        3,
+        ["CFG-01"],
+      ),
+      risk(
+        "R-02",
+        "Missing MFA",
+        "Two workforce accounts can sign in with a password alone.",
+        4,
+        4,
+        "Priya N.",
+        "priya@acme.example",
+        "Mitigate",
+        "Require a second factor before the account is marked active.",
+        plus(14),
+        2,
+        2,
+        ["AC-07"],
+      ),
+      risk(
+        "R-03",
+        "Leaver still has access",
+        "An offboarded person still has a GitHub account.",
+        3,
+        5,
+        "Lena K.",
+        "lena@acme.example",
+        "Mitigate",
+        "Remove the GitHub account and record it in the access review.",
+        plus(-2),
+        1,
+        2,
+        ["HR-08"],
+      ),
+      risk(
+        "R-04",
+        "Unprotected branch",
+        "The experiments repository can be changed without a second reviewer.",
+        3,
+        3,
+        "Dev T.",
+        "dev@acme.example",
+        "Mitigate",
+        "Protect the default branch.",
+        plus(21),
+        1,
+        2,
+        ["CM-11"],
+      ),
+      risk(
+        "R-05",
+        "Vendor concentration",
+        "Source hosting and identity both sit with one or two suppliers.",
+        2,
+        4,
+        "Chandra V.",
+        "chandra@acme.example",
+        "Transfer",
+        "Keep the suppliers' SOC 2 reports and a named exit path.",
+        plus(40),
+        2,
+        3,
+        [],
+      ),
+    ],
+    people,
+    soa,
+    vendors: [
+      vendor(
+        "vendor-github",
+        "GitHub",
+        "Source hosting",
+        "Critical",
+        "Source code and pull requests",
+        "Approved",
+        plus(60),
+        3,
+        "GitHub SOC 2 report",
+        plus(-40),
+      ),
+      vendor(
+        "vendor-google",
+        "Google Workspace",
+        "Email and directory",
+        "High",
+        "Mail, files, and the employee directory",
+        "InReview",
+        plus(10),
+        3,
+        "Workspace security whitepaper",
+        plus(-80),
+      ),
+      vendor(
+        "vendor-aws",
+        "Amazon Web Services",
+        "Production hosting",
+        "Critical",
+        "Customer application data in example buckets",
+        "Approved",
+        plus(90),
+        4,
+        "AWS SOC 2 report",
+        plus(-20),
+      ),
+      vendor(
+        "vendor-fonts",
+        "Pixel Fonts",
+        "Marketing site fonts",
+        "Low",
+        "No customer data",
+        "Expired",
+        plus(-12),
+        1,
+        "Font license",
+        plus(-400),
+      ),
+    ],
+    campaigns,
+  };
+}
+
+function annexRank(code: string) {
+  const parts = code.split(".").map((part) => Number(part.replace("A", "0")));
+  return (parts[1] ?? 0) * 100 + (parts[2] ?? 0);
+}
+
+function vendor(
+  id: string,
+  name: string,
+  service: string,
+  criticality: string,
+  dataAccess: string,
+  reviewState: string,
+  reviewDueOn: string,
+  riskRating: number,
+  documentTitle: string,
+  issuedOn: string,
+): DemoVendor {
+  return {
+    id,
+    name,
+    service,
+    criticality,
+    dataAccess,
+    reviewState,
+    reviewDueOn,
+    riskRating,
+    documents: [{ title: documentTitle, kind: "soc2", issuedOn }],
   };
 }

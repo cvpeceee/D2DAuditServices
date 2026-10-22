@@ -229,6 +229,42 @@ export function DashboardPage() {
         </div>
       </div>
       <div className="card" style={{ marginTop: 14 }}>
+        <h3>{t("dashboard.dueTitle")}</h3>
+        {data.dueItems.length === 0 ? (
+          <div className="empty">{t("dashboard.dueEmpty")}</div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("dashboard.test")}</th>
+                  <th>{t("dashboard.due")}</th>
+                  <th>{t("controls.status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.dueItems.map((item) => (
+                  <tr key={`${item.kind}-${item.title}-${item.dueOn}`}>
+                    <td>
+                      <Link to={item.href}>{item.title}</Link>
+                      <div className="id">{t(`dashboard.dueKinds.${item.kind}`)}</div>
+                    </td>
+                    <td className="m">{formatDate(item.dueOn)}</td>
+                    <td>
+                      {item.overdue ? (
+                        <Pill status="fail">{t("dashboard.overdue")}</Pill>
+                      ) : (
+                        <Pill status="warn">{t("dashboard.dueSoon")}</Pill>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="card" style={{ marginTop: 14 }}>
         <h3>
           {t("dashboard.failingTests")}
           <Link className="r" to="/controls">

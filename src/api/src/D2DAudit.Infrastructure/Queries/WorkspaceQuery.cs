@@ -13,7 +13,8 @@ public sealed class WorkspaceQuery(
     TenantDatabases databases,
     ControlPlaneDbContext control,
     IActivityWriter activity,
-    IValidator<AssignOwnerRequest> owners) : IWorkspaceQuery
+    IValidator<AssignOwnerRequest> owners,
+    IGovernance governance) : IWorkspaceQuery
 {
     public async Task<WorkspaceResponse> GetAsync(CancellationToken cancellationToken)
     {
@@ -79,7 +80,8 @@ public sealed class WorkspaceQuery(
             frameworks,
             summary,
             failingTests,
-            health);
+            health,
+            await governance.DueItemsAsync(cancellationToken));
     }
 
     public async Task<IReadOnlyList<FrameworkListItem>> FrameworksAsync(CancellationToken cancellationToken)

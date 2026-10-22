@@ -128,6 +128,26 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<ResourceSnapshot> Resources => Set<ResourceSnapshot>();
 
+    public DbSet<RiskItem> Risks => Set<RiskItem>();
+
+    public DbSet<RiskControlLink> RiskControls => Set<RiskControlLink>();
+
+    public DbSet<DirectoryPerson> People => Set<DirectoryPerson>();
+
+    public DbSet<PersonTask> PersonTasks => Set<PersonTask>();
+
+    public DbSet<PersonAccount> PersonAccounts => Set<PersonAccount>();
+
+    public DbSet<SoaEntry> Soa => Set<SoaEntry>();
+
+    public DbSet<VendorRecord> Vendors => Set<VendorRecord>();
+
+    public DbSet<VendorDocument> VendorDocuments => Set<VendorDocument>();
+
+    public DbSet<AccessCampaign> AccessCampaigns => Set<AccessCampaign>();
+
+    public DbSet<AccessReviewItem> AccessItems => Set<AccessReviewItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -298,6 +318,94 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         finding.Property(x => x.ResponseByName).HasMaxLength(200);
         finding.Property(x => x.Severity).HasConversion<string>().HasMaxLength(32);
         finding.HasIndex(x => x.Code).IsUnique();
+
+        var risk = modelBuilder.Entity<RiskItem>();
+        risk.ToTable("risks");
+        risk.HasKey(x => x.Id);
+        risk.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        risk.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        risk.Property(x => x.Statement).HasMaxLength(2000).IsRequired();
+        risk.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        risk.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        risk.Property(x => x.Treatment).HasConversion<string>().HasMaxLength(32);
+        risk.Property(x => x.TreatmentPlan).HasMaxLength(2000).IsRequired();
+        risk.HasIndex(x => x.Code).IsUnique();
+
+        var riskControl = modelBuilder.Entity<RiskControlLink>();
+        riskControl.ToTable("risk_controls");
+        riskControl.HasKey(x => new { x.RiskId, x.ControlCode });
+        riskControl.Property(x => x.ControlCode).HasMaxLength(32);
+        riskControl.HasOne(x => x.Risk).WithMany(x => x.Controls).HasForeignKey(x => x.RiskId).OnDelete(DeleteBehavior.Cascade);
+
+        var person = modelBuilder.Entity<DirectoryPerson>();
+        person.ToTable("people");
+        person.HasKey(x => x.Id);
+        person.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        person.Property(x => x.Email).HasMaxLength(320).IsRequired();
+        person.Property(x => x.Department).HasMaxLength(200).IsRequired();
+        person.Property(x => x.Source).HasConversion<string>().HasMaxLength(32);
+        person.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
+        person.Property(x => x.Training).HasConversion<string>().HasMaxLength(32);
+        person.HasIndex(x => x.Email).IsUnique();
+
+        var task = modelBuilder.Entity<PersonTask>();
+        task.ToTable("person_tasks");
+        task.HasKey(x => x.Id);
+        task.Property(x => x.Kind).HasConversion<string>().HasMaxLength(32);
+        task.Property(x => x.TaskCode).HasMaxLength(32).IsRequired();
+        task.HasIndex(x => new { x.PersonId, x.TaskCode }).IsUnique();
+        task.HasOne(x => x.Person).WithMany(x => x.Tasks).HasForeignKey(x => x.PersonId).OnDelete(DeleteBehavior.Cascade);
+
+        var account = modelBuilder.Entity<PersonAccount>();
+        account.ToTable("person_accounts");
+        account.HasKey(x => x.Id);
+        account.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        account.Property(x => x.ExternalId).HasMaxLength(200).IsRequired();
+        account.Property(x => x.AccountName).HasMaxLength(200).IsRequired();
+        account.HasIndex(x => new { x.PersonId, x.Provider, x.ExternalId }).IsUnique();
+        account.HasOne(x => x.Person).WithMany(x => x.Accounts).HasForeignKey(x => x.PersonId).OnDelete(DeleteBehavior.Cascade);
+
+        var soa = modelBuilder.Entity<SoaEntry>();
+        soa.ToTable("soa_entries");
+        soa.HasKey(x => x.Id);
+        soa.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        soa.Property(x => x.Title).HasMaxLength(300).IsRequired();
+        soa.Property(x => x.Justification).HasMaxLength(2000).IsRequired();
+        soa.Property(x => x.Implementation).HasConversion<string>().HasMaxLength(32);
+        soa.HasIndex(x => x.Code).IsUnique();
+
+        var vendor = modelBuilder.Entity<VendorRecord>();
+        vendor.ToTable("vendors");
+        vendor.HasKey(x => x.Id);
+        vendor.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        vendor.Property(x => x.Service).HasMaxLength(200).IsRequired();
+        vendor.Property(x => x.Criticality).HasConversion<string>().HasMaxLength(32);
+        vendor.Property(x => x.DataAccess).HasMaxLength(1000).IsRequired();
+        vendor.Property(x => x.ReviewState).HasConversion<string>().HasMaxLength(32);
+
+        var document = modelBuilder.Entity<VendorDocument>();
+        document.ToTable("vendor_documents");
+        document.HasKey(x => x.Id);
+        document.Property(x => x.Title).HasMaxLength(300).IsRequired();
+        document.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        document.HasOne(x => x.Vendor).WithMany(x => x.Documents).HasForeignKey(x => x.VendorId).OnDelete(DeleteBehavior.Cascade);
+
+        var campaign = modelBuilder.Entity<AccessCampaign>();
+        campaign.ToTable("access_campaigns");
+        campaign.HasKey(x => x.Id);
+        campaign.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        campaign.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
+
+        var reviewItem = modelBuilder.Entity<AccessReviewItem>();
+        reviewItem.ToTable("access_review_items");
+        reviewItem.HasKey(x => x.Id);
+        reviewItem.Property(x => x.PersonName).HasMaxLength(200).IsRequired();
+        reviewItem.Property(x => x.PersonEmail).HasMaxLength(320).IsRequired();
+        reviewItem.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        reviewItem.Property(x => x.AccountName).HasMaxLength(200).IsRequired();
+        reviewItem.Property(x => x.Decision).HasConversion<string>().HasMaxLength(32);
+        reviewItem.Property(x => x.ReviewerName).HasMaxLength(200);
+        reviewItem.HasOne(x => x.Campaign).WithMany(x => x.Items).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

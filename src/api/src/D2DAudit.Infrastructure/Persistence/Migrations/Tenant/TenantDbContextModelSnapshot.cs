@@ -22,6 +22,87 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("D2DAudit.Domain.AccessCampaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("DueOn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("EvidenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("access_campaigns", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.AccessReviewItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("PersonEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("PersonName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ReviewerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("access_review_items", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.AuditEngagement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -221,6 +302,53 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.HasIndex("ControlId", "TestKey");
 
                     b.ToTable("control_tests", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.DirectoryPerson", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Training")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateOnly?>("TrainingDueOn")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("people", (string)null);
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.EvidenceItem", b =>
@@ -435,6 +563,71 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("integration_connections", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.PersonAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccountName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonId", "Provider", "ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("person_accounts", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.PersonTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Done")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("PersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TaskCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonId", "TaskCode")
+                        .IsUnique();
+
+                    b.ToTable("person_tasks", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.PolicyAcknowledgement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -636,6 +829,84 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("resource_snapshots", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.RiskControlLink", b =>
+                {
+                    b.Property<Guid>("RiskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ControlCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("RiskId", "ControlCode");
+
+                    b.ToTable("risk_controls", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.RiskItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Impact")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Likelihood")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("OwnerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("ResidualImpact")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ResidualLikelihood")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("ReviewOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Statement")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Treatment")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TreatmentPlan")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("risks", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.SampleRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -720,6 +991,125 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("sample_responses", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.SoaEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Applicable")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Implementation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Justification")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("soa_entries", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.VendorDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("IssuedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("VendorId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("vendor_documents", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.VendorRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Criticality")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("DataAccess")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateOnly>("ReviewDueOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ReviewState")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("RiskRating")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Service")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("vendors", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.AccessReviewItem", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.AccessCampaign", "Campaign")
+                        .WithMany("Items")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.ControlRequirementMap", b =>
                 {
                     b.HasOne("D2DAudit.Domain.Control", "Control")
@@ -755,6 +1145,28 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                         .HasForeignKey("ControlId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.PersonAccount", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.DirectoryPerson", "Person")
+                        .WithMany("Accounts")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.PersonTask", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.DirectoryPerson", "Person")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.PolicyAcknowledgement", b =>
@@ -808,6 +1220,17 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.RiskControlLink", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.RiskItem", "Risk")
+                        .WithMany("Controls")
+                        .HasForeignKey("RiskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Risk");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.SampleResponse", b =>
                 {
                     b.HasOne("D2DAudit.Domain.SampleRequest", "Request")
@@ -819,6 +1242,22 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Request");
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.VendorDocument", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.VendorRecord", "Vendor")
+                        .WithMany("Documents")
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.AccessCampaign", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.Control", b =>
                 {
                     b.Navigation("Evidence");
@@ -826,6 +1265,13 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Mappings");
 
                     b.Navigation("Tests");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.DirectoryPerson", b =>
+                {
+                    b.Navigation("Accounts");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.FrameworkRecord", b =>
@@ -850,9 +1296,19 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Mappings");
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.RiskItem", b =>
+                {
+                    b.Navigation("Controls");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.SampleRequest", b =>
                 {
                     b.Navigation("Response");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.VendorRecord", b =>
+                {
+                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

@@ -18,8 +18,10 @@ const links = [
 const governance = [
   { to: "/policies", key: "policies" },
   { to: "/risks", key: "risks" },
+  { to: "/soa", key: "soa" },
   { to: "/vendors", key: "vendors" },
   { to: "/people", key: "people" },
+  { to: "/access-reviews", key: "accessReviews" },
 ] as const;
 
 export function AppShell() {
@@ -90,6 +92,11 @@ export function AppShell() {
       { id: "controls", label: t("nav.controls"), run: () => navigate("/controls") },
       { id: "evidence", label: t("nav.evidence"), run: () => navigate("/evidence") },
       { id: "integrations", label: t("nav.integrations"), run: () => navigate("/integrations") },
+      { id: "risks", label: t("nav.risks"), run: () => navigate("/risks") },
+      { id: "soa", label: t("nav.soa"), run: () => navigate("/soa") },
+      { id: "vendors", label: t("nav.vendors"), run: () => navigate("/vendors") },
+      { id: "people", label: t("nav.people"), run: () => navigate("/people") },
+      { id: "access", label: t("nav.accessReviews"), run: () => navigate("/access-reviews") },
     ];
     if (workspace?.role === "Admin")
       items.push({ id: "activity", label: t("nav.activity"), run: () => navigate("/activity") });

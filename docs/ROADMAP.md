@@ -12,8 +12,12 @@ Done. Connect AWS, Google Workspace, Microsoft 365, and GitHub. Run automated te
 
 ## M3 — Policies, auditor portal, and the audit package
 
-This milestone. Policy workflow, the auditor's request and finding loop, and an exportable audit package. Auditor access stays scoped to the grant.
+Done. Policy workflow, the auditor's request and finding loop, and an exportable audit package. Auditor access stays scoped to the grant.
+
+## M4a — Audit-critical gaps
+
+This milestone. Risk register with scoring and a treatment-plan export, people synced from the directories with leaver access called out, the ISO 27001 statement of applicability, vendor reviews, access-review campaigns stored as evidence, and a readiness view of failing tests and upcoming due items.
 
 ## M4 — Demo polish
 
-Tighten the example workspace, empty and error states, and the walkthrough used with a customer. No new product surface that the earlier milestones did not already name.
+Tighten the example workspace, empty and error states, and the walkthrough used with a customer.

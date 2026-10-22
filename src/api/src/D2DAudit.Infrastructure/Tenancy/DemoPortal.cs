@@ -1,4 +1,5 @@
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,7 @@ internal static class DemoPortal
             AddFindings(db, audit.Id);
         }
 
+        await GovernanceExample.SeedAsync(db, now, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
     }
 

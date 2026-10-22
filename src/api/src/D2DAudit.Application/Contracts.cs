@@ -334,7 +334,8 @@ public sealed record DashboardResponse(
     IReadOnlyList<FrameworkReadiness> Frameworks,
     AuditSummary? Audit,
     IReadOnlyList<FailingTestRow> FailingTests,
-    ControlHealth Health);
+    ControlHealth Health,
+    IReadOnlyList<DueItem> DueItems);
 
 public sealed record FrameworkListItem(
     string Key,

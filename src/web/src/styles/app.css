@@ -987,6 +987,78 @@ button.row-hit::after {
     padding: 16px;
   }
 }
+.heat {
+  display: grid;
+  grid-template-columns: 2.5rem repeat(5, minmax(2.2rem, 1fr));
+  gap: 4px;
+  margin-top: 12px;
+}
+.heat .axis {
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+  font-size: 11px;
+}
+.heat .cell {
+  min-height: 2.4rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-weight: 700;
+}
+.heat .cell.low {
+  background: var(--okSoft);
+}
+.heat .cell.medium,
+.heat .cell.high {
+  background: var(--warnSoft);
+}
+.heat .cell.critical {
+  background: var(--badSoft);
+}
+.heat .cell[aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+}
+.split-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.field textarea,
+.field select {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface2);
+  padding: 8px 12px;
+  width: 100%;
+  color: var(--text);
+}
+.field textarea {
+  min-height: 72px;
+}
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+}
+.linkish {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.linkish:hover b {
+  text-decoration: underline;
+}
+code {
+  overflow-wrap: anywhere;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   .busy i {

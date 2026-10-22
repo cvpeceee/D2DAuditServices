@@ -13,6 +13,8 @@
     "risks": "Risks",
     "vendors": "Vendors",
     "people": "People & devices",
+    "soa": "Statement of Applicability",
+    "accessReviews": "Access reviews",
     "audit": "Audit",
     "auditor": "Auditor portal",
     "integrations": "Integrations",
@@ -117,6 +119,17 @@
     "source": "Detail",
     "frameworks": "Frameworks",
     "noFailures": "No failing tests.",
+    "due": "Due",
+    "dueTitle": "Coming due",
+    "dueEmpty": "Nothing is due in the next 30 days.",
+    "overdue": "Overdue",
+    "dueKinds": {
+      "risk": "Risk review",
+      "vendor": "Vendor review",
+      "training": "Security training",
+      "access": "Access review",
+      "policy": "Policy acknowledgement"
+    },
     "export": "Export report",
     "exportLater": "Report export arrives in a later milestone.",
     "addFramework": "Add framework"
@@ -369,6 +382,158 @@
       "Open": "Open",
       "Submitted": "Submitted",
       "Accepted": "Accepted"
+    }
+  },
+  "risksPage": {
+    "title": "Risk register",
+    "sub": "Likelihood times impact, with the treatment and what remains after it.",
+    "heat": "Heat map",
+    "likelihood": "Likelihood",
+    "impact": "Impact",
+    "cell": "Likelihood {{likelihood}}, impact {{impact}}, {{count}} risks",
+    "score": "Score",
+    "residual": "Residual",
+    "treatment": "Treatment",
+    "review": "Review",
+    "owner": "Owner",
+    "controls": "Linked controls",
+    "statement": "Statement",
+    "plan": "Treatment plan",
+    "exportCsv": "Export CSV",
+    "exportPdf": "Export PDF",
+    "empty": "No risks recorded.",
+    "new": "New risk",
+    "save": "Save risk",
+    "titleField": "Title",
+    "bands": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "treatments": {
+      "Accept": "Accept",
+      "Mitigate": "Mitigate",
+      "Transfer": "Transfer",
+      "Avoid": "Avoid"
+    }
+  },
+  "peoplePage": {
+    "title": "People",
+    "sub": "Directory accounts from Google Workspace and Microsoft 365, plus access that is still live.",
+    "sync": "Sync directory",
+    "synced": "Directory sync finished.",
+    "empty": "No people yet. Sync the directory after a collection.",
+    "source": "Source",
+    "state": "State",
+    "training": "Security training",
+    "access": "Accounts",
+    "leaver": "Offboarded and still has access",
+    "checklist": "Checklist",
+    "onboarding": "Onboarding",
+    "offboarding": "Offboarding",
+    "acknowledgements": "Policy acknowledgements",
+    "acknowledged": "Acknowledged",
+    "waiting": "Waiting",
+    "tasks": {
+      "account": "Account issued",
+      "mfa": "Second factor enrolled",
+      "policies": "Policies assigned",
+      "training": "Security training assigned",
+      "equipment": "Equipment recorded",
+      "disable": "Directory account disabled",
+      "assets": "Equipment returned",
+      "access": "Downstream access removed",
+      "interview": "Exit recorded"
+    },
+    "states": {
+      "Active": "Active",
+      "Offboarding": "Offboarding",
+      "Offboarded": "Offboarded"
+    },
+    "trainingStates": {
+      "NotAssigned": "Not assigned",
+      "Assigned": "Assigned",
+      "Complete": "Complete",
+      "Overdue": "Overdue"
+    },
+    "sources": {
+      "Manual": "Manual",
+      "Google": "Google Workspace",
+      "Microsoft": "Microsoft 365",
+      "Mixed": "More than one directory"
+    }
+  },
+  "soaPage": {
+    "title": "Statement of Applicability",
+    "sub": "Every ISO 27001 Annex A control, with whether it applies and how far it is implemented. Auditors can read this page.",
+    "code": "Control",
+    "applicable": "Applicable",
+    "justification": "Justification",
+    "implementation": "Implementation",
+    "yes": "Yes",
+    "no": "No",
+    "exportCsv": "Export CSV",
+    "exportPdf": "Export PDF",
+    "save": "Save row",
+    "empty": "The statement has not been prepared.",
+    "statuses": {
+      "NotStarted": "Not started",
+      "InProgress": "In progress",
+      "Implemented": "Implemented",
+      "NotApplicable": "Not applicable"
+    }
+  },
+  "vendorsPage": {
+    "title": "Vendors",
+    "sub": "Who has access to data, how critical they are, and when the security review is due.",
+    "service": "Service",
+    "criticality": "Criticality",
+    "data": "Data access",
+    "review": "Security review",
+    "due": "Review due",
+    "rating": "Risk rating",
+    "documents": "Documents",
+    "save": "Save vendor",
+    "empty": "No vendors recorded.",
+    "name": "Name",
+    "criticalities": {
+      "Low": "Low",
+      "Medium": "Medium",
+      "High": "High",
+      "Critical": "Critical"
+    },
+    "reviews": {
+      "NotStarted": "Not started",
+      "InReview": "In review",
+      "Approved": "Approved",
+      "Expired": "Expired"
+    }
+  },
+  "accessPage": {
+    "title": "Access reviews",
+    "sub": "Review each account pulled from the connected systems. A finished review is stored as evidence.",
+    "name": "Campaign",
+    "due": "Due",
+    "progress": "Decisions",
+    "start": "Start review",
+    "empty": "No review is open.",
+    "approve": "Approve",
+    "revoke": "Revoke",
+    "complete": "Complete and save evidence",
+    "pending": "Pending",
+    "person": "Person",
+    "account": "Account",
+    "decision": "Decision",
+    "evidence": "Evidence hash",
+    "decisions": {
+      "Pending": "Pending",
+      "Approved": "Approved",
+      "Revoked": "Revoked"
+    },
+    "states": {
+      "Open": "Open",
+      "Completed": "Completed"
     }
   },
   "demo": {

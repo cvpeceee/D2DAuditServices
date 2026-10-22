@@ -260,6 +260,86 @@ internal static class PlainPdf
         return Encoding.ASCII.GetBytes(builder.ToString());
     }
 
+    public static byte[] Document(IReadOnlyList<string> lines)
+    {
+        const int perPage = 45;
+        var chunks = new List<IReadOnlyList<string>>();
+        var source = lines.Count == 0 ? [""] : lines;
+        for (var offset = 0; offset < source.Count; offset += perPage)
+        {
+            chunks.Add(source.Skip(offset).Take(perPage).ToArray());
+        }
+
+        var fontId = 3 + (chunks.Count * 2);
+        var objects = new List<string>
+        {
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "",
+        };
+        var kids = new StringBuilder();
+        for (var index = 0; index < chunks.Count; index++)
+        {
+            var pageId = 3 + (index * 2);
+            var contentId = pageId + 1;
+            if (kids.Length > 0)
+            {
+                kids.Append(' ');
+            }
+
+            kids.Append(pageId.ToString(CultureInfo.InvariantCulture)).Append(" 0 R");
+            objects.Add($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents {contentId.ToString(CultureInfo.InvariantCulture)} 0 R /Resources << /Font << /F1 {fontId.ToString(CultureInfo.InvariantCulture)} 0 R >> >> >>");
+            objects.Add(Content(chunks[index]));
+        }
+
+        objects[1] = $"<< /Type /Pages /Count {chunks.Count.ToString(CultureInfo.InvariantCulture)} /Kids [{kids}] >>";
+        objects.Add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+        return Assemble(objects);
+    }
+
+    private static string Content(IReadOnlyList<string> lines)
+    {
+        var commands = new StringBuilder();
+        commands.Append("BT\n/F1 9 Tf\n40 760 Td\n14 TL\n");
+        var first = true;
+        foreach (var line in lines)
+        {
+            if (!first)
+            {
+                commands.Append("T*\n");
+            }
+
+            commands.Append('(').Append(Ascii(line)).Append(") Tj\n");
+            first = false;
+        }
+
+        commands.Append("ET\n");
+        var stream = commands.ToString();
+        return $"<< /Length {Encoding.ASCII.GetByteCount(stream).ToString(CultureInfo.InvariantCulture)} >>\nstream\n{stream}endstream";
+    }
+
+    private static byte[] Assemble(IReadOnlyList<string> objects)
+    {
+        var builder = new StringBuilder();
+        builder.Append("%PDF-1.4\n");
+        var offsets = new int[objects.Count];
+        for (var index = 0; index < objects.Count; index++)
+        {
+            offsets[index] = Encoding.ASCII.GetByteCount(builder.ToString());
+            builder.Append((index + 1).ToString(CultureInfo.InvariantCulture)).Append(" 0 obj\n").Append(objects[index]).Append("\nendobj\n");
+        }
+
+        var xref = Encoding.ASCII.GetByteCount(builder.ToString());
+        builder.Append("xref\n0 ").Append((objects.Count + 1).ToString(CultureInfo.InvariantCulture)).Append("\n0000000000 65535 f \n");
+        foreach (var offset in offsets)
+        {
+            builder.Append(offset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n");
+        }
+
+        builder.Append("trailer << /Size ").Append((objects.Count + 1).ToString(CultureInfo.InvariantCulture)).Append(" /Root 1 0 R >>\nstartxref\n")
+            .Append(xref.ToString(CultureInfo.InvariantCulture)).Append("\n%%EOF");
+        return Encoding.ASCII.GetBytes(builder.ToString());
+    }
+
     private static string Ascii(string value)
     {
         var chars = value.Select(character => character is >= (char)32 and <= (char)126 && character is not '(' and not ')' and not '\\' ? character : ' ').ToArray();
