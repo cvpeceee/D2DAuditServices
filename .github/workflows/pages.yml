@@ -23,6 +23,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Build the live demo
+        working-directory: src/web
+        run: npm ci && npm run build:demo
+
+      - name: Place the demo next to the mockups
+        run: |
+          rm -rf docs/app
+          mkdir -p docs/app
+          cp -a src/web/dist/. docs/app/
+          cp docs/app/index.html docs/app/404.html
+
       - name: Upload docs
         uses: actions/upload-pages-artifact@v3
         with:

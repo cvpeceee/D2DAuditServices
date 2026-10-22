@@ -371,6 +371,11 @@
       "Accepted": "Accepted"
     }
   },
+  "demo": {
+    "banner": "Demo, example data",
+    "passwordHint": "Example password: Example-Only-1!",
+    "signInAs": "Sign in as {{email}}"
+  },
   "errors": {
     "load": "The page could not be loaded.",
     "forbidden": "You do not have access to this workspace."

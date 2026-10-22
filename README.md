@@ -2,6 +2,8 @@
 
 D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
+A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra@acme.example` or `auditor@northgate.example`. The example password is on the login screen.
+
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
 Milestone 1 is the foundation slice. Milestone 2 adds integrations, automated tests, and evidence on top of it.
