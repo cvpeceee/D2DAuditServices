@@ -20,7 +20,11 @@ Done. Risk register with scoring and a treatment-plan export, people synced from
 
 ## M4b — Realistic example client
 
-This milestone. One fictional client is seeded the same way in the development database and the Pages demo. The default brand is Harborline, a cloud data platform of about 1,080 people, and the name, domain, and product live in `src/seed/brand.json`. Regenerate with `node src/seed/build.mjs` before a private rename. The workspace shows the workforce (paged), AWS, Azure, and Google Cloud plus the directories and GitHub, six months of test history, evidence, policies, risks, vendors, an open access review, the ISO 27001 statement of applicability, ISO 27017 and ISO 27018 catalogs, an active audit, activity, and notifications.
+Done. One fictional client is seeded the same way in the development database and the Pages demo. The default brand is Harborline, a cloud data platform of about 1,080 people, and the name, domain, and product live in `src/seed/brand.json`. Regenerate with `node src/seed/build.mjs` before a private rename. The workspace shows the workforce (paged), AWS, Azure, and Google Cloud plus the directories and GitHub, six months of test history, evidence, policies, risks, vendors, an open access review, the ISO 27001 statement of applicability, ISO 27017 and ISO 27018 catalogs, an active audit, activity, and notifications.
+
+## M5 — Employee portal, training, assets, tasks, and roles
+
+This milestone. My Tasks at `/me` covers policy acknowledgement, security training, MFA, a device note, and a background check. Completing a card stores evidence and refreshes the matching test. Security training has a built-in annual module (slides, quiz, certificate) and an external LMS link with a certificate upload. The asset inventory is filled from the connections, can be owned or marked out of scope, imports and exports CSV, and is included in the audit package. Tasks link to a control, test, risk, vendor, or policy, and the dashboard shows the signed-in person's work. Settings invites users, sets Admin, Editor, Viewer, Employee, or Auditor, deactivates an account, shows SSO status, and records per-audit auditor grants. The risk register adds a library and approval. Vendors add a questionnaire, a decision, and residual risk. Access reviews can be drafted, limited to selected apps, and closed with a remediation note. People show MFA, background check, training, device, hire and leave dates, and a status override with a reason.
 
 ## M4 — Demo polish
 

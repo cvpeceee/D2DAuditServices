@@ -9,6 +9,8 @@ public static class GovernanceEndpoints
     {
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
         group.MapGet("/risks", (IGovernance portal, CancellationToken cancellationToken) => portal.RisksAsync(cancellationToken)).Produces<IReadOnlyList<RiskListItem>>();
+        group.MapGet("/risks/library", (IGovernance portal, CancellationToken cancellationToken) => portal.LibraryAsync(cancellationToken)).Produces<IReadOnlyList<RiskLibraryItem>>();
+        group.MapPost("/risks/library/{code}", AdoptRisk).RequireAuthorization("TenantWrite").Produces<RiskListItem>();
         group.MapPost("/risks", SaveRisk).RequireAuthorization("TenantWrite").Produces<RiskListItem>();
         group.MapGet("/risks/export", ExportRisks).Produces<FileExport>();
         group.MapGet("/people", (int? page, int? pageSize, string? q, IGovernance portal, CancellationToken cancellationToken) =>
@@ -16,6 +18,7 @@ public static class GovernanceEndpoints
         group.MapPost("/people/sync", SyncPeople).RequireAuthorization("TenantWrite").Produces<int>();
         group.MapGet("/people/{id:guid}", GetPerson).Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/tasks", SetTask).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
+        group.MapPost("/people/{id:guid}/status", SetStatus).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapGet("/soa", (IGovernance portal, CancellationToken cancellationToken) => portal.SoaAsync(cancellationToken)).Produces<IReadOnlyList<SoaRow>>();
         group.MapPut("/soa/{code}", SaveSoa).RequireAuthorization("TenantWrite").Produces<SoaRow>();
         group.MapGet("/soa/export", ExportSoa).Produces<FileExport>();
@@ -23,14 +26,36 @@ public static class GovernanceEndpoints
         group.MapPost("/vendors", SaveVendor).RequireAuthorization("TenantWrite").Produces<VendorListItem>();
         group.MapGet("/access-reviews", (IGovernance portal, CancellationToken cancellationToken) => portal.CampaignsAsync(cancellationToken)).Produces<IReadOnlyList<AccessCampaignListItem>>();
         group.MapPost("/access-reviews", StartCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
+        group.MapPost("/access-reviews/draft", DraftCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         group.MapGet("/access-reviews/{id:guid}", GetCampaign).Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/{id:guid}/items/{itemId:guid}", Decide).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
+        group.MapPost("/access-reviews/{id:guid}/apps", PickApps).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
+        group.MapPost("/access-reviews/{id:guid}/start", BeginCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
+        group.MapPost("/access-reviews/{id:guid}/items/{itemId:guid}/remediate", Remediate).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/{id:guid}/complete", Complete).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         return app;
     }
 
     private static async Task<IResult> SaveRisk(SaveRiskRequest body, IGovernance portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.SaveRiskAsync(body, cancellationToken));
+
+    private static async Task<IResult> AdoptRisk(string code, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.AdoptLibraryAsync(code, cancellationToken));
+
+    private static async Task<IResult> SetStatus(Guid id, PersonStatusRequest body, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.SetStatusAsync(id, body, cancellationToken));
+
+    private static async Task<IResult> DraftCampaign(StartCampaignRequest body, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.DraftCampaignAsync(body, cancellationToken));
+
+    private static async Task<IResult> PickApps(Guid id, PickAppsRequest body, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.PickAppsAsync(id, body, cancellationToken));
+
+    private static async Task<IResult> BeginCampaign(Guid id, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.BeginCampaignAsync(id, cancellationToken));
+
+    private static async Task<IResult> Remediate(Guid id, Guid itemId, RemediateRequest body, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.RemediateAsync(id, itemId, body, cancellationToken));
 
     private static async Task<IResult> ExportRisks(string format, IGovernance portal, CancellationToken cancellationToken) =>
         await FileAsync(portal.ExportRisksAsync(format, cancellationToken));

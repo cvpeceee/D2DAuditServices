@@ -3,6 +3,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ApiError, api, type Dashboard, type Integration } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
+import type { WorkTask } from "../program/types";
 import { daysUntil, formatDate, Pill, Ring, Skeleton } from "../../shared/ui/ui";
 
 function IntegrationHealth({ tenantId }: { tenantId: string | null }) {
@@ -35,6 +36,74 @@ function IntegrationHealth({ tenantId }: { tenantId: string | null }) {
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function MyWork({ tenantId }: { tenantId: string | null }) {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState<WorkTask[] | null>(null);
+  useEffect(() => {
+    if (!tenantId) return;
+    let cancelled = false;
+    void api<WorkTask[]>("/api/v1/tasks?mine=true", { tenantId })
+      .then((value) => {
+        if (!cancelled) setRows(value);
+      })
+      .catch(() => {
+        if (!cancelled) setRows([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId]);
+  return (
+    <div className="card" style={{ marginTop: 14 }}>
+      <h3>
+        {t("tasksPage.myWork")}
+        <Link className="r" to="/tasks">
+          {t("nav.tasks")}
+        </Link>
+      </h3>
+      {!rows || rows.length === 0 ? (
+        <div className="empty">{t("tasksPage.empty")}</div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>{t("tasksPage.titleField")}</th>
+                <th>{t("tasksPage.linked")}</th>
+                <th>{t("tasksPage.due")}</th>
+                <th>{t("tasksPage.status")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id} className={row.overdue ? "late" : undefined}>
+                  <td>
+                    <div className="t">{row.title}</div>
+                  </td>
+                  <td className="m">
+                    {t(`tasksPage.kinds.${row.linkedKind}`, { defaultValue: row.linkedKind })}{" "}
+                    {row.linkedCode}
+                  </td>
+                  <td className="m">{formatDate(row.dueOn)}</td>
+                  <td>
+                    {row.overdue ? (
+                      <Pill status="fail">{t("tasksPage.overdue")}</Pill>
+                    ) : (
+                      <Pill status={row.status === "Done" ? "pass" : "info"}>
+                        {t(`tasksPage.statuses.${row.status}`, { defaultValue: row.status })}
+                      </Pill>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -236,6 +305,7 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+      <MyWork tenantId={tenantId} />
       <div className="card" style={{ marginTop: 14 }}>
         <h3>{t("dashboard.dueTitle")}</h3>
         {data.dueItems.length === 0 ? (

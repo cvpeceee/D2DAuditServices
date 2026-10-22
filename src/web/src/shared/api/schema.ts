@@ -1802,6 +1802,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/risks/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RiskLibraryItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/risks/library/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RiskListItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/risks/export": {
         parameters: {
             query?: never;
@@ -1971,6 +2043,47 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["SetTaskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PersonDetail"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/people/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PersonStatusRequest"];
                 };
             };
             responses: {
@@ -2220,6 +2333,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/access-reviews/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StartCampaignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessCampaignDetail"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/access-reviews/{id}": {
         parameters: {
             query?: never;
@@ -2299,6 +2451,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/access-reviews/{id}/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PickAppsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessCampaignDetail"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-reviews/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessCampaignDetail"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-reviews/{id}/items/{itemId}/remediate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RemediateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccessCampaignDetail"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/access-reviews/{id}/complete": {
         parameters: {
             query?: never;
@@ -2336,6 +2608,720 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeCard"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CompleteCardRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MeCard"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrainingModuleItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrainingModuleDetail"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/{id}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TrainingPersonPage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/{id}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["QuizRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuizResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/training/{id}/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CertificateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuizResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetPage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAssetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssetImportRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": number | string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileExport"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    mine?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkTaskItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveTaskRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkTaskItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkTaskItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InviteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/members/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RoleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/members/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/sso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SsoStatus"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GrantItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveGrantRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GrantItem"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2353,6 +3339,7 @@ export interface components {
             evidenceId: null | string;
             evidenceSha256: null | string;
             items: components["schemas"]["AccessItemDto"][];
+            providers?: null | string[];
         };
         AccessCampaignListItem: {
             /** Format: uuid */
@@ -2377,6 +3364,10 @@ export interface components {
             provider: string;
             accountName: string;
             decision: string;
+            /** @default false */
+            needsRemediation: boolean;
+            /** @default  */
+            remediationNote: string;
         };
         AcknowledgementDto: {
             personName: string;
@@ -2397,6 +3388,32 @@ export interface components {
             detail: null | string;
             actorEmail: null | string;
             ipAddress: null | string;
+        };
+        AssetImportRequest: {
+            csv: string;
+        };
+        AssetItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: string;
+            source: string;
+            ownerName: string;
+            ownerEmail: string;
+            environment: string;
+            classification: string;
+            inScope: boolean;
+            /** Format: date-time */
+            lastSeen: string;
+        };
+        AssetPage: {
+            items: components["schemas"]["AssetItem"][];
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
         };
         AssignAcknowledgementRequest: {
             personName: string;
@@ -2486,6 +3503,15 @@ export interface components {
         CallbackBody: {
             code: string;
             redirectUri: string;
+        };
+        CertificateRequest: {
+            fileName: string;
+            body: string;
+        };
+        CompleteCardRequest: {
+            kind: string;
+            note: null | string;
+            body: null | string;
         };
         ConnectIntegrationRequest: {
             roleArn: null | string;
@@ -2720,6 +3746,21 @@ export interface components {
             /** Format: int32 */
             percent: number | string;
         };
+        GrantItem: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            name: string;
+            auditName: string;
+            firmName: string;
+            /** Format: date */
+            periodStart: string;
+            /** Format: date */
+            periodEnd: string;
+            /** Format: date */
+            accessExpiresOn: string;
+            frameworks: string[];
+        };
         HistoryPoint: {
             /** Format: date */
             weekOf: string;
@@ -2742,6 +3783,11 @@ export interface components {
             setupHint: null | string;
             /** Format: date-time */
             lastCollectedAt: null | string;
+        };
+        InviteRequest: {
+            name: string;
+            email: string;
+            role: string;
         };
         JobDto: {
             /** Format: uuid */
@@ -2767,6 +3813,25 @@ export interface components {
             title: string;
             coverage: string;
             status: string;
+        };
+        MeCard: {
+            kind: string;
+            title: string;
+            status: string;
+            /** Format: date */
+            dueOn: null | string;
+            action: string;
+            /** Format: uuid */
+            evidenceId: null | string;
+            evidenceSha256: null | string;
+        };
+        MemberItem: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+            active: boolean;
         };
         MfaBody: {
             pendingAuthenticationToken: string;
@@ -2821,6 +3886,18 @@ export interface components {
             hireOn: null | string;
             /** Format: date */
             leftOn: null | string;
+            /** @default false */
+            mfaEnrolled: boolean;
+            /** @default NotStarted */
+            background: string;
+            /** Format: date */
+            backgroundOn?: null | string;
+            /** @default Missing */
+            device: string;
+            /** @default  */
+            statusReason: string;
+            /** Format: date */
+            trainingCompletedOn?: null | string;
         };
         PersonListItem: {
             /** Format: uuid */
@@ -2841,6 +3918,18 @@ export interface components {
             hireOn: null | string;
             /** Format: date */
             leftOn: null | string;
+            /** @default false */
+            mfaEnrolled: boolean;
+            /** @default NotStarted */
+            background: string;
+            /** Format: date */
+            backgroundOn?: null | string;
+            /** @default Missing */
+            device: string;
+            /** @default  */
+            statusReason: string;
+            /** Format: date */
+            trainingCompletedOn?: null | string;
         };
         PersonPage: {
             items: components["schemas"]["PersonListItem"][];
@@ -2851,10 +3940,17 @@ export interface components {
             /** Format: int32 */
             pageSize: number | string;
         };
+        PersonStatusRequest: {
+            state: string;
+            reason: string;
+        };
         PersonTaskDto: {
             kind: string;
             taskCode: string;
             done: boolean;
+        };
+        PickAppsRequest: {
+            providers: string[];
         };
         PolicyDetail: {
             code: string;
@@ -2888,6 +3984,22 @@ export interface components {
             approvedAt: null | string;
             approvedByName: null | string;
         };
+        QuizRequest: {
+            answers: (number | string)[];
+        };
+        QuizResult: {
+            passed: boolean;
+            /** Format: int32 */
+            score: number | string;
+            /** Format: int32 */
+            total: number | string;
+            /** Format: uuid */
+            evidenceId: null | string;
+            evidenceSha256: null | string;
+        };
+        RemediateRequest: {
+            note: string;
+        };
         RequirementNodeDto: {
             code: string;
             title: string;
@@ -2905,6 +4017,17 @@ export interface components {
             body: string;
             /** Format: uuid */
             evidenceId: null | string;
+        };
+        RiskLibraryItem: {
+            code: string;
+            title: string;
+            statement: string;
+            /** Format: int32 */
+            likelihood: number | string;
+            /** Format: int32 */
+            impact: number | string;
+            treatment: string;
+            added: boolean;
         };
         RiskListItem: {
             code: string;
@@ -2931,6 +4054,17 @@ export interface components {
             residualScore: number | string;
             residualBand: string;
             controlCodes: string[];
+            /** @default false */
+            approved: boolean;
+            /** @default  */
+            approvedBy: string;
+            /** Format: date */
+            approvedOn?: null | string;
+            /** @default  */
+            libraryCode: string;
+        };
+        RoleRequest: {
+            role: string;
         };
         SampleRequestDto: {
             code: string;
@@ -2951,6 +4085,30 @@ export interface components {
             respondedAt: string;
             evidenceTitle: null | string;
         };
+        SaveAssetRequest: {
+            /** Format: uuid */
+            id: null | string;
+            name: string;
+            type: string;
+            source: string;
+            ownerName: string;
+            ownerEmail: string;
+            environment: string;
+            classification: string;
+            inScope: boolean;
+        };
+        SaveGrantRequest: {
+            email: string;
+            auditName: string;
+            firmName: string;
+            /** Format: date */
+            periodStart: string;
+            /** Format: date */
+            periodEnd: string;
+            /** Format: date */
+            accessExpiresOn: string;
+            frameworks: string[];
+        };
         SaveRiskRequest: {
             code: null | string;
             title: string;
@@ -2970,11 +4128,28 @@ export interface components {
             /** Format: int32 */
             residualImpact: number | string;
             controlCodes: string[];
+            approved?: null | boolean;
+            approvedBy?: null | string;
+            /** Format: date */
+            approvedOn?: null | string;
         };
         SaveSoaRequest: {
             applicable: boolean;
             justification: string;
             implementation: string;
+        };
+        SaveTaskRequest: {
+            /** Format: uuid */
+            id: null | string;
+            title: string;
+            linkedKind: string;
+            linkedCode: string;
+            ownerName: string;
+            ownerEmail: string;
+            /** Format: date */
+            dueOn: string;
+            status: string;
+            recurrence: string;
         };
         SaveVendorRequest: {
             /** Format: uuid */
@@ -2989,6 +4164,12 @@ export interface components {
             /** Format: int32 */
             riskRating: number | string;
             documents: components["schemas"]["VendorDocumentDto"][];
+            decision?: null | string;
+            /** Format: int32 */
+            residualLikelihood?: null | number | string;
+            /** Format: int32 */
+            residualImpact?: null | number | string;
+            questions?: null | components["schemas"]["VendorQuestionDto"][];
         };
         SetTaskRequest: {
             taskCode: string;
@@ -3000,6 +4181,11 @@ export interface components {
             applicable: boolean;
             justification: string;
             implementation: string;
+        };
+        SsoStatus: {
+            domain: string;
+            connected: boolean;
+            organizationId: null | string;
         };
         StartCampaignRequest: {
             name: string;
@@ -3014,6 +4200,67 @@ export interface components {
             region: string;
             role: string;
             exampleData: boolean;
+        };
+        TrainingModuleDetail: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            title: string;
+            type: string;
+            assignedGroup: string;
+            /** Format: date */
+            dueOn: string;
+            externalUrl: null | string;
+            slides: components["schemas"]["TrainingSlideDto"][];
+            questions: components["schemas"]["TrainingQuestionDto"][];
+            completed: boolean;
+            /** Format: int32 */
+            score: null | number | string;
+            /** Format: uuid */
+            evidenceId: null | string;
+            evidenceSha256: null | string;
+        };
+        TrainingModuleItem: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            title: string;
+            type: string;
+            assignedGroup: string;
+            /** Format: date */
+            dueOn: string;
+            /** Format: int32 */
+            assigned: number | string;
+            /** Format: int32 */
+            completed: number | string;
+            externalUrl: null | string;
+        };
+        TrainingPersonItem: {
+            name: string;
+            email: string;
+            department: string;
+            status: string;
+            /** Format: date */
+            completedOn: null | string;
+            /** Format: date */
+            dueOn: null | string;
+        };
+        TrainingPersonPage: {
+            items: components["schemas"]["TrainingPersonItem"][];
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+        };
+        TrainingQuestionDto: {
+            prompt: string;
+            choices: string[];
+        };
+        TrainingSlideDto: {
+            title: string;
+            body: string;
         };
         UploadEvidenceRequest: {
             controlCode: string;
@@ -3045,6 +4292,30 @@ export interface components {
             /** Format: int32 */
             riskRating: number | string;
             documents: components["schemas"]["VendorDocumentDto"][];
+            /** @default Pending */
+            decision: string;
+            /**
+             * Format: int32
+             * @default 2
+             */
+            residualLikelihood: number | string;
+            /**
+             * Format: int32
+             * @default 2
+             */
+            residualImpact: number | string;
+            /**
+             * Format: int32
+             * @default 4
+             */
+            residualScore: number | string;
+            /** @default medium */
+            residualBand: string;
+            questions?: null | components["schemas"]["VendorQuestionDto"][];
+        };
+        VendorQuestionDto: {
+            prompt: string;
+            answer: string;
         };
         VerifyReport: {
             intact: boolean;
@@ -3065,6 +4336,20 @@ export interface components {
             email: string;
             /** Format: int32 */
             failingControls: number | string;
+        };
+        WorkTaskItem: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            linkedKind: string;
+            linkedCode: string;
+            ownerName: string;
+            ownerEmail: string;
+            /** Format: date */
+            dueOn: string;
+            status: string;
+            recurrence: string;
+            overdue: boolean;
         };
     };
     responses: never;

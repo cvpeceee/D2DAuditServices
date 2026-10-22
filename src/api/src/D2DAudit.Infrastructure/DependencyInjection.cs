@@ -4,6 +4,7 @@ using D2DAudit.Infrastructure.Audits;
 using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Catalog;
 using D2DAudit.Infrastructure.Policies;
+using D2DAudit.Infrastructure.Program;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Identity;
 using D2DAudit.Infrastructure.Integrations;
@@ -94,6 +95,7 @@ public static class DependencyInjection
         services.AddScoped<IIntegrationQuery, IntegrationQuery>();
         services.AddScoped<IPolicyPortal, PolicyPortal>();
         services.AddScoped<IGovernance, GovernancePortal>();
+        services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();
         services.AddSingleton<AuditExportQueue>();

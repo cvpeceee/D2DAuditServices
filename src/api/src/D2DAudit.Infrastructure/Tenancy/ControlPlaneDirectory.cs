@@ -20,7 +20,7 @@ public sealed class ControlPlaneDirectory(ControlPlaneDbContext db) : IControlPl
     {
         var memberships = await db.Memberships.AsNoTracking()
             .Include(membership => membership.Tenant)
-            .Where(membership => membership.UserId == userId)
+            .Where(membership => membership.UserId == userId && membership.Active)
             .ToListAsync(cancellationToken);
         return memberships.Select(membership => new DirectoryMembership(
             membership.TenantId,

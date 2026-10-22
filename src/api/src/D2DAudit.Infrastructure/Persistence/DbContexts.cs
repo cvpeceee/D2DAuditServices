@@ -48,6 +48,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         membership.ToTable("memberships");
         membership.HasKey(x => x.Id);
         membership.Property(x => x.Role).HasConversion<string>().HasMaxLength(32);
+        membership.Property(x => x.Active).HasDefaultValue(true);
         membership.HasIndex(x => new { x.UserId, x.TenantId }).IsUnique();
         membership.HasOne(x => x.User).WithMany(x => x.Memberships).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         membership.HasOne(x => x.Tenant).WithMany(x => x.Memberships).HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
@@ -155,6 +156,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
     public DbSet<EnrolledDevice> Devices => Set<EnrolledDevice>();
 
     public DbSet<FindingComment> FindingComments => Set<FindingComment>();
+
+    public DbSet<TrackedAsset> Assets => Set<TrackedAsset>();
+
+    public DbSet<WorkTask> WorkTasks => Set<WorkTask>();
+
+    public DbSet<TrainingModule> TrainingModules => Set<TrainingModule>();
+
+    public DbSet<TrainingCompletion> TrainingCompletions => Set<TrainingCompletion>();
+
+    public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -337,6 +348,9 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         risk.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
         risk.Property(x => x.Treatment).HasConversion<string>().HasMaxLength(32);
         risk.Property(x => x.TreatmentPlan).HasMaxLength(2000).IsRequired();
+        risk.Property(x => x.ApprovedBy).HasMaxLength(200).HasDefaultValue("");
+        risk.Property(x => x.LibraryCode).HasMaxLength(32).HasDefaultValue("");
+        risk.Property(x => x.Approved).HasDefaultValue(false);
         risk.HasIndex(x => x.Code).IsUnique();
 
         var riskControl = modelBuilder.Entity<RiskControlLink>();
@@ -355,6 +369,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         person.Property(x => x.Source).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.Training).HasConversion<string>().HasMaxLength(32);
+        person.Property(x => x.BackgroundStatus).HasMaxLength(32).HasDefaultValue("NotStarted");
+        person.Property(x => x.DeviceStatus).HasMaxLength(32).HasDefaultValue("Missing");
+        person.Property(x => x.StatusReason).HasMaxLength(500).HasDefaultValue("");
+        person.Property(x => x.MfaEnrolled).HasDefaultValue(false);
         person.HasIndex(x => x.Email).IsUnique();
 
         var task = modelBuilder.Entity<PersonTask>();
@@ -391,6 +409,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         vendor.Property(x => x.Criticality).HasConversion<string>().HasMaxLength(32);
         vendor.Property(x => x.DataAccess).HasMaxLength(1000).IsRequired();
         vendor.Property(x => x.ReviewState).HasConversion<string>().HasMaxLength(32);
+        vendor.Property(x => x.Decision).HasMaxLength(32).HasDefaultValue("Pending");
 
         var document = modelBuilder.Entity<VendorDocument>();
         document.ToTable("vendor_documents");
@@ -399,11 +418,19 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         document.Property(x => x.Kind).HasMaxLength(32).IsRequired();
         document.HasOne(x => x.Vendor).WithMany(x => x.Documents).HasForeignKey(x => x.VendorId).OnDelete(DeleteBehavior.Cascade);
 
+        var question = modelBuilder.Entity<VendorQuestion>();
+        question.ToTable("vendor_questions");
+        question.HasKey(x => x.Id);
+        question.Property(x => x.Prompt).HasMaxLength(500).IsRequired();
+        question.Property(x => x.Answer).HasMaxLength(2000).IsRequired();
+        question.HasOne(x => x.Vendor).WithMany(x => x.Questions).HasForeignKey(x => x.VendorId).OnDelete(DeleteBehavior.Cascade);
+
         var campaign = modelBuilder.Entity<AccessCampaign>();
         campaign.ToTable("access_campaigns");
         campaign.HasKey(x => x.Id);
         campaign.Property(x => x.Name).HasMaxLength(200).IsRequired();
         campaign.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
+        campaign.Property(x => x.Providers).HasMaxLength(500).HasDefaultValue("");
 
         var reviewItem = modelBuilder.Entity<AccessReviewItem>();
         reviewItem.ToTable("access_review_items");
@@ -414,6 +441,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         reviewItem.Property(x => x.AccountName).HasMaxLength(200).IsRequired();
         reviewItem.Property(x => x.Decision).HasConversion<string>().HasMaxLength(32);
         reviewItem.Property(x => x.ReviewerName).HasMaxLength(200);
+        reviewItem.Property(x => x.RemediationNote).HasMaxLength(500).HasDefaultValue("");
         reviewItem.HasOne(x => x.Campaign).WithMany(x => x.Items).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
 
         var week = modelBuilder.Entity<CheckWeek>();
@@ -443,6 +471,47 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         comment.Property(x => x.AuthorName).HasMaxLength(200).IsRequired();
         comment.Property(x => x.Body).HasMaxLength(2000).IsRequired();
         comment.HasOne(x => x.Finding).WithMany(x => x.Comments).HasForeignKey(x => x.FindingId).OnDelete(DeleteBehavior.Cascade);
+
+        var asset = modelBuilder.Entity<TrackedAsset>();
+        asset.ToTable("assets");
+        asset.HasKey(x => x.Id);
+        asset.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        asset.Property(x => x.AssetType).HasMaxLength(32).IsRequired();
+        asset.Property(x => x.Source).HasMaxLength(64).IsRequired();
+        asset.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        asset.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        asset.Property(x => x.Environment).HasMaxLength(32).IsRequired();
+        asset.Property(x => x.Classification).HasMaxLength(32).IsRequired();
+        asset.Property(x => x.ExternalId).HasMaxLength(300).IsRequired();
+        asset.HasIndex(x => x.ExternalId).IsUnique();
+
+        var work = modelBuilder.Entity<WorkTask>();
+        work.ToTable("work_tasks");
+        work.HasKey(x => x.Id);
+        work.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        work.Property(x => x.LinkedKind).HasMaxLength(32).IsRequired();
+        work.Property(x => x.LinkedCode).HasMaxLength(64).IsRequired();
+        work.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        work.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        work.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        work.Property(x => x.Recurrence).HasMaxLength(32).IsRequired();
+
+        var module = modelBuilder.Entity<TrainingModule>();
+        module.ToTable("training_modules");
+        module.HasKey(x => x.Id);
+        module.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        module.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        module.Property(x => x.ModuleType).HasMaxLength(32).IsRequired();
+        module.Property(x => x.AssignedGroup).HasMaxLength(100).IsRequired();
+        module.Property(x => x.ExternalUrl).HasMaxLength(500);
+        module.HasIndex(x => x.Code).IsUnique();
+
+        var completion = modelBuilder.Entity<TrainingCompletion>();
+        completion.ToTable("training_completions");
+        completion.HasKey(x => x.Id);
+        completion.Property(x => x.PersonEmail).HasMaxLength(320).IsRequired();
+        completion.HasIndex(x => new { x.ModuleId, x.PersonEmail }).IsUnique();
+        completion.HasOne(x => x.Module).WithMany().HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

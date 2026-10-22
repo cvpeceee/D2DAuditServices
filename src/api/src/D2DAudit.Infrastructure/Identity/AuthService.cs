@@ -198,7 +198,7 @@ public sealed class AuthService(
         var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
         var rows = await db.Memberships
             .Include(membership => membership.Tenant)
-            .Where(membership => membership.UserId == userId && membership.Tenant!.Status == TenantStatus.Active)
+            .Where(membership => membership.UserId == userId && membership.Active && membership.Tenant!.Status == TenantStatus.Active)
             .ToListAsync(cancellationToken);
         var grants = await db.AuditorGrants
             .Where(grant => grant.UserId == userId)

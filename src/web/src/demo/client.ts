@@ -234,6 +234,28 @@ function attributeDetail(attributes: Record<string, string>) {
   return parts.join(", ");
 }
 
+export function personMfa(email: string) {
+  const rows = resources.filter(
+    (item) =>
+      item.kind === "user" &&
+      flag(item, "email").toLowerCase() === email.toLowerCase() &&
+      flag(item, "status") === "active",
+  );
+  return rows.length > 0 && rows.every((item) => flag(item, "mfa") !== "false");
+}
+
+export function assetSources() {
+  return resources
+    .filter((item) => item.kind !== "user" && item.kind !== "iam-user" && item.kind !== "trail")
+    .map((item) => ({
+      provider: item.provider,
+      kind: item.kind,
+      name: item.name,
+      externalId: item.externalId,
+      isPublic: flag(item, "public") === "true",
+    }));
+}
+
 export function resourceRows() {
   return [...resources]
     .map((item) => ({

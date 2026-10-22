@@ -15,6 +15,11 @@
     "people": "People & devices",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
+    "me": "My tasks",
+    "training": "Training",
+    "assets": "Assets",
+    "tasks": "Tasks",
+    "settings": "Settings",
     "audit": "Audit",
     "auditor": "Auditor portal",
     "integrations": "Integrations",
@@ -435,7 +440,14 @@
       "Mitigate": "Mitigate",
       "Transfer": "Transfer",
       "Avoid": "Avoid"
-    }
+    },
+    "library": "Risk library",
+    "adopt": "Add to register",
+    "added": "In the register",
+    "approval": "Approval",
+    "approved": "Approved",
+    "unapproved": "Not approved",
+    "approve": "Mark approved"
   },
   "peoplePage": {
     "title": "People",
@@ -459,6 +471,26 @@
     "acknowledgements": "Policy acknowledgements",
     "acknowledged": "Acknowledged",
     "waiting": "Waiting",
+    "mfa": "MFA",
+    "enrolled": "MFA enrolled",
+    "missingMfa": "MFA missing",
+    "background": "Background check",
+    "device": "Device",
+    "completedOn": "Training completed",
+    "reason": "Reason",
+    "override": "Status override",
+    "saveStatus": "Save status",
+    "savedStatus": "Status saved.",
+    "backgrounds": {
+      "NotStarted": "Not started",
+      "Pending": "Pending",
+      "Clear": "Clear"
+    },
+    "devices": {
+      "Missing": "Missing",
+      "Reporting": "Reporting",
+      "Screenshot": "Screenshot on file"
+    },
     "tasks": {
       "account": "Account issued",
       "mfa": "Second factor enrolled",
@@ -532,6 +564,15 @@
       "InReview": "In review",
       "Approved": "Approved",
       "Expired": "Expired"
+    },
+    "decision": "Decision",
+    "residual": "Residual risk",
+    "questionnaire": "Questionnaire",
+    "answer": "Answer",
+    "decisions": {
+      "Pending": "Pending",
+      "Approved": "Approved",
+      "Renew": "Renew"
     }
   },
   "accessPage": {
@@ -557,8 +598,152 @@
       "Revoked": "Revoked"
     },
     "states": {
+      "Draft": "Draft",
       "Open": "Open",
+      "Remediation": "Remediation",
       "Completed": "Completed"
+    },
+    "draft": "Save as draft",
+    "apps": "Apps",
+    "begin": "Start selected apps",
+    "remediate": "Remediation note",
+    "saveRemediation": "Save remediation"
+  },
+  "mePage": {
+    "title": "My tasks",
+    "sub": "Policies, training, MFA, your device, and the background check for your account.",
+    "noDue": "No due date",
+    "openTraining": "Open training",
+    "note": "Note or screenshot description",
+    "saved": "Saved. The evidence is on the control.",
+    "status": {
+      "Complete": "Complete",
+      "Due": "Due",
+      "Overdue": "Overdue",
+      "NotStarted": "Not started",
+      "Unassigned": "No employee record"
+    },
+    "actions": {
+      "acknowledge": "Acknowledge",
+      "attest": "I enrolled MFA",
+      "upload": "Save device note",
+      "record": "Record check"
+    }
+  },
+  "trainingPage": {
+    "title": "Security training",
+    "sub": "The annual module and the external course. Completion is stored as evidence.",
+    "module": "Module",
+    "type": "Type",
+    "group": "Assigned group",
+    "due": "Due",
+    "people": "People",
+    "status": "Status",
+    "complete": "Complete",
+    "submit": "Submit quiz",
+    "certificate": "Paste the certificate text",
+    "upload": "Upload certificate",
+    "passed": "Passed. Score {{score}}. A certificate was stored.",
+    "failed": "Score {{score}}. Review the slides and try again.",
+    "uploaded": "Certificate stored.",
+    "types": {
+      "BuiltIn": "Built-in",
+      "External": "External LMS"
+    }
+  },
+  "assetsPage": {
+    "title": "Asset inventory",
+    "sub": "Servers, databases, buckets, repositories, laptops, and SaaS pulled from the connections, plus anything you add.",
+    "name": "Name",
+    "type": "Type",
+    "source": "Source",
+    "owner": "Owner",
+    "environment": "Environment",
+    "classification": "Classification",
+    "scope": "Scope",
+    "seen": "Last seen",
+    "inScope": "In scope",
+    "outOfScope": "Out of scope",
+    "search": "Search assets",
+    "searchLabel": "Search",
+    "export": "Export CSV",
+    "import": "Import CSV",
+    "save": "Save asset",
+    "empty": "No assets match.",
+    "types": {
+      "Server": "Server",
+      "Database": "Database",
+      "Bucket": "Bucket",
+      "Repository": "Repository",
+      "Laptop": "Laptop",
+      "Saas": "SaaS"
+    },
+    "classes": {
+      "Public": "Public",
+      "Internal": "Internal",
+      "Confidential": "Confidential",
+      "Restricted": "Restricted"
+    }
+  },
+  "tasksPage": {
+    "title": "Tasks",
+    "sub": "Work linked to a control, test, risk, vendor, or policy.",
+    "titleField": "Title",
+    "linked": "Linked object",
+    "owner": "Owner",
+    "email": "Owner email",
+    "due": "Due",
+    "status": "Status",
+    "assign": "Assign task",
+    "assigned": "Task assigned.",
+    "empty": "Nothing is assigned to you.",
+    "done": "Mark done",
+    "overdue": "Overdue",
+    "myWork": "My work",
+    "kinds": {
+      "Control": "Control",
+      "Test": "Test",
+      "Risk": "Risk",
+      "Vendor": "Vendor",
+      "Policy": "Policy"
+    },
+    "recurrence": {
+      "None": "Does not repeat",
+      "Weekly": "Weekly",
+      "Monthly": "Monthly",
+      "Quarterly": "Quarterly",
+      "Annual": "Annual"
+    },
+    "statuses": {
+      "Open": "Open",
+      "InProgress": "In progress",
+      "Done": "Done"
+    }
+  },
+  "settingsPage": {
+    "title": "Users and roles",
+    "sub": "Invite people, set a role, turn off an account, and grant an auditor to one audit.",
+    "admins": "An admin manages users and roles.",
+    "sso": "Single sign-on",
+    "connected": "SSO connected",
+    "notConnected": "SSO not connected",
+    "invite": "Invite",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "state": "Status",
+    "active": "Active",
+    "deactivated": "Deactivated",
+    "deactivate": "Deactivate",
+    "grants": "Auditor grants",
+    "saveGrant": "Save grant",
+    "roles": {
+      "Admin": "Admin",
+      "Editor": "Editor",
+      "Viewer": "Viewer",
+      "Employee": "Employee",
+      "Auditor": "Auditor",
+      "ControlOwner": "Control owner"
     }
   },
   "demo": {

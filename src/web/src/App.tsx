@@ -20,6 +20,11 @@ import { SoaPage } from "./features/soa/SoaPage";
 import { VendorsPage } from "./features/vendors/VendorsPage";
 import { TestsPage } from "./features/tests/TestsPage";
 import { AppShell } from "./features/shell/AppShell";
+import { AssetsPage } from "./features/program/AssetsPage";
+import { MePage } from "./features/program/MePage";
+import { SettingsPage } from "./features/program/SettingsPage";
+import { TasksPage } from "./features/program/TasksPage";
+import { TrainingPage } from "./features/program/TrainingPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -84,6 +89,11 @@ export function App() {
         <Route path="soa" element={<SoaPage />} />
         <Route path="vendors" element={<VendorsPage />} />
         <Route path="people" element={<PeoplePage />} />
+        <Route path="me" element={<MePage />} />
+        <Route path="training" element={<TrainingPage />} />
+        <Route path="assets" element={<AssetsPage />} />
+        <Route path="tasks" element={<TasksPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="access-reviews" element={<AccessReviewsPage />} />
         <Route path="auditor" element={<AuditorPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />

@@ -51,7 +51,7 @@ public sealed class AuditPackageRunner(
     TimeProvider time,
     ILogger<AuditPackageRunner> logger)
 {
-    private const int Steps = 5;
+    private const int Steps = 6;
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
@@ -106,10 +106,12 @@ public sealed class AuditPackageRunner(
             report.Reason,
             packed.Select(file => new PackageManifestFile(file.Path, file.Sha256, file.RecordedSha256, file.ControlCode, file.Title)).ToArray());
         var matrix = MatrixRows(inScope);
-        var zip = BuildZip(manifest, matrix, packed);
+        await jobs.AdvanceAsync(work.JobId, 5, Steps, "Writing the asset inventory", cancellationToken);
+        var assets = await db.Assets.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
+        var zip = BuildZip(manifest, matrix, packed, AssetCsv(assets));
         var key = $"{work.TenantId:N}/exports/{work.JobId:N}.zip";
 
-        await jobs.AdvanceAsync(work.JobId, 5, Steps, "Storing the package", cancellationToken);
+        await jobs.AdvanceAsync(work.JobId, 6, Steps, "Storing the package", cancellationToken);
         await storage.PutAsync(key, zip, "application/zip", null, cancellationToken);
         await jobs.FinishAsync(work.JobId, true, null, "Package ready", cancellationToken);
     }
@@ -135,7 +137,7 @@ public sealed class AuditPackageRunner(
             item.Evidence.Count,
             string.Join(" ", item.Evidence.Select(entry => entry.Sha256).Where(hash => !string.IsNullOrWhiteSpace(hash))))).ToArray();
 
-    private static byte[] BuildZip(PackageManifest manifest, IReadOnlyList<MatrixRow> matrix, IReadOnlyList<PackedFile> files)
+    private static byte[] BuildZip(PackageManifest manifest, IReadOnlyList<MatrixRow> matrix, IReadOnlyList<PackedFile> files, string assetsCsv)
     {
         using var buffer = new MemoryStream();
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
@@ -149,6 +151,7 @@ public sealed class AuditPackageRunner(
             }, Json));
             Write(zip, "control-matrix.csv", Encoding.UTF8.GetBytes(Csv(matrix)));
             Write(zip, "control-matrix.pdf", PlainPdf.FromLines(PdfLines(matrix)));
+            Write(zip, "assets.csv", Encoding.UTF8.GetBytes(assetsCsv));
             foreach (var file in files)
             {
                 Write(zip, file.Path, file.Body);
@@ -177,6 +180,26 @@ public sealed class AuditPackageRunner(
                 .Append(Cell(row.Requirements)).Append(',')
                 .Append(row.EvidenceCount.ToString(CultureInfo.InvariantCulture)).Append(',')
                 .Append(Cell(row.Hashes))
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string AssetCsv(IReadOnlyList<TrackedAsset> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("name,type,source,owner,environment,classification,inScope,lastSeen");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Name)).Append(',')
+                .Append(Cell(row.AssetType)).Append(',')
+                .Append(Cell(row.Source)).Append(',')
+                .Append(Cell(row.OwnerName)).Append(',')
+                .Append(Cell(row.Environment)).Append(',')
+                .Append(Cell(row.Classification)).Append(',')
+                .Append(row.InScope ? "true" : "false").Append(',')
+                .Append(row.LastSeen.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
                 .AppendLine();
         }
 

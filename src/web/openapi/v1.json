@@ -1276,6 +1276,57 @@
         }
       }
     },
+    "/api/v1/risks/library": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RiskLibraryItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/risks/library/{code}": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskListItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/risks/export": {
       "get": {
         "tags": [
@@ -1432,6 +1483,46 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SetTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}/status": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonStatusRequest"
               }
             }
           },
@@ -1639,6 +1730,35 @@
         }
       }
     },
+    "/api/v1/access-reviews/draft": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartCampaignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/access-reviews/{id}": {
       "get": {
         "tags": [
@@ -1718,6 +1838,125 @@
         }
       }
     },
+    "/api/v1/access-reviews/{id}/apps": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickAppsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews/{id}/start": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/access-reviews/{id}/items/{itemId}/remediate": {
+      "post": {
+        "tags": [
+          "GovernanceEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemediateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/access-reviews/{id}/complete": {
       "post": {
         "tags": [
@@ -1741,6 +1980,651 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccessCampaignDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/cards": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MeCard"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteCardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModuleItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training/{id}": {
+      "get": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModuleDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training/{id}/people": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingPersonPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training/{id}/quiz": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/training/{id}/certificate": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CertificateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/import": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/export": {
+      "get": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileExport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "parameters": [
+          {
+            "name": "mine",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkTaskItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkTaskItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/done": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkTaskItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/members": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/members/{id}/role": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/members/{id}/deactivate": {
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/sso": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SsoStatus"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/grants": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GrantItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ProgramEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantItem"
                 }
               }
             }
@@ -1802,6 +2686,15 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AccessItemDto"
+            }
+          },
+          "providers": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -1889,6 +2782,14 @@
           },
           "decision": {
             "type": "string"
+          },
+          "needsRemediation": {
+            "type": "boolean",
+            "default": false
+          },
+          "remediationNote": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -1970,6 +2871,107 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "AssetImportRequest": {
+        "required": [
+          "csv"
+        ],
+        "type": "object",
+        "properties": {
+          "csv": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetItem": {
+        "required": [
+          "id",
+          "name",
+          "type",
+          "source",
+          "ownerName",
+          "ownerEmail",
+          "environment",
+          "classification",
+          "inScope",
+          "lastSeen"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "inScope": {
+            "type": "boolean"
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AssetPage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetItem"
+            }
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -2370,6 +3372,46 @@
           },
           "redirectUri": {
             "type": "string"
+          }
+        }
+      },
+      "CertificateRequest": {
+        "required": [
+          "fileName",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        }
+      },
+      "CompleteCardRequest": {
+        "required": [
+          "kind",
+          "note",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3380,6 +4422,56 @@
           }
         }
       },
+      "GrantItem": {
+        "required": [
+          "id",
+          "email",
+          "name",
+          "auditName",
+          "firmName",
+          "periodStart",
+          "periodEnd",
+          "accessExpiresOn",
+          "frameworks"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "auditName": {
+            "type": "string"
+          },
+          "firmName": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "accessExpiresOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "frameworks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "HistoryPoint": {
         "required": [
           "weekOf",
@@ -3481,6 +4573,25 @@
           }
         }
       },
+      "InviteRequest": {
+        "required": [
+          "name",
+          "email",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
       "JobDto": {
         "required": [
           "id",
@@ -3576,6 +4687,80 @@
           },
           "status": {
             "type": "string"
+          }
+        }
+      },
+      "MeCard": {
+        "required": [
+          "kind",
+          "title",
+          "status",
+          "dueOn",
+          "action",
+          "evidenceId",
+          "evidenceSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "action": {
+            "type": "string"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidenceSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MemberItem": {
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
           }
         }
       },
@@ -3788,6 +4973,36 @@
               "string"
             ],
             "format": "date"
+          },
+          "mfaEnrolled": {
+            "type": "boolean",
+            "default": false
+          },
+          "background": {
+            "type": "string",
+            "default": "NotStarted"
+          },
+          "backgroundOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "device": {
+            "type": "string",
+            "default": "Missing"
+          },
+          "statusReason": {
+            "type": "string",
+            "default": ""
+          },
+          "trainingCompletedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -3865,6 +5080,36 @@
               "string"
             ],
             "format": "date"
+          },
+          "mfaEnrolled": {
+            "type": "boolean",
+            "default": false
+          },
+          "background": {
+            "type": "string",
+            "default": "NotStarted"
+          },
+          "backgroundOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "device": {
+            "type": "string",
+            "default": "Missing"
+          },
+          "statusReason": {
+            "type": "string",
+            "default": ""
+          },
+          "trainingCompletedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -3909,6 +5154,21 @@
           }
         }
       },
+      "PersonStatusRequest": {
+        "required": [
+          "state",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "PersonTaskDto": {
         "required": [
           "kind",
@@ -3925,6 +5185,20 @@
           },
           "done": {
             "type": "boolean"
+          }
+        }
+      },
+      "PickAppsRequest": {
+        "required": [
+          "providers"
+        ],
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -4069,6 +5343,80 @@
           }
         }
       },
+      "QuizRequest": {
+        "required": [
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "QuizResult": {
+        "required": [
+          "passed",
+          "score",
+          "total",
+          "evidenceId",
+          "evidenceSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "passed": {
+            "type": "boolean"
+          },
+          "score": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidenceSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RemediateRequest": {
+        "required": [
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        }
+      },
       "RequirementNodeDto": {
         "required": [
           "code",
@@ -4141,6 +5489,51 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "RiskLibraryItem": {
+        "required": [
+          "code",
+          "title",
+          "statement",
+          "likelihood",
+          "impact",
+          "treatment",
+          "added"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "likelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "impact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "treatment": {
+            "type": "string"
+          },
+          "added": {
+            "type": "boolean"
           }
         }
       },
@@ -4250,6 +5643,36 @@
             "items": {
               "type": "string"
             }
+          },
+          "approved": {
+            "type": "boolean",
+            "default": false
+          },
+          "approvedBy": {
+            "type": "string",
+            "default": ""
+          },
+          "approvedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "libraryCode": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      },
+      "RoleRequest": {
+        "required": [
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
           }
         }
       },
@@ -4330,6 +5753,94 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SaveAssetRequest": {
+        "required": [
+          "id",
+          "name",
+          "type",
+          "source",
+          "ownerName",
+          "ownerEmail",
+          "environment",
+          "classification",
+          "inScope"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "inScope": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SaveGrantRequest": {
+        "required": [
+          "email",
+          "auditName",
+          "firmName",
+          "periodStart",
+          "periodEnd",
+          "accessExpiresOn",
+          "frameworks"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "auditName": {
+            "type": "string"
+          },
+          "firmName": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "accessExpiresOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "frameworks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -4416,6 +5927,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "approved": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "approvedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approvedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
           }
         }
       },
@@ -4434,6 +5964,54 @@
             "type": "string"
           },
           "implementation": {
+            "type": "string"
+          }
+        }
+      },
+      "SaveTaskRequest": {
+        "required": [
+          "id",
+          "title",
+          "linkedKind",
+          "linkedCode",
+          "ownerName",
+          "ownerEmail",
+          "dueOn",
+          "status",
+          "recurrence"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "linkedKind": {
+            "type": "string"
+          },
+          "linkedCode": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "recurrence": {
             "type": "string"
           }
         }
@@ -4491,6 +6069,39 @@
             "items": {
               "$ref": "#/components/schemas/VendorDocumentDto"
             }
+          },
+          "decision": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "residualLikelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "residualImpact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "questions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/VendorQuestionDto"
+            }
           }
         }
       },
@@ -4533,6 +6144,28 @@
           },
           "implementation": {
             "type": "string"
+          }
+        }
+      },
+      "SsoStatus": {
+        "required": [
+          "domain",
+          "connected",
+          "organizationId"
+        ],
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "connected": {
+            "type": "boolean"
+          },
+          "organizationId": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4581,6 +6214,260 @@
           },
           "exampleData": {
             "type": "boolean"
+          }
+        }
+      },
+      "TrainingModuleDetail": {
+        "required": [
+          "id",
+          "code",
+          "title",
+          "type",
+          "assignedGroup",
+          "dueOn",
+          "externalUrl",
+          "slides",
+          "questions",
+          "completed",
+          "score",
+          "evidenceId",
+          "evidenceSha256"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "assignedGroup": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "externalUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "slides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrainingSlideDto"
+            }
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrainingQuestionDto"
+            }
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "score": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidenceSha256": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TrainingModuleItem": {
+        "required": [
+          "id",
+          "code",
+          "title",
+          "type",
+          "assignedGroup",
+          "dueOn",
+          "assigned",
+          "completed",
+          "externalUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "assignedGroup": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "assigned": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "completed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "externalUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TrainingPersonItem": {
+        "required": [
+          "name",
+          "email",
+          "department",
+          "status",
+          "completedOn",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "completedOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "dueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "TrainingPersonPage": {
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrainingPersonItem"
+            }
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "TrainingQuestionDto": {
+        "required": [
+          "prompt",
+          "choices"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TrainingSlideDto": {
+        "required": [
+          "title",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
           }
         }
       },
@@ -4696,6 +6583,65 @@
             "items": {
               "$ref": "#/components/schemas/VendorDocumentDto"
             }
+          },
+          "decision": {
+            "type": "string",
+            "default": "Pending"
+          },
+          "residualLikelihood": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 2
+          },
+          "residualImpact": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 2
+          },
+          "residualScore": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 4
+          },
+          "residualBand": {
+            "type": "string",
+            "default": "medium"
+          },
+          "questions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/VendorQuestionDto"
+            }
+          }
+        }
+      },
+      "VendorQuestionDto": {
+        "required": [
+          "prompt",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
           }
         }
       },
@@ -4781,6 +6727,55 @@
             "format": "int32"
           }
         }
+      },
+      "WorkTaskItem": {
+        "required": [
+          "id",
+          "title",
+          "linkedKind",
+          "linkedCode",
+          "ownerName",
+          "ownerEmail",
+          "dueOn",
+          "status",
+          "recurrence",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "linkedKind": {
+            "type": "string"
+          },
+          "linkedCode": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "recurrence": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "boolean"
+          }
+        }
       }
     }
   },
@@ -4808,6 +6803,9 @@
     },
     {
       "name": "GovernanceEndpoints"
+    },
+    {
+      "name": "ProgramEndpoints"
     }
   ]
 }

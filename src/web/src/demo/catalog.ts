@@ -22,6 +22,16 @@ import {
   seedRisks,
   seedVendors,
 } from "./client";
+import {
+  buildProgram,
+  withRiskApproval,
+  type DemoAsset,
+  type DemoCompletion,
+  type DemoGrant,
+  type DemoMember,
+  type DemoModule,
+  type DemoWorkTask,
+} from "./programData";
 
 export { company };
 
@@ -149,6 +159,10 @@ export type DemoRisk = {
   residualScore: number;
   residualBand: string;
   controlCodes: string[];
+  approved?: boolean;
+  approvedBy?: string;
+  approvedOn?: string | null;
+  libraryCode?: string;
 };
 
 export type DemoPerson = {
@@ -165,6 +179,12 @@ export type DemoPerson = {
   trainingDueOn: string | null;
   tasks: { kind: string; taskCode: string; done: boolean }[];
   accounts: { provider: string; accountName: string; active: boolean }[];
+  mfaEnrolled?: boolean;
+  background?: string;
+  backgroundOn?: string | null;
+  device?: string;
+  statusReason?: string;
+  trainingCompletedOn?: string | null;
 };
 
 export type DemoSoa = {
@@ -185,6 +205,12 @@ export type DemoVendor = {
   reviewDueOn: string;
   riskRating: number;
   documents: { title: string; kind: string; issuedOn: string | null }[];
+  decision?: string;
+  residualLikelihood?: number;
+  residualImpact?: number;
+  residualScore?: number;
+  residualBand?: string;
+  questions?: { prompt: string; answer: string }[];
 };
 
 export type DemoCampaign = {
@@ -201,7 +227,10 @@ export type DemoCampaign = {
     provider: string;
     accountName: string;
     decision: string;
+    needsRemediation?: boolean;
+    remediationNote?: string;
   }[];
+  providers?: string[];
 };
 
 export type DemoWorld = {
@@ -216,6 +245,13 @@ export type DemoWorld = {
   soa: DemoSoa[];
   vendors: DemoVendor[];
   campaigns: DemoCampaign[];
+  assets: DemoAsset[];
+  workTasks: DemoWorkTask[];
+  modules: DemoModule[];
+  completions: DemoCompletion[];
+  members: DemoMember[];
+  grants: DemoGrant[];
+  sso: { domain: string; connected: boolean; organizationId: string | null }[];
   history: { weekOf: string; passing: number; failing: number }[];
   notifications: { title: string; body: string; href: string; at: string }[];
   devices: { ownerName: string; platform: string; serial: string; lastSeenOn: string }[];
@@ -564,6 +600,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
   }));
 
   const governed = governance(now, controls);
+  const program = buildProgram(governed.people, governed.campaigns, governed.vendors, now);
   return {
     controls,
     evidence,
@@ -572,6 +609,17 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
     requests,
     findings,
     ...governed,
+    risks: withRiskApproval(governed.risks, now),
+    people: program.people,
+    vendors: program.vendors,
+    campaigns: program.campaigns,
+    assets: program.assets,
+    workTasks: program.workTasks,
+    modules: program.modules,
+    completions: program.completions,
+    members: program.members,
+    grants: program.grants,
+    sso: program.sso,
     history: seedHistory.map((item) => ({
       weekOf: day(addDays(now, item.week * 7)),
       passing: item.passing,

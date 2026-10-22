@@ -22,11 +22,15 @@ const links = [
 ] as const;
 
 const governance = [
+  { to: "/me", key: "me" },
+  { to: "/training", key: "training" },
   { to: "/policies", key: "policies" },
   { to: "/risks", key: "risks" },
   { to: "/soa", key: "soa" },
   { to: "/vendors", key: "vendors" },
   { to: "/people", key: "people" },
+  { to: "/assets", key: "assets" },
+  { to: "/tasks", key: "tasks" },
   { to: "/access-reviews", key: "accessReviews" },
 ] as const;
 
@@ -119,6 +123,10 @@ export function AppShell() {
       { id: "soa", label: t("nav.soa"), run: () => navigate("/soa") },
       { id: "vendors", label: t("nav.vendors"), run: () => navigate("/vendors") },
       { id: "people", label: t("nav.people"), run: () => navigate("/people") },
+      { id: "me", label: t("nav.me"), run: () => navigate("/me") },
+      { id: "training", label: t("nav.training"), run: () => navigate("/training") },
+      { id: "assets", label: t("nav.assets"), run: () => navigate("/assets") },
+      { id: "tasks", label: t("nav.tasks"), run: () => navigate("/tasks") },
       { id: "access", label: t("nav.accessReviews"), run: () => navigate("/access-reviews") },
     ];
     if (workspace?.role === "Admin")
@@ -260,6 +268,16 @@ export function AppShell() {
           <i />
           {t("nav.integrations")}
         </NavLink>
+        {workspace?.role === "Admin" && (
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <i />
+            {t("nav.settings")}
+          </NavLink>
+        )}
         {workspace?.role === "Admin" && (
           <NavLink
             to="/activity"

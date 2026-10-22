@@ -62,6 +62,8 @@ internal static class GovernanceExample
             });
         }
 
+        await ProgramExample.ApplyAsync(db, today, now, cancellationToken);
+
         if (!await db.Resources.AnyAsync(item => item.Kind == "user", cancellationToken) || await db.AccessCampaigns.AnyAsync(cancellationToken))
         {
             return;
@@ -95,6 +97,8 @@ internal static class GovernanceExample
                 AccountName = account.AccountName,
                 Decision = decision,
                 ReviewerName = decision == AccessDecision.Pending ? null : "Priya Nair",
+                NeedsRemediation = decision == AccessDecision.Revoked,
+                RemediationNote = decision == AccessDecision.Revoked ? "Remove the account before the review is submitted." : "",
             };
             campaign.Items.Add(item);
             db.AccessItems.Add(item);
@@ -200,6 +204,10 @@ internal static class GovernanceExample
             ReviewOn = today.AddDays(item.ReviewOffset),
             ResidualLikelihood = item.ResidualLikelihood,
             ResidualImpact = item.ResidualImpact,
+            Approved = item.Code != "R-03",
+            ApprovedBy = item.Code == "R-03" ? "" : "Chandra Vell",
+            ApprovedOn = item.Code == "R-03" ? null : today.AddDays(-12),
+            LibraryCode = item.Code,
         };
         foreach (var controlCode in item.ControlCodes)
         {
@@ -223,6 +231,9 @@ internal static class GovernanceExample
             ReviewState = Enum.Parse<VendorReviewState>(item.ReviewState),
             ReviewDueOn = today.AddDays(item.ReviewOffset),
             RiskRating = item.RiskRating,
+            Decision = DecisionFor(item.ReviewState),
+            ResidualLikelihood = Math.Clamp(item.RiskRating - 1, 1, 5),
+            ResidualImpact = Math.Clamp(item.RiskRating, 1, 5),
         };
         foreach (var file in item.Documents)
         {
@@ -238,6 +249,47 @@ internal static class GovernanceExample
             db.VendorDocuments.Add(document);
         }
 
+        foreach (var prompt in Questions(item.ReviewState, item.Criticality))
+        {
+            var question = new VendorQuestion
+            {
+                Id = Guid.NewGuid(),
+                VendorId = vendor.Id,
+                Prompt = prompt.Prompt,
+                Answer = prompt.Answer,
+            };
+            vendor.Questions.Add(question);
+            db.VendorQuestions.Add(question);
+        }
+
         db.Vendors.Add(vendor);
+    }
+
+    private static string DecisionFor(string reviewState)
+    {
+        if (reviewState == "Approved")
+        {
+            return "Approved";
+        }
+
+        if (reviewState == "Expired")
+        {
+            return "Renew";
+        }
+
+        return "Pending";
+    }
+
+    private static (string Prompt, string Answer)[] Questions(string reviewState, string criticality)
+    {
+        var report = reviewState == "Approved" ? "Yes. The latest report is on file." : "No current report is on file.";
+        var customer = criticality is "Critical" or "High" ? "Yes" : "No";
+        return
+        [
+            ("Does this supplier process customer data?", customer),
+            ("Is a current assurance report on file?", report),
+            ("Is there a contract with a security addendum?", reviewState == "NotStarted" ? "Not yet" : "Yes"),
+            ("What is the exit path?", "The data can be exported and the account closed within 30 days."),
+        ];
     }
 }

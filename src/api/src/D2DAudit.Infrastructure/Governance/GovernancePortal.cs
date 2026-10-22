@@ -67,6 +67,15 @@ public sealed class GovernancePortal(
         row.ReviewOn = request.ReviewOn;
         row.ResidualLikelihood = request.ResidualLikelihood;
         row.ResidualImpact = request.ResidualImpact;
+        if (request.Approved is bool approved)
+        {
+            var approver = string.IsNullOrWhiteSpace(request.ApprovedBy) ? tenant.DisplayName : request.ApprovedBy.Trim();
+            var approvedOn = request.ApprovedOn ?? DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+            row.Approved = approved;
+            row.ApprovedBy = approved ? approver : "";
+            row.ApprovedOn = approved ? approvedOn : null;
+        }
+
         db.RiskControls.RemoveRange(row.Controls);
         row.Controls.Clear();
         foreach (var controlCode in request.ControlCodes.Distinct(StringComparer.Ordinal))
@@ -206,7 +215,7 @@ public sealed class GovernancePortal(
     public async Task<IReadOnlyList<VendorListItem>> VendorsAsync(CancellationToken cancellationToken)
     {
         await using var db = Open();
-        var rows = await db.Vendors.AsNoTracking().Include(item => item.Documents).ToListAsync(cancellationToken);
+        var rows = await db.Vendors.AsNoTracking().Include(item => item.Documents).Include(item => item.Questions).ToListAsync(cancellationToken);
         return rows.OrderBy(item => item.Name, StringComparer.Ordinal).Select(ToVendor).ToArray();
     }
 
@@ -220,7 +229,7 @@ public sealed class GovernancePortal(
 
         await using var db = Open();
         var row = request.Id is Guid id
-            ? await db.Vendors.Include(item => item.Documents).FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
+            ? await db.Vendors.Include(item => item.Documents).Include(item => item.Questions).FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             : null;
         if (request.Id is not null && row is null)
         {
@@ -240,6 +249,39 @@ public sealed class GovernancePortal(
         row.ReviewState = Enum.Parse<VendorReviewState>(request.ReviewState);
         row.ReviewDueOn = request.ReviewDueOn;
         row.RiskRating = request.RiskRating;
+        if (!string.IsNullOrWhiteSpace(request.Decision))
+        {
+            row.Decision = request.Decision.Trim();
+        }
+
+        if (request.ResidualLikelihood is int likelihood && RiskScoring.OnScale(likelihood))
+        {
+            row.ResidualLikelihood = likelihood;
+        }
+
+        if (request.ResidualImpact is int impact && RiskScoring.OnScale(impact))
+        {
+            row.ResidualImpact = impact;
+        }
+
+        if (request.Questions is not null)
+        {
+            db.VendorQuestions.RemoveRange(row.Questions);
+            row.Questions.Clear();
+            foreach (var question in request.Questions)
+            {
+                var entry = new VendorQuestion
+                {
+                    Id = Guid.NewGuid(),
+                    VendorId = row.Id,
+                    Prompt = question.Prompt.Trim(),
+                    Answer = question.Answer.Trim(),
+                };
+                row.Questions.Add(entry);
+                db.VendorQuestions.Add(entry);
+            }
+        }
+
         db.VendorDocuments.RemoveRange(row.Documents);
         row.Documents.Clear();
         foreach (var document in request.Documents)
@@ -342,7 +384,7 @@ public sealed class GovernancePortal(
             return Result<AccessCampaignDetail>.Fail("not_found");
         }
 
-        if (row.State != CampaignState.Open)
+        if (row.State is not (CampaignState.Open or CampaignState.Remediation))
         {
             return Result<AccessCampaignDetail>.Fail("campaign_closed");
         }
@@ -350,6 +392,14 @@ public sealed class GovernancePortal(
         item.Decision = decision;
         item.ReviewerName = tenant.DisplayName;
         item.DecidedAt = time.GetUtcNow();
+        if (decision == AccessDecision.Revoked)
+        {
+            item.NeedsRemediation = true;
+            if (string.IsNullOrWhiteSpace(item.RemediationNote))
+            {
+                item.RemediationNote = "Remove the account before the review is submitted.";
+            }
+        }
         await db.SaveChangesAsync(cancellationToken);
         await WriteAsync("access.decided", decision.ToString(), cancellationToken);
         return Result<AccessCampaignDetail>.Ok(ToCampaign(row, null));
@@ -368,6 +418,11 @@ public sealed class GovernancePortal(
         {
             var existingHash = await EvidenceHashAsync(db, row.EvidenceId, cancellationToken);
             return Result<AccessCampaignDetail>.Ok(ToCampaign(row, existingHash));
+        }
+
+        if (row.State == CampaignState.Draft)
+        {
+            return Result<AccessCampaignDetail>.Fail("campaign_draft");
         }
 
         var rule = AccessCampaignRules.Complete(row.Items.Select(item => item.Decision).ToArray());
@@ -403,6 +458,213 @@ public sealed class GovernancePortal(
         await db.SaveChangesAsync(cancellationToken);
         await WriteAsync("access.completed", row.Name, cancellationToken);
         return Result<AccessCampaignDetail>.Ok(ToCampaign(row, stored.Sha256));
+    }
+
+    public async Task<IReadOnlyList<RiskLibraryItem>> LibraryAsync(CancellationToken cancellationToken)
+    {
+        var rows = await RisksAsync(cancellationToken);
+        return RiskLibrary.All.Select(item => new RiskLibraryItem(
+            item.Code,
+            item.Title,
+            item.Statement,
+            item.Likelihood,
+            item.Impact,
+            item.Treatment,
+            rows.Any(risk => risk.LibraryCode == item.Code || risk.Code == item.Code))).ToArray();
+    }
+
+    public async Task<Result<RiskListItem>> AdoptLibraryAsync(string code, CancellationToken cancellationToken)
+    {
+        var entry = RiskLibrary.All.FirstOrDefault(item => item.Code == code);
+        if (entry is null)
+        {
+            return Result<RiskListItem>.Fail("not_found");
+        }
+
+        var existing = await RisksAsync(cancellationToken);
+        if (existing.Any(item => item.LibraryCode == code || item.Code == code))
+        {
+            return Result<RiskListItem>.Ok(existing.First(item => item.LibraryCode == code || item.Code == code));
+        }
+
+        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        var saved = await SaveRiskAsync(new SaveRiskRequest(
+            null,
+            entry.Title,
+            entry.Statement,
+            entry.Likelihood,
+            entry.Impact,
+            tenant.DisplayName,
+            tenant.Email,
+            entry.Treatment,
+            entry.Plan,
+            today.AddDays(30),
+            Math.Max(1, entry.Likelihood - 1),
+            Math.Max(1, entry.Impact - 1),
+            []), cancellationToken);
+        if (!saved.IsSuccess || saved.Value is null)
+        {
+            return saved;
+        }
+
+        await using var db = Open();
+        var row = await db.Risks.Include(item => item.Controls).FirstAsync(item => item.Code == saved.Value.Code, cancellationToken);
+        row.LibraryCode = code;
+        await db.SaveChangesAsync(cancellationToken);
+        return Result<RiskListItem>.Ok(ToRisk(row));
+    }
+
+    public async Task<Result<AccessCampaignDetail>> DraftCampaignAsync(StartCampaignRequest request, CancellationToken cancellationToken)
+    {
+        var validation = await campaigns.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return Result<AccessCampaignDetail>.Fail("invalid_campaign");
+        }
+
+        await using var db = Open();
+        var row = new AccessCampaign
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name.Trim(),
+            DueOn = request.DueOn,
+            State = CampaignState.Draft,
+            CreatedAt = time.GetUtcNow(),
+        };
+        db.AccessCampaigns.Add(row);
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("access.drafted", row.Name, cancellationToken);
+        return Result<AccessCampaignDetail>.Ok(ToCampaign(row, null));
+    }
+
+    public async Task<Result<AccessCampaignDetail>> PickAppsAsync(Guid id, PickAppsRequest request, CancellationToken cancellationToken)
+    {
+        var providers = (request.Providers ?? []).Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (providers.Length == 0)
+        {
+            return Result<AccessCampaignDetail>.Fail("apps_required");
+        }
+
+        await using var db = Open();
+        var row = await LoadCampaignAsync(db, id, cancellationToken);
+        if (row is null)
+        {
+            return Result<AccessCampaignDetail>.Fail("not_found");
+        }
+
+        if (row.State != CampaignState.Draft)
+        {
+            return Result<AccessCampaignDetail>.Fail("campaign_closed");
+        }
+
+        row.Providers = string.Join(',', providers);
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("access.apps", row.Name, cancellationToken);
+        return Result<AccessCampaignDetail>.Ok(ToCampaign(row, null));
+    }
+
+    public async Task<Result<AccessCampaignDetail>> BeginCampaignAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var db = Open();
+        var row = await LoadCampaignAsync(db, id, cancellationToken);
+        if (row is null)
+        {
+            return Result<AccessCampaignDetail>.Fail("not_found");
+        }
+
+        if (row.State != CampaignState.Draft)
+        {
+            return Result<AccessCampaignDetail>.Fail("campaign_closed");
+        }
+
+        var providers = SplitProviders(row.Providers);
+        if (providers.Length == 0)
+        {
+            return Result<AccessCampaignDetail>.Fail("apps_required");
+        }
+
+        var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user").ToListAsync(cancellationToken);
+        var accounts = snapshots.Select(ReadAccount).OfType<DirectoryAccount>().Where(account => providers.Contains(account.Provider, StringComparer.OrdinalIgnoreCase)).ToArray();
+        if (accounts.Length == 0)
+        {
+            return Result<AccessCampaignDetail>.Fail("no_accounts");
+        }
+
+        foreach (var account in accounts)
+        {
+            var item = new AccessReviewItem
+            {
+                Id = Guid.NewGuid(),
+                CampaignId = row.Id,
+                PersonName = account.Name,
+                PersonEmail = account.Email,
+                Provider = account.Provider,
+                AccountName = account.ExternalId,
+                Decision = AccessDecision.Pending,
+            };
+            row.Items.Add(item);
+            db.AccessItems.Add(item);
+        }
+
+        row.State = CampaignState.Open;
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("access.started", row.Name, cancellationToken);
+        return Result<AccessCampaignDetail>.Ok(ToCampaign(row, null));
+    }
+
+    public async Task<Result<AccessCampaignDetail>> RemediateAsync(Guid campaignId, Guid itemId, RemediateRequest request, CancellationToken cancellationToken)
+    {
+        var note = (request.Note ?? "").Trim();
+        if (note.Length == 0)
+        {
+            return Result<AccessCampaignDetail>.Fail("invalid_remediation");
+        }
+
+        await using var db = Open();
+        var row = await LoadCampaignAsync(db, campaignId, cancellationToken);
+        var item = row?.Items.FirstOrDefault(entry => entry.Id == itemId);
+        if (row is null || item is null)
+        {
+            return Result<AccessCampaignDetail>.Fail("not_found");
+        }
+
+        if (row.State is not (CampaignState.Open or CampaignState.Remediation))
+        {
+            return Result<AccessCampaignDetail>.Fail("campaign_closed");
+        }
+
+        item.NeedsRemediation = true;
+        item.RemediationNote = note;
+        if (row.Items.All(entry => entry.Decision is AccessDecision.Approved or AccessDecision.Revoked) && row.Items.Any(entry => entry.NeedsRemediation))
+        {
+            row.State = CampaignState.Remediation;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("access.remediated", row.Name, cancellationToken);
+        return Result<AccessCampaignDetail>.Ok(ToCampaign(row, null));
+    }
+
+    public async Task<Result<PersonDetail>> SetStatusAsync(Guid id, PersonStatusRequest request, CancellationToken cancellationToken)
+    {
+        var reason = (request.Reason ?? "").Trim();
+        if (!Enum.TryParse<PersonState>(request.State, out var state) || reason.Length is 0 or > 500)
+        {
+            return Result<PersonDetail>.Fail("invalid_status");
+        }
+
+        await using var db = Open();
+        var person = await db.People.Include(item => item.Accounts).Include(item => item.Tasks).FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        if (person is null)
+        {
+            return Result<PersonDetail>.Fail("not_found");
+        }
+
+        person.State = state;
+        person.StatusReason = reason;
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("people.status", state.ToString(), cancellationToken);
+        return Result<PersonDetail>.Ok(await ToDetailAsync(db, person, cancellationToken));
     }
 
     public async Task<IReadOnlyList<DueItem>> DueItemsAsync(CancellationToken cancellationToken)
@@ -667,7 +929,13 @@ public sealed class GovernancePortal(
             acknowledgements.Select(item => new PersonAcknowledgementDto(item.Version?.Policy?.Code ?? "", item.Version?.Policy?.Title ?? "", item.DueOn, item.AcknowledgedAt)).ToArray(),
             person.Role,
             person.HireOn,
-            person.LeftOn);
+            person.LeftOn,
+            person.MfaEnrolled,
+            person.BackgroundStatus,
+            person.BackgroundOn,
+            person.DeviceStatus,
+            person.StatusReason,
+            person.TrainingCompletedOn);
     }
 
     private static RiskListItem ToRisk(RiskItem row)
@@ -691,7 +959,11 @@ public sealed class GovernancePortal(
             row.ResidualImpact,
             residual,
             RiskScoring.Band(residual),
-            row.Controls.Select(link => link.ControlCode).Order(StringComparer.Ordinal).ToArray());
+            row.Controls.Select(link => link.ControlCode).Order(StringComparer.Ordinal).ToArray(),
+            row.Approved,
+            row.ApprovedBy,
+            row.ApprovedOn,
+            row.LibraryCode);
     }
 
     private static PersonListItem ToPersonList(DirectoryPerson person) => new(
@@ -707,7 +979,13 @@ public sealed class GovernancePortal(
         person.Tasks.Count(task => !task.Done && (person.State == PersonState.Offboarded ? task.Kind == ChecklistKind.Offboarding : task.Kind == ChecklistKind.Onboarding)),
         person.Role,
         person.HireOn,
-        person.LeftOn);
+        person.LeftOn,
+        person.MfaEnrolled,
+        person.BackgroundStatus,
+        person.BackgroundOn,
+        person.DeviceStatus,
+        person.StatusReason,
+        person.TrainingCompletedOn);
 
     private static SoaRow ToSoa(SoaEntry row) => new(row.Code, row.Title, row.Applicable, row.Justification, row.Implementation.ToString());
 
@@ -720,7 +998,13 @@ public sealed class GovernancePortal(
         row.ReviewState.ToString(),
         row.ReviewDueOn,
         row.RiskRating,
-        row.Documents.Select(document => new VendorDocumentDto(document.Title, document.Kind, document.IssuedOn)).ToArray());
+        row.Documents.Select(document => new VendorDocumentDto(document.Title, document.Kind, document.IssuedOn)).ToArray(),
+        row.Decision,
+        row.ResidualLikelihood,
+        row.ResidualImpact,
+        RiskScoring.Score(row.ResidualLikelihood, row.ResidualImpact),
+        RiskScoring.Band(RiskScoring.Score(row.ResidualLikelihood, row.ResidualImpact)),
+        row.Questions.Select(question => new VendorQuestionDto(question.Prompt, question.Answer)).ToArray());
 
     private static AccessCampaignListItem ToCampaignList(AccessCampaign row) =>
         new(row.Id, row.Name, row.DueOn, row.State.ToString(), row.Items.Count(item => item.Decision == AccessDecision.Pending), row.Items.Count);
@@ -733,10 +1017,16 @@ public sealed class GovernancePortal(
         row.CompletedAt,
         row.EvidenceId,
         hash,
-        row.Items.OrderBy(item => item.PersonName, StringComparer.Ordinal).ThenBy(item => item.Provider, StringComparer.Ordinal).Select(ToItem).ToArray());
+        row.Items.OrderBy(item => item.PersonName, StringComparer.Ordinal).ThenBy(item => item.Provider, StringComparer.Ordinal).Select(ToItem).ToArray(),
+        SplitProviders(row.Providers));
+
+    private static string[] SplitProviders(string providers) =>
+        string.IsNullOrWhiteSpace(providers)
+            ? []
+            : providers.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static AccessItemDto ToItem(AccessReviewItem item) =>
-        new(item.Id, item.PersonName, item.PersonEmail, item.Provider, item.AccountName, item.Decision.ToString());
+        new(item.Id, item.PersonName, item.PersonEmail, item.Provider, item.AccountName, item.Decision.ToString(), item.NeedsRemediation, item.RemediationNote);
 
     private TenantDbContext Open() => databases.Create(tenant.DatabaseName);
 

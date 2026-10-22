@@ -13,11 +13,25 @@ import { formatDate, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
+type RichItem = AccessCampaignDetail["items"][number] & {
+  needsRemediation?: boolean;
+  remediationNote?: string;
+};
+
+type RichCampaign = Omit<AccessCampaignDetail, "items"> & {
+  providers?: string[] | null;
+  items: RichItem[];
+};
+
+const apps = ["google", "microsoft", "github", "aws", "azure", "gcp"] as const;
+
 export function AccessReviewsPage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [rows, setRows] = useState<AccessCampaignListItem[] | null>(null);
-  const [detail, setDetail] = useState<AccessCampaignDetail | null>(null);
+  const [detail, setDetail] = useState<RichCampaign | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [name, setName] = useState("");
   const [dueOn, setDueOn] = useState(new Date().toISOString().slice(0, 10));
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +55,55 @@ export function AccessReviewsPage() {
     if (!tenantId) return;
     setItemQuery("");
     setItemPage(1);
-    setDetail(await api<AccessCampaignDetail>(`/api/v1/access-reviews/${id}`, { tenantId }));
+    const next = await api<RichCampaign>(`/api/v1/access-reviews/${id}`, { tenantId });
+    setPicked(next.providers ?? []);
+    setNotes({});
+    setDetail(next);
+  }
+
+  async function saveDraft() {
+    if (!tenantId || !name.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const created = await api<RichCampaign>("/api/v1/access-reviews/draft", {
+        method: "POST",
+        tenantId,
+        body: { name, dueOn },
+      });
+      setDetail(created);
+      setPicked(created.providers ?? []);
+      setName("");
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function beginSelected() {
+    if (!tenantId || !detail) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/v1/access-reviews/${detail.id}/apps`, {
+        method: "POST",
+        tenantId,
+        body: { providers: picked },
+      });
+      const next = await api<RichCampaign>(`/api/v1/access-reviews/${detail.id}/start`, {
+        method: "POST",
+        tenantId,
+        body: {},
+      });
+      setDetail(next);
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function start(event: React.FormEvent) {
@@ -50,7 +112,7 @@ export function AccessReviewsPage() {
     setBusy(true);
     setError(null);
     try {
-      const created = await api<AccessCampaignDetail>("/api/v1/access-reviews", {
+      const created = await api<RichCampaign>("/api/v1/access-reviews", {
         method: "POST",
         tenantId,
         body: { name, dueOn },
@@ -69,14 +131,11 @@ export function AccessReviewsPage() {
 
   async function decide(itemId: string, decision: "Approved" | "Revoked") {
     if (!tenantId || !detail) return;
-    const next = await api<AccessCampaignDetail>(
-      `/api/v1/access-reviews/${detail.id}/items/${itemId}`,
-      {
-        method: "POST",
-        tenantId,
-        body: { decision },
-      },
-    );
+    const next = await api<RichCampaign>(`/api/v1/access-reviews/${detail.id}/items/${itemId}`, {
+      method: "POST",
+      tenantId,
+      body: { decision },
+    });
     setDetail(next);
     load();
   }
@@ -85,7 +144,7 @@ export function AccessReviewsPage() {
     if (!tenantId || !detail) return;
     setBusy(true);
     try {
-      const next = await api<AccessCampaignDetail>(`/api/v1/access-reviews/${detail.id}/complete`, {
+      const next = await api<RichCampaign>(`/api/v1/access-reviews/${detail.id}/complete`, {
         method: "POST",
         tenantId,
         body: {},
@@ -99,7 +158,22 @@ export function AccessReviewsPage() {
     }
   }
 
+  async function saveNote(itemId: string) {
+    if (!tenantId || !detail) return;
+    const next = await api<RichCampaign>(
+      `/api/v1/access-reviews/${detail.id}/items/${itemId}/remediate`,
+      {
+        method: "POST",
+        tenantId,
+        body: { note: notes[itemId] ?? "" },
+      },
+    );
+    setDetail(next);
+    load();
+  }
+
   const pending = detail?.items.some((item) => item.decision === "Pending") ?? true;
+  const openForDecision = detail?.state === "Open" || detail?.state === "Remediation";
 
   const accountTerm = itemQuery.trim().toLowerCase();
   const matching = (detail?.items ?? []).filter((item) => {
@@ -146,9 +220,19 @@ export function AccessReviewsPage() {
               />
             </div>
           </div>
-          <button className="btn primary" type="submit" disabled={busy}>
-            {t("accessPage.start")}
-          </button>
+          <div className="act">
+            <button
+              className="btn"
+              type="button"
+              disabled={busy || !name.trim()}
+              onClick={() => void saveDraft()}
+            >
+              {t("accessPage.draft")}
+            </button>
+            <button className="btn primary" type="submit" disabled={busy}>
+              {t("accessPage.start")}
+            </button>
+          </div>
         </form>
       )}
       <div className="card" style={{ marginTop: 14 }}>
@@ -191,6 +275,42 @@ export function AccessReviewsPage() {
       {detail && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{detail.name}</h3>
+          {detail.state === "Draft" && workspace?.canWrite && (
+            <div>
+              <div className="sec" style={{ paddingInlineStart: 0 }}>
+                {t("accessPage.apps")}
+              </div>
+              {apps.map((app) => (
+                <label className="check-row" key={app}>
+                  <input
+                    type="checkbox"
+                    checked={picked.includes(app)}
+                    onChange={(event) =>
+                      setPicked((current) =>
+                        event.target.checked
+                          ? [...current, app]
+                          : current.filter((item) => item !== app),
+                      )
+                    }
+                  />
+                  {app}
+                </label>
+              ))}
+              <button
+                className="btn primary"
+                type="button"
+                disabled={busy || picked.length === 0}
+                onClick={() => void beginSelected()}
+              >
+                {t("accessPage.begin")}
+              </button>
+            </div>
+          )}
+          {(detail.providers ?? []).length > 0 && (
+            <p className="m">
+              {t("accessPage.apps")}: {(detail.providers ?? []).join(", ")}
+            </p>
+          )}
           <label className="field">
             <span>{t("accessPage.search")}</span>
             <input
@@ -232,7 +352,8 @@ export function AccessReviewsPage() {
                       >
                         {t(`accessPage.decisions.${item.decision}`)}
                       </Pill>
-                      {workspace?.canWrite && detail.state === "Open" && (
+                      {item.remediationNote && <div className="id">{item.remediationNote}</div>}
+                      {workspace?.canWrite && openForDecision && (
                         <div className="act">
                           <button
                             className="btn"
@@ -250,6 +371,28 @@ export function AccessReviewsPage() {
                           </button>
                         </div>
                       )}
+                      {workspace?.canWrite &&
+                        (item.needsRemediation || item.decision === "Revoked") && (
+                          <div className="stack">
+                            <input
+                              value={notes[item.id] ?? item.remediationNote ?? ""}
+                              placeholder={t("accessPage.remediate")}
+                              onChange={(event) =>
+                                setNotes((current) => ({
+                                  ...current,
+                                  [item.id]: event.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              className="btn"
+                              type="button"
+                              onClick={() => void saveNote(item.id)}
+                            >
+                              {t("accessPage.saveRemediation")}
+                            </button>
+                          </div>
+                        )}
                     </td>
                   </tr>
                 ))}
@@ -262,7 +405,7 @@ export function AccessReviewsPage() {
               {t("accessPage.evidence")}: <code>{detail.evidenceSha256}</code>
             </p>
           )}
-          {workspace?.canWrite && detail.state === "Open" && (
+          {workspace?.canWrite && openForDecision && (
             <button
               className="btn primary"
               type="button"
