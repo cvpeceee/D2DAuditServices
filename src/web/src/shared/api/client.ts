@@ -44,6 +44,12 @@ export type ControlListItem = Model<"ControlListItem">;
 export type ControlDetail = Model<"ControlDetail">;
 export type Job = Model<"JobDto">;
 export type ActivityEvent = Model<"ActivityDto">;
+export type Integration = Model<"IntegrationDto">;
+export type ConnectResult = Model<"ConnectResponse">;
+export type AutomatedTest = Model<"AutomatedTestDto">;
+export type EvidenceItem = Model<"EvidenceListItem">;
+export type EvidencePage = Model<"EvidencePage">;
+export type VerifyReport = Model<"VerifyReport">;
 
 let refreshInFlight: Promise<boolean> | null = null;
 

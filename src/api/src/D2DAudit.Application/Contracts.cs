@@ -380,9 +380,16 @@ public sealed record ControlMappingDto(
     string RequirementTitle,
     string Coverage);
 
-public sealed record ControlTestDto(Guid Id, string Name, string Kind, string Outcome, string? Detail);
+public sealed record ControlTestDto(Guid Id, string Name, string Kind, string Outcome, string? Detail, string? Remediation);
 
-public sealed record EvidenceDto(Guid Id, string Title, string Source, DateTimeOffset? CollectedAt, string Integrity);
+public sealed record EvidenceDto(
+    Guid Id,
+    string Title,
+    string Source,
+    DateTimeOffset? CollectedAt,
+    string Integrity,
+    string? Sha256,
+    DateTimeOffset? LockedUntil);
 
 public sealed record ControlDetail(
     string Code,

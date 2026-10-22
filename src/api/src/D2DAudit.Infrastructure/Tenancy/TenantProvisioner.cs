@@ -17,7 +17,7 @@ public sealed class TenantProvisioner(
     TimeProvider time,
     ILogger<TenantProvisioner> logger) : ITenantProvisioner
 {
-    public const int SchemaVersion = 1;
+    public const int SchemaVersion = 2;
 
     public async Task<Result<Tenant>> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {
@@ -69,15 +69,17 @@ public sealed class TenantProvisioner(
         }
 
         await using var db = databases.Create(tenant.DatabaseName);
-        if (await db.Controls.AnyAsync(cancellationToken))
-        {
-            return;
-        }
-
+        var present = await db.Controls.Select(controlItem => controlItem.Code).ToListAsync(cancellationToken);
+        var have = present.ToHashSet(StringComparer.Ordinal);
         var requirements = await db.Requirements.Include(requirement => requirement.Framework).ToListAsync(cancellationToken);
         var byKey = requirements.ToDictionary(requirement => (requirement.Framework!.Key, requirement.Code));
         foreach (var item in catalog.ExampleControls.Controls)
         {
+            if (have.Contains(item.Code))
+            {
+                continue;
+            }
+
             var entity = new Control
             {
                 Id = Guid.NewGuid(),

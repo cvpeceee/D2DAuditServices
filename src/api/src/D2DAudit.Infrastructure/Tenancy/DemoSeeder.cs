@@ -1,9 +1,11 @@
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Identity;
+using D2DAudit.Infrastructure.Integrations;
 using D2DAudit.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace D2DAudit.Infrastructure.Tenancy;
 
@@ -12,7 +14,8 @@ public sealed class DemoSeeder(
     TenantDatabases databases,
     ITenantProvisioner provisioner,
     PasswordHasher<UserAccount> passwords,
-    TimeProvider time) : IDemoSeeder
+    TimeProvider time,
+    IServiceScopeFactory scopes) : IDemoSeeder
 {
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
@@ -20,6 +23,7 @@ public sealed class DemoSeeder(
         var northwind = await RequiredTenantAsync(provisioner, new CreateTenantRequest("northwind-labs", "Northwind Labs", "EU", true), cancellationToken);
         await provisioner.SeedExampleControlsAsync(acme.Id, cancellationToken);
         await EnsureNorthwindMarkerAsync(northwind, cancellationToken);
+        await provisioner.SeedExampleControlsAsync(northwind.Id, cancellationToken);
         await EnsureAuditAsync(acme.Id, cancellationToken);
 
         var chandra = await EnsureUserAsync("chandra@acme.example", "Chandra V.", cancellationToken);
@@ -43,6 +47,53 @@ public sealed class DemoSeeder(
         await EnsureMembershipAsync(northwindOwner, northwind.Id, TenantRole.Admin, cancellationToken);
         await EnsureGrantAsync(auditor.Id, acme.Id, cancellationToken);
         await EnsureSsoDomainAsync(acme.Id, cancellationToken);
+        await EnsureExamplesAndCollectAsync(acme, "acme", cancellationToken);
+        await EnsureExamplesAndCollectAsync(northwind, "northwind", cancellationToken);
+    }
+
+    private async Task EnsureExamplesAndCollectAsync(Tenant tenant, string fixture, CancellationToken cancellationToken)
+    {
+        var created = await EnsureExampleIntegrationsAsync(tenant, fixture, cancellationToken);
+        if (!created && await HasChainAsync(tenant, cancellationToken))
+        {
+            return;
+        }
+
+        await using var scope = scopes.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<CollectionRunner>().RunFreshAsync(tenant.Id, cancellationToken);
+    }
+
+    private async Task<bool> EnsureExampleIntegrationsAsync(Tenant tenant, string fixture, CancellationToken cancellationToken)
+    {
+        await using var db = databases.Create(tenant.DatabaseName!);
+        if (await db.Integrations.AnyAsync(cancellationToken))
+        {
+            return false;
+        }
+
+        foreach (var provider in new[] { "aws", "google", "microsoft", "github" })
+        {
+            db.Integrations.Add(new IntegrationConnection
+            {
+                Id = Guid.NewGuid(),
+                Provider = provider,
+                DisplayName = IntegrationPolicies.DisplayName(provider),
+                Status = "connected",
+                Example = true,
+                Fixture = fixture,
+                AccountLabel = fixture == "northwind" ? "Northwind Labs example" : "Acme Robotics example",
+                SetupHint = "Example fixture. No customer account is connected.",
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task<bool> HasChainAsync(Tenant tenant, CancellationToken cancellationToken)
+    {
+        await using var db = databases.Create(tenant.DatabaseName!);
+        return await db.Chain.AnyAsync(cancellationToken);
     }
 
     private async Task EnsureNorthwindMarkerAsync(Tenant tenant, CancellationToken cancellationToken)

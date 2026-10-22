@@ -4,11 +4,21 @@ D2D Audit Services is a compliance automation platform for companies undergoing 
 
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
-Milestone 1 is a local vertical slice: a .NET API, a React app, a control-plane database, one database per tenant, and WorkOS behind `IIdentityProvider`.
+Milestone 1 is the foundation slice. Milestone 2 adds integrations, automated tests, and evidence on top of it.
 
 ## Run locally
 
-One command, from the repository root, when Docker is installed:
+Preferred, from the repository root, when Docker and the .NET 10 SDK are installed. This starts the Aspire AppHost, which runs Postgres, MinIO, Temporal, the API, and the Vite app, and prints the dashboard URL for logs and traces:
+
+```bash
+export PATH="$HOME/.dotnet:$PATH"
+export DOTNET_ROOT="$HOME/.dotnet"
+dotnet run --project src/aspire/D2DAudit.AppHost
+```
+
+`./scripts/dev.sh` does the same when Docker is available.
+
+Alternative, without the Aspire dashboard:
 
 ```bash
 docker compose up --build
@@ -17,8 +27,10 @@ docker compose up --build
 - API: http://localhost:8080
 - Web (nginx): http://localhost:8088
 - Postgres: localhost:5432, database `d2d_control`, user `d2d`, password `d2d_dev_password`
+- MinIO: http://localhost:9000 (console http://localhost:9001)
+- Temporal: localhost:7233
 
-`./scripts/dev.sh` runs that Compose command. If Docker is not installed, the script starts the API and Vite against a Postgres already listening on localhost, and the web app is http://localhost:5173.
+If Docker is not installed, `./scripts/dev.sh` starts the API and Vite against a Postgres already listening on localhost, and the web app is http://localhost:5173. Collection then runs in-process and evidence files land under `data/evidence`.
 
 Without Docker, from a machine that already has the .NET 10 SDK, Node 22, and Postgres 16:
 
@@ -73,6 +85,30 @@ Leave both variables unset and the API uses local identity mode. That mode exist
 
 There is no public signup endpoint. Tenants are created by the provisioner (the demo seed, and later an operator path).
 
+## Integrations
+
+Example workspaces (Acme Robotics and Northwind Labs) load fixture resources and do not call AWS, Google, Microsoft, or GitHub. A real workspace connects with the credentials below. Leave them unset until you are ready. `TENANT_DATA_KEY` is 32 bytes, base64, and is required before a Google refresh token is stored. Production and Staging also require `TEMPORAL_ADDRESS`, `Storage__Endpoint`, and `Storage__ObjectLock=true`.
+
+### AWS
+
+Create an IAM role in the collector account and set `AWS_COLLECTOR_ROLE_ARN` to its ARN. In the customer account, create a role with the permission policy the connect screen shows (read-only account summary, S3 public-access and encryption, CloudTrail, and `sts:GetCallerIdentity`). Trust the collector role and the external id the screen generates. No customer access keys are stored. The API assumes the role with the ambient credential chain.
+
+### Google Workspace
+
+In Google Cloud, create an OAuth client and set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Enable the Admin SDK. The consent screen asks for `admin.directory.user.readonly`. Add the redirect URI `http://localhost:5173/integrations` (and the deployed origin). A Workspace admin grants consent. The refresh token is encrypted with `TENANT_DATA_KEY`.
+
+### Microsoft 365
+
+Register an application and set `MS_CLIENT_ID` and `MS_CLIENT_SECRET`. Application permissions: `User.Read.All`, `Directory.Read.All`, and `UserAuthenticationMethod.Read.All`. Admin consent returns the directory tenant id. Collection uses client credentials. No refresh token is stored.
+
+### GitHub
+
+Create a GitHub App. Permissions: repository administration read, metadata read, organization members read. No write permissions. Set `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` (PEM). The installation id is stored per workspace. The private key stays in the environment.
+
+## Evidence
+
+Automated checks write one Parquet object per check. Manual upload stores the original bytes. Each object is SHA-256 hashed and linked to the previous hash. Verify reads the objects back and does not change them. Local development uses a folder or MinIO. Production object storage must have Object Lock enabled.
+
 ## Tests
 
 ```bash
@@ -84,7 +120,8 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 
 ## Layout
 
-- `src/api` — C# solution. Domain, Application, Infrastructure, Api, unit tests, and integration tests.
+- `src/api` — C# solution. Domain, Application, Infrastructure, Api, unit tests, and integration tests. HTTP is minimal APIs grouped by feature.
+- `src/aspire` — Aspire AppHost for local orchestration and the dashboard.
 - `src/web` — React, TypeScript, Vite. Features live under `src/web/src/features`. Visible strings are in `src/web/src/shared/i18n/locales/en.json`.
 - `infra/terraform` — placeholder. Nothing is applied.
 - `docs/` — the GitHub Pages review site, including the mockups.
@@ -92,13 +129,13 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 ## Choices that are not in DECISIONS.md
 
 - .NET 10 is the LTS used here (`global.json`).
-- Tenant provisioning runs in-process and records a job (queued, running with a step and a percent, succeeded, or failed). Temporal is later.
+- Tenant provisioning runs in-process and records a job. Collection uses Temporal when `TEMPORAL_ADDRESS` is set, and the same runner in-process when it is not. Production and Staging require Temporal.
 - The browser session is an httpOnly cookie (`d2d_session`, Lax, path `/`) plus a refresh cookie (Strict, path `/api/v1/auth`). Mutating requests send `X-D2D-Request: 1`. The active tenant is `X-Tenant-Id`.
 - Local identity is Development and Testing only, signs tokens with a well-known development key, and does not simulate MFA.
 - High contrast is a fourth theme, next to light, dark, and system. System follows `prefers-color-scheme` and `prefers-contrast`.
 - The assistant panel is a reserved shell. It does not call a model.
-- The evidence table exists. Integrity is `notStored`. No hashes and no object storage until M2.
-- Integration health and the device agent are empty states. They do not show invented connection data.
+- Evidence is a Parquet object (or the original upload bytes) plus a SHA-256 hash chain. Object Lock is required in Production and Staging. Development can use a local folder or MinIO.
+- Example workspaces show fixture integration results. Other workspaces stay empty until someone connects them. The device agent is still empty.
 - Framework content is JSON embedded in the API and loaded into each tenant database. Descriptions are short paraphrases. ISO/IEC 27001 clauses 4–10 are not seeded; Annex A is.
 - An auditor's control mappings are limited to frameworks on the grant.
 - The control-health chart from the mockup is not drawn. The dashboard shows current counts.
@@ -106,5 +143,7 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 - Password reset calls WorkOS and always shows a generic result. The confirm-reset page is not in this milestone.
 - TLS terminates at the edge later. Local HTTP is development only.
 - The development signing key, the example password, and `d2d_dev_password` are well known. They are refused as a production identity configuration.
+- The HTTP edge is ASP.NET Core minimal APIs, one `MapGroup` per feature. Progress is SignalR on `/hubs/jobs`.
+- Local orchestration prefers the Aspire AppHost. Docker Compose remains an alternative and includes MinIO and Temporal.
 - Logging is `Microsoft.Extensions.Logging`. Analyzers are the .NET SDK analyzers plus SonarAnalyzer. StyleCop is not enabled. See [docs/ENGINEERING.md](docs/ENGINEERING.md).
 - Session cookies are `Secure` outside Development and Testing. In Development, `Secure` follows HTTPS so local HTTP keeps the cookie.

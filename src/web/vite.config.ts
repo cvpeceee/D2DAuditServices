@@ -10,10 +10,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://localhost:8080",
-      "/hubs": { target: "http://localhost:8080", ws: true },
-      "/health": "http://localhost:8080",
-      "/openapi": "http://localhost:8080",
+      "/api": process.env.D2D_API_PROXY ?? "http://localhost:8080",
+      "/hubs": { target: process.env.D2D_API_PROXY ?? "http://localhost:8080", ws: true },
+      "/health": process.env.D2D_API_PROXY ?? "http://localhost:8080",
+      "/openapi": process.env.D2D_API_PROXY ?? "http://localhost:8080",
     },
   },
 });

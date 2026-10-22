@@ -4,7 +4,7 @@ Short rules for this repo. Prefer a straight C# or TypeScript reading over a new
 
 ## Shape
 
-- Domain has no project dependencies. Application defines the use-case interfaces and `Result<T>`. Infrastructure implements them. The API project is the composition root: thin controllers, authentication, and the HTTP mapping.
+- Domain has no project dependencies. Application defines the use-case interfaces and `Result<T>`. Infrastructure implements them. The API project is the composition root: minimal API endpoint groups (`MapGroup` per feature), authentication, and the HTTP mapping. Endpoints stay thin and call the application layer. There are no MVC controllers.
 - Dependency injection is the only way to get a service. No service locator and no mutable static fields. Pure helpers and `const` / `static readonly` values are fine.
 - Put an interface on a boundary (identity, tenancy, persistence, jobs). Do not add an interface for every class.
 - Architecture tests in `D2DAudit.Tests` lock the layering and the static-field rule.
@@ -16,7 +16,7 @@ Short rules for this repo. Prefer a straight C# or TypeScript reading over a new
 - Async methods take a `CancellationToken` and pass it through.
 - Expected failures return `Result<T>` or a validator error (FluentValidation). Throw for bugs and for startup misconfiguration, such as a half-set WorkOS configuration or an unsafe database name.
 - Logging is `Microsoft.Extensions.Logging`. Do not log passwords, tokens, or email addresses. The activity table stores the actor email because that is the product audit record, not an application log.
-- OpenTelemetry tracing and metrics are registered at startup. The OTLP exporter is added only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
+- OpenTelemetry tracing, metrics, and logs are registered at startup. The OTLP exporter is added only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. The Aspire AppHost sets that variable so the dashboard receives them. SignalR pushes job progress to the signed-in tenant group.
 - Unit tests (`D2DAudit.UnitTests`) cover domain and application code and do not need a database. Integration tests use Testcontainers Postgres. Set `TEST_POSTGRES` to an existing admin connection when Docker is not available. The role needs `CREATEDB`.
 
 ## Web

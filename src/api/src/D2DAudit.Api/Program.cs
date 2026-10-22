@@ -1,11 +1,13 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using D2DAudit.Api.Endpoints;
 using D2DAudit.Api.Hubs;
 using D2DAudit.Api.Security;
 using D2DAudit.Application;
 using D2DAudit.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -38,12 +40,21 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
             }));
 });
-builder.Services.AddControllers().AddJsonOptions(options =>
+builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddOpenApi();
 var otelEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+    if (!string.IsNullOrWhiteSpace(otelEndpoint))
+    {
+        logging.AddOtlpExporter();
+    }
+});
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("d2d-api"))
     .WithTracing(tracing =>
@@ -100,7 +111,10 @@ app.UseAuthentication();
 app.UseMiddleware<CsrfMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();
-app.MapControllers();
+app.MapHealthEndpoints();
+app.MapAuthEndpoints();
+app.MapWorkspaceEndpoints();
+app.MapIntegrationEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

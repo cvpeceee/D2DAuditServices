@@ -1,9 +1,43 @@
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ApiError, api, type Dashboard } from "../../shared/api/client";
+import { ApiError, api, type Dashboard, type Integration } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
 import { daysUntil, formatDate, Pill, Ring, Skeleton } from "../../shared/ui/ui";
+
+function IntegrationHealth({ tenantId }: { tenantId: string | null }) {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState<Integration[] | null>(null);
+  useEffect(() => {
+    if (!tenantId) return;
+    let cancelled = false;
+    void api<Integration[]>("/api/v1/integrations", { tenantId })
+      .then((value) => {
+        if (!cancelled) setRows(value);
+      })
+      .catch(() => {
+        if (!cancelled) setRows([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId]);
+  if (!rows || rows.length === 0)
+    return <div className="empty">{t("dashboard.integrationsEmpty")}</div>;
+  return (
+    <div>
+      {rows.map((row) => (
+        <div className="row" key={row.id} style={{ padding: "6px 0" }}>
+          <span>{row.displayName}</span>
+          <span className="m" style={{ marginInlineStart: "auto" }}>
+            {t(`integrations.status.${row.status}`, { defaultValue: row.status })}
+            {row.example ? ` · ${t("integrations.example")}` : ""}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function ringTone(percent: number) {
   if (percent >= 85) return "var(--ok)";
@@ -188,7 +222,7 @@ export function DashboardPage() {
               {t("nav.integrations")}
             </Link>
           </h3>
-          <div className="empty">{t("dashboard.integrationsEmpty")}</div>
+          <IntegrationHealth tenantId={tenantId} />
           <div className="notice">
             {t("shell.deviceAgent")}: {t("shell.noDevices")}
           </div>

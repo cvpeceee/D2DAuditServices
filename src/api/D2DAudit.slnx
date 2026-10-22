@@ -5,6 +5,9 @@
     <Project Path="src/D2DAudit.Domain/D2DAudit.Domain.csproj" />
     <Project Path="src/D2DAudit.Infrastructure/D2DAudit.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/aspire/">
+    <Project Path="../aspire/D2DAudit.AppHost/D2DAudit.AppHost.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/D2DAudit.Tests/D2DAudit.Tests.csproj" />
     <Project Path="tests/D2DAudit.UnitTests/D2DAudit.UnitTests.csproj" />
