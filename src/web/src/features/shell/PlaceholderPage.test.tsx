@@ -7,11 +7,11 @@ import { PlaceholderPage } from "./PlaceholderPage";
 describe("PlaceholderPage", () => {
   it("names the section and does not invent data", () => {
     render(
-      <MemoryRouter initialEntries={["/policies"]}>
+      <MemoryRouter initialEntries={["/risks"]}>
         <PlaceholderPage />
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { name: "Not in this milestone" })).toBeInTheDocument();
-    expect(screen.getByText(/Policies is on the roadmap/)).toBeInTheDocument();
+    expect(screen.getByText(/Risks is on the roadmap/)).toBeInTheDocument();
   });
 });

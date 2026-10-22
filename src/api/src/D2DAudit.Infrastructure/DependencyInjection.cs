@@ -1,6 +1,8 @@
 using D2DAudit.Application;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Audits;
 using D2DAudit.Infrastructure.Catalog;
+using D2DAudit.Infrastructure.Policies;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Identity;
 using D2DAudit.Infrastructure.Integrations;
@@ -88,6 +90,11 @@ public static class DependencyInjection
         services.AddScoped<CollectionJobs>();
         services.AddScoped<CollectionRunner>();
         services.AddScoped<IIntegrationQuery, IntegrationQuery>();
+        services.AddScoped<IPolicyPortal, PolicyPortal>();
+        services.AddScoped<IAuditPortal, AuditPortal>();
+        services.AddScoped<AuditPackageRunner>();
+        services.AddSingleton<AuditExportQueue>();
+        services.AddHostedService(provider => provider.GetRequiredService<AuditExportQueue>());
         if (string.IsNullOrWhiteSpace(temporalAddress))
         {
             services.AddSingleton<LocalCollectionSchedule>();

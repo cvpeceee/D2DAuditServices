@@ -17,7 +17,7 @@ public sealed class TenantProvisioner(
     TimeProvider time,
     ILogger<TenantProvisioner> logger) : ITenantProvisioner
 {
-    public const int SchemaVersion = 2;
+    public const int SchemaVersion = 3;
 
     public async Task<Result<Tenant>> CreateAsync(CreateTenantRequest request, CancellationToken cancellationToken)
     {

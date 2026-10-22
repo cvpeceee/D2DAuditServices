@@ -24,9 +24,11 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("TenantWrite", policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantWriteRequirement()));
     options.AddPolicy("TenantAdmin", policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantAdminRequirement()));
+    options.AddPolicy("AuditAct", policy => policy.RequireAuthenticatedUser().AddRequirements(new AuditActRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, TenantWriteHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, TenantAdminHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, AuditActHandler>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -115,6 +117,8 @@ app.MapHealthEndpoints();
 app.MapAuthEndpoints();
 app.MapWorkspaceEndpoints();
 app.MapIntegrationEndpoints();
+app.MapPolicyEndpoints();
+app.MapAuditEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

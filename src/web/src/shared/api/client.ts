@@ -50,6 +50,9 @@ export type AutomatedTest = Model<"AutomatedTestDto">;
 export type EvidenceItem = Model<"EvidenceListItem">;
 export type EvidencePage = Model<"EvidencePage">;
 export type VerifyReport = Model<"VerifyReport">;
+export type PolicyListItem = Model<"PolicyListItem">;
+export type PolicyDetail = Model<"PolicyDetail">;
+export type AuditPortalPage = Model<"AuditPortalPage">;
 
 let refreshInFlight: Promise<boolean> | null = null;
 

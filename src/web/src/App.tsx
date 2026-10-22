@@ -9,7 +9,9 @@ import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { FrameworkDetailPage } from "./features/frameworks/FrameworkDetailPage";
 import { FrameworksPage } from "./features/frameworks/FrameworksPage";
 import { LoginPage } from "./features/auth/LoginPage";
+import { AuditorPage } from "./features/auditor/AuditorPage";
 import { EvidencePage } from "./features/evidence/EvidencePage";
+import { PoliciesPage } from "./features/policies/PoliciesPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
 import { PlaceholderPage } from "./features/shell/PlaceholderPage";
 import { TestsPage } from "./features/tests/TestsPage";
@@ -73,11 +75,11 @@ export function App() {
         <Route path="activity" element={<ActivityPage />} />
         <Route path="tests" element={<TestsPage />} />
         <Route path="evidence" element={<EvidencePage />} />
-        <Route path="policies" element={<PlaceholderPage />} />
+        <Route path="policies" element={<PoliciesPage />} />
         <Route path="risks" element={<PlaceholderPage />} />
         <Route path="vendors" element={<PlaceholderPage />} />
         <Route path="people" element={<PlaceholderPage />} />
-        <Route path="auditor" element={<PlaceholderPage />} />
+        <Route path="auditor" element={<AuditorPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

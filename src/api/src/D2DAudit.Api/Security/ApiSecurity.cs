@@ -239,6 +239,8 @@ public sealed class TenantWriteRequirement : IAuthorizationRequirement;
 
 public sealed class TenantAdminRequirement : IAuthorizationRequirement;
 
+public sealed class AuditActRequirement : IAuthorizationRequirement;
+
 public sealed class TenantWriteHandler(TenantContext tenant, IActivityWriter activity, IHttpContextAccessor http) : AuthorizationHandler<TenantWriteRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TenantWriteRequirement requirement)
@@ -279,6 +281,30 @@ public sealed class TenantAdminHandler(TenantContext tenant, IActivityWriter act
                 tenant.UserId,
                 tenant.TenantId,
                 "write_denied",
+                "denied",
+                tenant.Role.ToString(),
+                http.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                http.HttpContext?.RequestAborted ?? CancellationToken.None);
+        }
+    }
+}
+
+public sealed class AuditActHandler(TenantContext tenant, IActivityWriter activity, IHttpContextAccessor http) : AuthorizationHandler<AuditActRequirement>
+{
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AuditActRequirement requirement)
+    {
+        if (tenant.IsResolved && tenant.Role is TenantRole.Admin or TenantRole.ControlOwner or TenantRole.Auditor)
+        {
+            context.Succeed(requirement);
+            return;
+        }
+
+        if (tenant.IsResolved)
+        {
+            await activity.WriteAsync(
+                tenant.UserId,
+                tenant.TenantId,
+                "audit_denied",
                 "denied",
                 tenant.Role.ToString(),
                 http.HttpContext?.Connection.RemoteIpAddress?.ToString(),

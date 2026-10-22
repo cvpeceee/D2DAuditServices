@@ -11,17 +11,20 @@ namespace D2DAudit.Infrastructure.Integrations;
 
 public sealed class CollectionJobs(ControlPlaneDbContext control, TimeProvider time, IJobNotifier notifier)
 {
-    public async Task<Guid> CreateAsync(Guid tenantId, CancellationToken cancellationToken)
+    public Task<Guid> CreateAsync(Guid tenantId, CancellationToken cancellationToken) =>
+        CreateAsync(tenantId, "collection", "Queued", cancellationToken);
+
+    public async Task<Guid> CreateAsync(Guid tenantId, string kind, string queuedStep, CancellationToken cancellationToken)
     {
         var now = time.GetUtcNow();
         var job = new JobRecord
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
-            Kind = "collection",
+            Kind = kind,
             Status = JobStatus.Queued,
             TotalSteps = 1,
-            CurrentStep = "Queued",
+            CurrentStep = queuedStep,
             Percent = 0,
             CreatedAt = now,
             UpdatedAt = now,
@@ -45,13 +48,16 @@ public sealed class CollectionJobs(ControlPlaneDbContext control, TimeProvider t
         await notifier.JobChangedAsync(job, cancellationToken);
     }
 
-    public async Task FinishAsync(Guid jobId, bool succeeded, string? error, CancellationToken cancellationToken)
+    public Task FinishAsync(Guid jobId, bool succeeded, string? error, CancellationToken cancellationToken) =>
+        FinishAsync(jobId, succeeded, error, succeeded ? "Collection finished" : "Collection failed", cancellationToken);
+
+    public async Task FinishAsync(Guid jobId, bool succeeded, string? error, string step, CancellationToken cancellationToken)
     {
         var job = await control.Jobs.FirstAsync(item => item.Id == jobId, cancellationToken);
         job.Status = succeeded ? JobStatus.Succeeded : JobStatus.Failed;
         job.Percent = succeeded ? 100 : job.Percent;
         job.Error = error;
-        job.CurrentStep = succeeded ? "Collection finished" : "Collection failed";
+        job.CurrentStep = step;
         job.UpdatedAt = time.GetUtcNow();
         await control.SaveChangesAsync(cancellationToken);
         await notifier.JobChangedAsync(job, cancellationToken);

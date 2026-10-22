@@ -8,11 +8,11 @@ Done. Monorepo, local Docker Compose, CI, control-plane and per-tenant databases
 
 ## M2 — Integrations, automated tests, and evidence
 
-This milestone. Connect AWS, Google Workspace, Microsoft 365, and GitHub. Run automated tests from those connections. Store evidence as Parquet with a SHA-256 hash chain. The device agent stays out until a collector exists.
+Done. Connect AWS, Google Workspace, Microsoft 365, and GitHub. Run automated tests from those connections. Store evidence as Parquet with a SHA-256 hash chain. The device agent stays out until a collector exists.
 
 ## M3 — Policies, auditor portal, and the audit package
 
-Policy workflow, the auditor's request and finding loop, and an exportable audit package. Auditor access stays scoped to the grant.
+This milestone. Policy workflow, the auditor's request and finding loop, and an exportable audit package. Auditor access stays scoped to the grant.
 
 ## M4 — Demo polish
 
