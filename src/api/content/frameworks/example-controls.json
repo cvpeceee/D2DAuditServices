@@ -1,0 +1,941 @@
+{
+  "controls": [
+    {
+      "code": "GV-01",
+      "title": "Information security policy is approved and published",
+      "description": "Management approves a written security policy and employees can find it.",
+      "status": "Passing",
+      "frequency": "Annual",
+      "ownerName": "Chandra V.",
+      "ownerEmail": "chandra@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.1",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC5.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Policy approval record",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "GV-02",
+      "title": "Security roles are named and staffed",
+      "description": "Security responsibilities have a named owner.",
+      "status": "Passing",
+      "frequency": "Annual",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC1.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Role catalog review",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "GV-03",
+      "title": "Segregation of duties for privileged changes",
+      "description": "The person who requests a privileged change is not the only person who approves it.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.3",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC5.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Privileged change sample",
+          "kind": "manualSampling",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "GV-04",
+      "title": "Independent review of the security program",
+      "description": "Someone outside the team that runs the controls reviews the program.",
+      "status": "Manual",
+      "frequency": "Annual",
+      "ownerName": "Chandra V.",
+      "ownerEmail": "chandra@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.35",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC4.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Annual independent review",
+          "kind": "manualSampling",
+          "outcome": "notRun",
+          "detail": "Example data: this year's review has not been sampled."
+        }
+      ]
+    },
+    {
+      "code": "RM-01",
+      "title": "Risk assessment covers objectives and change",
+      "description": "Security objectives, risks, and significant changes are assessed on a schedule.",
+      "status": "Passing",
+      "frequency": "Annual",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "soc2",
+          "requirement": "CC3.1",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC3.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC3.4",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.7",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Annual risk assessment",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "HR-01",
+      "title": "New hires are screened before access",
+      "description": "People are screened before they receive production access.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "People Ops",
+      "ownerEmail": "people@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.6.1",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC1.4",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Screening completion check",
+          "kind": "attestation",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "HR-06",
+      "title": "Security awareness training is completed",
+      "description": "People finish security training for their role.",
+      "status": "Passing",
+      "frequency": "Annual",
+      "ownerName": "People Ops",
+      "ownerEmail": "people@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.6.3",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC1.4",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Training completion",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "HR-08",
+      "title": "Leaver access is removed within one business day",
+      "description": "Access ends quickly after someone leaves.",
+      "status": "DueSoon",
+      "frequency": "Continuous",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.6.5",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.11",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.3",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Leaver sample",
+          "kind": "manualSampling",
+          "outcome": "needsEvidence",
+          "detail": "Example data: one leaver sample is still open."
+        }
+      ]
+    },
+    {
+      "code": "AC-04",
+      "title": "Quarterly user access reviews",
+      "description": "Access is reviewed every quarter and adjusted.",
+      "status": "DueSoon",
+      "frequency": "Quarterly",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.18",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Quarterly access review",
+          "kind": "manualSampling",
+          "outcome": "needsEvidence",
+          "detail": "Example data: the current quarter is not signed yet."
+        }
+      ]
+    },
+    {
+      "code": "AC-07",
+      "title": "MFA required for all workforce accounts",
+      "description": "Workforce accounts use a second factor.",
+      "status": "Failing",
+      "frequency": "Continuous",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.17",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.5",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Identity provider second-factor policy",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        },
+        {
+          "name": "Accounts missing a second factor",
+          "kind": "automated",
+          "outcome": "fail",
+          "detail": "Example data: 3 of 41 accounts are missing a second factor."
+        }
+      ]
+    },
+    {
+      "code": "AC-12",
+      "title": "Privileged access is time-limited",
+      "description": "Administrator access expires instead of staying open.",
+      "status": "NeedsEvidence",
+      "frequency": "Continuous",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Privileged access expiry",
+          "kind": "attestation",
+          "outcome": "needsEvidence",
+          "detail": "Example data: no current attestation is on file."
+        }
+      ]
+    },
+    {
+      "code": "AC-15",
+      "title": "Access changes when a role changes",
+      "description": "Moving to a new role replaces access instead of only adding to it.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Priya N.",
+      "ownerEmail": "priya@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.18",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Role-change sample",
+          "kind": "manualSampling",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "CR-02",
+      "title": "Encryption at rest for production data",
+      "description": "Production data stores are encrypted at rest.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.24",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Storage encryption configuration",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "CR-05",
+      "title": "Data in transit uses TLS",
+      "description": "Production traffic uses current TLS.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.14",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.24",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.7",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "TLS configuration check",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "CM-11",
+      "title": "Code changes are peer-reviewed before merge",
+      "description": "Production code changes are reviewed by someone other than the author.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Dev T.",
+      "ownerEmail": "dev@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.4",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.32",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC8.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Peer review on protected branches",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "CM-14",
+      "title": "Development, test, and production are separated",
+      "description": "Production is not the place where unreleased changes are tried out.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Dev T.",
+      "ownerEmail": "dev@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.31",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC8.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Environment separation",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "EP-03",
+      "title": "Laptop disk encryption is enabled",
+      "description": "Company laptops encrypt their disks.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "IT Ops",
+      "ownerEmail": "itops@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.1",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.7.9",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Disk encryption report",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "EP-08",
+      "title": "Endpoint screen lock is enforced",
+      "description": "Screens lock after a short idle period.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "IT Ops",
+      "ownerEmail": "itops@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.7.7",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.1",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Screen lock policy",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "VM-05",
+      "title": "Vendor security reviews happen annually",
+      "description": "Vendors with access to systems or data are reviewed each year.",
+      "status": "Manual",
+      "frequency": "Annual",
+      "ownerName": "Lena K.",
+      "ownerEmail": "lena@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.19",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.20",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.22",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC9.2",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Vendor review sample",
+          "kind": "manualSampling",
+          "outcome": "notRun",
+          "detail": "Example data: the annual sample has not started."
+        }
+      ]
+    },
+    {
+      "code": "BC-01",
+      "title": "Backups are tested by restore quarterly",
+      "description": "Backups are proven by restoring them, not only by watching a success light.",
+      "status": "Passing",
+      "frequency": "Quarterly",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.13",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.30",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "A1.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "A1.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Quarterly restore sample",
+          "kind": "manualSampling",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "BC-04",
+      "title": "Capacity is reviewed for production systems",
+      "description": "Someone looks at capacity before it becomes an outage.",
+      "status": "Passing",
+      "frequency": "Quarterly",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.6",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "A1.1",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Capacity review",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "IR-02",
+      "title": "Incident response plan is tested yearly",
+      "description": "The incident plan is exercised, not only written.",
+      "status": "NeedsEvidence",
+      "frequency": "Annual",
+      "ownerName": "Chandra V.",
+      "ownerEmail": "chandra@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.24",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.26",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.27",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.4",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.5",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Annual incident exercise",
+          "kind": "attestation",
+          "outcome": "needsEvidence",
+          "detail": "Example data: this year's exercise record is missing."
+        }
+      ]
+    },
+    {
+      "code": "LG-03",
+      "title": "Audit logs are retained at least one year",
+      "description": "Security logs stay available for at least a year.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.15",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.33",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.2",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Log retention configuration",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "LG-08",
+      "title": "Security alerts are reviewed",
+      "description": "Alerts are looked at before they go stale.",
+      "status": "Failing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.16",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.3",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Alert review queue",
+          "kind": "automated",
+          "outcome": "fail",
+          "detail": "Example data: the alert queue is older than the sample target."
+        }
+      ]
+    },
+    {
+      "code": "VM-02",
+      "title": "Vulnerabilities are remediated on a schedule",
+      "description": "Vulnerabilities are fixed within the window the risk calls for.",
+      "status": "Failing",
+      "frequency": "Continuous",
+      "ownerName": "Marcus L.",
+      "ownerEmail": "marcus@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.8",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Vulnerability aging",
+          "kind": "automated",
+          "outcome": "fail",
+          "detail": "Example data: one critical finding is past its due date."
+        }
+      ]
+    },
+    {
+      "code": "PP-01",
+      "title": "Privacy notice is kept current",
+      "description": "The public privacy notice matches how personal information is actually handled.",
+      "status": "Passing",
+      "frequency": "Annual",
+      "ownerName": "Lena K.",
+      "ownerEmail": "lena@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.5.34",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Privacy notice review",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "PH-02",
+      "title": "Physical entry to production spaces is logged",
+      "description": "Entry to rooms that hold production systems is recorded.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "IT Ops",
+      "ownerEmail": "itops@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.7.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.4",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Entry log sample",
+          "kind": "document",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "CFG-01",
+      "title": "Production baselines are defined",
+      "description": "Production systems have a baseline configuration to compare against.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "Dev T.",
+      "ownerEmail": "dev@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.9",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC7.1",
+          "coverage": "partial"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Baseline drift check",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    },
+    {
+      "code": "MAL-01",
+      "title": "Anti-malware is active on endpoints",
+      "description": "Managed endpoints run anti-malware and report it.",
+      "status": "Passing",
+      "frequency": "Continuous",
+      "ownerName": "IT Ops",
+      "ownerEmail": "itops@acme.example",
+      "mappings": [
+        {
+          "framework": "iso27001",
+          "requirement": "A.8.7",
+          "coverage": "full"
+        },
+        {
+          "framework": "soc2",
+          "requirement": "CC6.8",
+          "coverage": "full"
+        }
+      ],
+      "tests": [
+        {
+          "name": "Anti-malware status",
+          "kind": "automated",
+          "outcome": "pass",
+          "detail": "Example data in the Acme Robotics workspace."
+        }
+      ]
+    }
+  ]
+}

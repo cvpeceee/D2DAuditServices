@@ -1,0 +1,14 @@
+bin/
+obj/
+node_modules/
+dist/
+.vs/
+*.user
+.env
+.env.*
+!.env.example
+*.log
+TestResults/
+coverage/
+.DS_Store
+src/api/**/appsettings.*.local.json

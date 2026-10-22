@@ -1,0 +1,13 @@
+title = "D2D Audit Services"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Development-only credentials. Production refuses to boot without WorkOS and never uses these values."
+regexTarget = "match"
+regexes = [
+  '''Example-Only-1!''',
+  '''d2d_dev_password''',
+  '''local-development-identity-signing-key-do-not-use-in-production''',
+]
