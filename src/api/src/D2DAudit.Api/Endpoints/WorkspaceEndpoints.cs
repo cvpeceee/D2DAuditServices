@@ -10,6 +10,7 @@ public static class WorkspaceEndpoints
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
         group.MapGet("/workspace", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.GetAsync(cancellationToken));
         group.MapGet("/dashboard", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.DashboardAsync(cancellationToken));
+        group.MapGet("/reports/executive", ExecutiveReport);
         group.MapGet("/frameworks", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.FrameworksAsync(cancellationToken));
         group.MapGet("/frameworks/{key}", Framework).Produces<FrameworkDetail>();
         group.MapGet("/controls", Controls);
@@ -21,6 +22,12 @@ public static class WorkspaceEndpoints
         group.MapGet("/devices", (IClientRead read, CancellationToken cancellationToken) => read.DevicesAsync(cancellationToken));
         group.MapGet("/resources", (IClientRead read, CancellationToken cancellationToken) => read.ResourcesAsync(cancellationToken));
         return app;
+    }
+
+    private static async Task<IResult> ExecutiveReport(IWorkspaceQuery query, CancellationToken cancellationToken)
+    {
+        var file = await query.ExecutiveReportAsync(cancellationToken);
+        return Results.File(file.Body, file.ContentType, file.FileName);
     }
 
     private static async Task<IResult> Framework(string key, IWorkspaceQuery query, CancellationToken cancellationToken)

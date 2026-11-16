@@ -5,6 +5,24 @@ import { ApiError, api, type FrameworkDetail, type RequirementNode } from "../..
 import { useAuth } from "../auth/AuthContext";
 import { Pill, Skeleton } from "../../shared/ui/ui";
 
+function readinessOf(nodes: RequirementNode[]): {
+  percent: number;
+  passing: number;
+  total: number;
+} {
+  let passing = 0;
+  let total = 0;
+  const visit = (node: RequirementNode) => {
+    for (const control of node.controls) {
+      total += 1;
+      if (control.status === "passing") passing += 1;
+    }
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return { percent: total === 0 ? 0 : Math.round((passing * 100) / total), passing, total };
+}
+
 function Tree({ node }: { node: RequirementNode }) {
   const { t } = useTranslation();
   return (
@@ -67,7 +85,11 @@ export function FrameworkDetailPage() {
         <div>
           <Link to="/frameworks">{t("frameworks.back")}</Link>
           <h1>{detail?.name ?? t("frameworks.title")}</h1>
-          <div className="sub">{detail ? `${detail.version} · ${detail.description}` : ""}</div>
+          <div className="sub">
+            {detail
+              ? `${detail.version} · ${t("frameworks.readiness", readinessOf(detail.requirements))} · ${detail.description}`
+              : ""}
+          </div>
         </div>
       </div>
       {error && (

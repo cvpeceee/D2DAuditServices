@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ApiError, api, type Dashboard, type Integration } from "../../shared/api/client";
+import { ApiError, api, download, type Dashboard, type Integration } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
 import type { WorkTask } from "../program/types";
 import { daysUntil, formatDate, Pill, Ring, Skeleton } from "../../shared/ui/ui";
@@ -189,6 +189,13 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="act">
+          <button
+            className="btn"
+            type="button"
+            onClick={() => void download("/api/v1/reports/executive", tenantId)}
+          >
+            {t("dashboard.boardReport")}
+          </button>
           <Link className="btn" to="/auditor">
             {t("dashboard.export")}
           </Link>

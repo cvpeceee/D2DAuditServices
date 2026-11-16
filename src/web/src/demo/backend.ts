@@ -154,6 +154,28 @@ async function route(
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
   if (path === "/api/v1/dashboard") return json(dashboard(scoped, actor));
+  if (path === "/api/v1/reports/executive" && method === "GET") {
+    const page = dashboard(scoped, actor);
+    const lines = [
+      "D2D Audit Services executive report",
+      `${page.tenantName}  ${page.region}`,
+      `Overall readiness ${page.readinessPercent}%`,
+      "",
+      ...page.frameworks.map(
+        (item: { name: string; percent: number; passing: number; total: number }) =>
+          `${item.name}  ${item.percent}%  ${item.passing}/${item.total}`,
+      ),
+    ];
+    const bytes = plainPdf(lines);
+    const body = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(body).set(bytes);
+    return new Response(body, {
+      headers: {
+        "content-type": "application/pdf",
+        "content-disposition": 'attachment; filename="executive-report.pdf"',
+      },
+    });
+  }
   if (path === "/api/v1/frameworks" && method === "GET") return json(frameworkList(scoped));
   if (path.startsWith("/api/v1/frameworks/"))
     return framework(scoped, decodeURIComponent(path.slice("/api/v1/frameworks/".length)));

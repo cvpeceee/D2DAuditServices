@@ -143,6 +143,7 @@
       "policy": "Policy acknowledgement"
     },
     "export": "Export report",
+    "boardReport": "Board report",
     "history": "Automated test results over the last six months",
     "moreDue": "{{count}} more due items are on the people, policy, and risk pages.",
     "addFramework": "Add framework"
@@ -153,6 +154,7 @@
     "requirements": "{{count}} requirements",
     "mapped": "{{mapped}} controls mapped",
     "back": "All frameworks",
+    "readiness": "{{percent}}% ready ({{passing}} of {{total}})",
     "coverageFull": "Full",
     "coveragePartial": "Partial",
     "noControls": "No control mapped yet"
