@@ -517,7 +517,7 @@
       "code": "CM-11",
       "title": "Code changes are peer-reviewed before merge",
       "description": "Production code changes are reviewed by someone other than the author.",
-      "status": "Passing",
+      "status": "Failing",
       "frequency": "Continuous",
       "ownerName": "Dev Patel",
       "ownerEmail": "dev.patel@{{domain}}",
@@ -549,6 +549,12 @@
           "kind": "automated",
           "outcome": "pass",
           "detail": "Example data in the {{company}} workspace."
+        },
+        {
+          "name": "production changes are reviewed",
+          "kind": "document",
+          "outcome": "fail",
+          "detail": "Deployed without approval: CHG-02."
         }
       ]
     },

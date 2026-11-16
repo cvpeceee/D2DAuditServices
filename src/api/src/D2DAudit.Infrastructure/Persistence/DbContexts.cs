@@ -187,6 +187,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<IncidentEvent> IncidentEvents => Set<IncidentEvent>();
 
+    public DbSet<ChangeRecord> Changes => Set<ChangeRecord>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -636,6 +638,21 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         incidentEvent.Property(x => x.Detail).HasMaxLength(2000).IsRequired();
         incidentEvent.Property(x => x.AuthorName).HasMaxLength(200).IsRequired();
         incidentEvent.HasOne(x => x.Incident).WithMany(x => x.Timeline).HasForeignKey(x => x.IncidentId).OnDelete(DeleteBehavior.Cascade);
+
+        var change = modelBuilder.Entity<ChangeRecord>();
+        change.ToTable("changes");
+        change.HasKey(x => x.Id);
+        change.Property(x => x.Code).HasMaxLength(16).IsRequired();
+        change.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        change.Property(x => x.Source).HasMaxLength(16).IsRequired();
+        change.Property(x => x.ExternalKey).HasMaxLength(80).HasDefaultValue("");
+        change.Property(x => x.Repository).HasMaxLength(200).HasDefaultValue("");
+        change.Property(x => x.AuthorName).HasMaxLength(200).HasDefaultValue("");
+        change.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        change.Property(x => x.ApproverName).HasMaxLength(200).HasDefaultValue("");
+        change.Property(x => x.DeployRef).HasMaxLength(80).HasDefaultValue("");
+        change.HasIndex(x => x.Code).IsUnique();
+        change.HasIndex(x => new { x.Source, x.ExternalKey });
     }
 }
 

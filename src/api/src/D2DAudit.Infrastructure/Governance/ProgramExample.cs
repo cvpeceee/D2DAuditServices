@@ -1,5 +1,6 @@
 using System.Text.Json;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Changes;
 using D2DAudit.Infrastructure.Incidents;
 using D2DAudit.Infrastructure.Operations;
 using D2DAudit.Infrastructure.Persistence;
@@ -31,6 +32,7 @@ internal static class ProgramExample
 
         await OperationsExample.ApplyAsync(db, today, now, cancellationToken);
         await IncidentExample.ApplyAsync(db, now, cancellationToken);
+        await ChangeExample.ApplyAsync(db, now, cancellationToken);
 
         if (!db.AccessCampaigns.Local.Any(item => item.State == CampaignState.Draft))
         {
