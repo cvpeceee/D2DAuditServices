@@ -191,6 +191,17 @@ export async function buildM6(controls: DemoControl[], evidence: DemoEvidence[],
       "",
     ),
     finding(
+      "CVE-2024-5535",
+      "OpenSSL handshake accepts an empty extension",
+      "Medium",
+      "edge-gateway",
+      "Pentest",
+      -8,
+      false,
+      false,
+      "",
+    ),
+    finding(
       "CVE-2023-38545",
       "HTTP client overflow in a warehouse job",
       "High",
@@ -540,6 +551,83 @@ function canWrite(actor: Actor) {
   return actor.role === "Admin" || actor.role === "ControlOwner" || actor.role === "Editor";
 }
 
+type DemoPentest = {
+  id: string;
+  title: string;
+  vendor: string;
+  testedOn: string;
+  summary: string;
+  findingCount: number;
+  uploadedAt: string;
+};
+
+const pentestStore = new WeakMap<DemoWorld, DemoPentest[]>();
+
+function reportsOf(data: DemoWorld) {
+  const existing = pentestStore.get(data);
+  if (existing) return existing;
+  const rows = [
+    {
+      id: crypto.randomUUID(),
+      title: "2026 application test",
+      vendor: "Northgate Assurance",
+      testedOn: day(shift(new Date(), -8)),
+      summary: "CVE-2024-5535,Medium,edge-gateway,OpenSSL handshake accepts an empty extension",
+      findingCount: 1,
+      uploadedAt: shift(new Date(), -8).toISOString(),
+    },
+  ];
+  pentestStore.set(data, rows);
+  return rows;
+}
+
+function uploadPentest(data: DemoWorld, actor: Actor, body: Record<string, unknown>) {
+  if (!canWrite(actor)) return fail(403, "forbidden");
+  const title = String(body.title ?? "").trim();
+  const vendor = String(body.vendor ?? "").trim();
+  const csv = String(body.csv ?? "").trim();
+  const lines = csv
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.toLowerCase().startsWith("cve,"));
+  const parsed = lines.map((line) => line.split(",")).filter((cells) => cells.length >= 4);
+  if (!title || !vendor || parsed.length === 0) return fail(400, "invalid_pentest");
+  const now = new Date().toISOString();
+  const state = stateOf(data);
+  for (const cells of parsed) {
+    const severity = cells[1].trim();
+    const days =
+      severity === "Critical" ? 7 : severity === "High" ? 30 : severity === "Low" ? 90 : 60;
+    const due = new Date();
+    due.setUTCDate(due.getUTCDate() + days);
+    state.vulnerabilities.unshift({
+      id: crypto.randomUUID(),
+      cve: cells[0].trim(),
+      title: cells.slice(3).join(",").trim(),
+      severity,
+      assetName: cells[2].trim(),
+      source: "Pentest",
+      firstSeen: now,
+      lastSeen: now,
+      slaDue: day(due),
+      fixAvailable: false,
+      ignored: false,
+      ignoreReason: "",
+    });
+  }
+  const report: DemoPentest = {
+    id: crypto.randomUUID(),
+    title,
+    vendor,
+    testedOn: String(body.testedOn ?? day(new Date())),
+    summary: csv.slice(0, 2000),
+    findingCount: parsed.length,
+    uploadedAt: now,
+  };
+  reportsOf(data).unshift(report);
+  return json(report);
+}
+
 function board(data: DemoWorld) {
   const m6 = stateOf(data);
   const today = day(new Date());
@@ -662,6 +750,14 @@ export function handleM6(
     return screenshot(data, actor, path.split("/")[4], body);
   }
   if (path === "/api/v1/vulnerabilities" && method === "GET") return json(board(data));
+  if (path === "/api/v1/vulnerabilities/sync" && method === "POST") {
+    if (!canWrite(actor)) return fail(403, "forbidden");
+    return json({ imported: 0 });
+  }
+  if (path === "/api/v1/vulnerabilities/pentests" && method === "GET") return json(reportsOf(data));
+  if (path === "/api/v1/vulnerabilities/pentests" && method === "POST") {
+    return uploadPentest(data, actor, body);
+  }
   if (path === "/api/v1/vulnerabilities/sla" && method === "POST")
     return saveSla(data, actor, body);
   if (
