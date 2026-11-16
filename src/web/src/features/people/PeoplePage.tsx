@@ -252,6 +252,24 @@ export function PeoplePage() {
     setDetail(next);
   }
 
+  async function importSource(source: "okta" | "hris") {
+    if (!tenantId) return;
+    setBusy(true);
+    try {
+      const result = await api<{ imported: number }>(`/api/v1/people/import/${source}`, {
+        method: "POST",
+        tenantId,
+        body: {},
+      });
+      setNotice(t("peoplePage.imported", { count: result.imported }));
+      load();
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function sync() {
     if (!tenantId) return;
     setBusy(true);
@@ -287,9 +305,32 @@ export function PeoplePage() {
           <div className="sub">{t("peoplePage.sub")}</div>
         </div>
         {workspace?.canWrite && (
-          <button className="btn primary" type="button" disabled={busy} onClick={() => void sync()}>
-            {t("peoplePage.sync")}
-          </button>
+          <div className="act">
+            <button
+              className="btn primary"
+              type="button"
+              disabled={busy}
+              onClick={() => void sync()}
+            >
+              {t("peoplePage.sync")}
+            </button>
+            <button
+              className="btn"
+              type="button"
+              disabled={busy}
+              onClick={() => void importSource("okta")}
+            >
+              {t("peoplePage.okta")}
+            </button>
+            <button
+              className="btn"
+              type="button"
+              disabled={busy}
+              onClick={() => void importSource("hris")}
+            >
+              {t("peoplePage.hris")}
+            </button>
+          </div>
         )}
       </div>
       {error && (

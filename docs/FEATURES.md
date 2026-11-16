@@ -17,7 +17,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Done | https://github.com/cvpeceee/D2DAuditServices/pull/20 |
-| 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
+| 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Done | https://github.com/cvpeceee/D2DAuditServices/pull/21 |
 | 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, FedRAMP Moderate, HITRUST, CMMC, and custom framework upload | Not started | |
 | 12 | P1 | Public REST API with API keys, OpenAPI, and webhooks | Not started | |
 | 13 | P1 | Checkr background checks and KnowBe4 training | Not started | |
@@ -108,7 +108,7 @@ A penetration-test upload takes `cve,severity,asset,title` and adds those rows w
 
 ## Automation
 
-Settings holds rules. Triggers are test failed, control not ready, risk created, and review due. Actions are create a Jira issue, or a Slack, Teams, or email notification. `IIssueTracker` and `INotifier` are the boundaries. The implementations in this release return a fake id and store a delivery. They do not call Jira, Slack, Teams, or an email provider.
+Settings holds rules. Triggers are test failed, control not ready, risk created, and review due. Actions are create a Jira issue, or a Slack, Teams, or email notification. `IIssueTracker` and `INotifier` call Jira, Slack, Teams, and SMTP when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `SLACK_WEBHOOK_URL`, `TEAMS_WEBHOOK_URL`, or `SMTP_HOST` and `SMTP_FROM` are set. Otherwise the delivery is stored with a local id. People import calls Okta when `OKTA_ORG_URL` and `OKTA_API_TOKEN` are set, and BambooHR when `BAMBOO_BASE_URL` and `BAMBOO_API_KEY` are set. Harborline import buttons add nobody because those settings are absent.
 
 ## Frameworks and custom controls
 
