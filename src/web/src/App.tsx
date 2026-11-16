@@ -27,6 +27,7 @@ import { TasksPage } from "./features/program/TasksPage";
 import { TrainingPage } from "./features/program/TrainingPage";
 import { ComputersPage } from "./features/computers/ComputersPage";
 import { VulnerabilitiesPage } from "./features/vulnerabilities/VulnerabilitiesPage";
+import { IncidentsPage } from "./features/incidents/IncidentsPage";
 import { TrustAdminPage } from "./features/trust/TrustAdminPage";
 import { TrustPublicPage } from "./features/trust/TrustPublicPage";
 
@@ -96,6 +97,7 @@ export function App() {
         <Route path="people" element={<PeoplePage />} />
         <Route path="people/computers" element={<ComputersPage />} />
         <Route path="vulnerabilities" element={<VulnerabilitiesPage />} />
+        <Route path="incidents" element={<IncidentsPage />} />
         <Route path="trust-center" element={<TrustAdminPage />} />
         <Route path="me" element={<MePage />} />
         <Route path="training" element={<TrainingPage />} />

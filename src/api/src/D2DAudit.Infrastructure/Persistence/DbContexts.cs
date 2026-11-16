@@ -183,6 +183,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<AutomationDelivery> AutomationDeliveries => Set<AutomationDelivery>();
 
+    public DbSet<SecurityIncident> Incidents => Set<SecurityIncident>();
+
+    public DbSet<IncidentEvent> IncidentEvents => Set<IncidentEvent>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -610,6 +614,28 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         delivery.Property(x => x.Target).HasMaxLength(200).IsRequired();
         delivery.Property(x => x.Summary).HasMaxLength(300).IsRequired();
         delivery.Property(x => x.ExternalId).HasMaxLength(80).IsRequired();
+
+        var incident = modelBuilder.Entity<SecurityIncident>();
+        incident.ToTable("incidents");
+        incident.HasKey(x => x.Id);
+        incident.Property(x => x.Code).HasMaxLength(16).IsRequired();
+        incident.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        incident.Property(x => x.Severity).HasMaxLength(16).IsRequired();
+        incident.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        incident.Property(x => x.Description).HasMaxLength(4000).IsRequired();
+        incident.Property(x => x.ReporterName).HasMaxLength(200).IsRequired();
+        incident.Property(x => x.ReporterEmail).HasMaxLength(320).IsRequired();
+        incident.Property(x => x.RootCause).HasMaxLength(2000).HasDefaultValue("");
+        incident.Property(x => x.ControlCode).HasMaxLength(32).HasDefaultValue("");
+        incident.HasIndex(x => x.Code).IsUnique();
+
+        var incidentEvent = modelBuilder.Entity<IncidentEvent>();
+        incidentEvent.ToTable("incident_events");
+        incidentEvent.HasKey(x => x.Id);
+        incidentEvent.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        incidentEvent.Property(x => x.Detail).HasMaxLength(2000).IsRequired();
+        incidentEvent.Property(x => x.AuthorName).HasMaxLength(200).IsRequired();
+        incidentEvent.HasOne(x => x.Incident).WithMany(x => x.Timeline).HasForeignKey(x => x.IncidentId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

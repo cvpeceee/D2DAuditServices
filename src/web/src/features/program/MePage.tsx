@@ -102,6 +102,69 @@ export function MePage() {
           </article>
         ))}
       </div>
+      <ReportIncident tenantId={tenantId} onReported={() => setMessage(t("mePage.incidentSent"))} />
     </>
+  );
+}
+
+function ReportIncident({
+  tenantId,
+  onReported,
+}: {
+  tenantId: string | null;
+  onReported: () => void;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState("");
+  const [severity, setSeverity] = useState("Medium");
+  const [description, setDescription] = useState("");
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!tenantId) return;
+    await api("/api/v1/incidents", {
+      method: "POST",
+      tenantId,
+      body: { title, severity, description },
+    });
+    setTitle("");
+    setDescription("");
+    onReported();
+  }
+
+  return (
+    <form className="card" onSubmit={(event) => void submit(event)}>
+      <h3>{t("mePage.reportIncident")}</h3>
+      <div className="split-fields">
+        <input
+          aria-label={t("incidentsPage.titleField")}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          required
+        />
+        <select
+          aria-label={t("incidentsPage.severity")}
+          value={severity}
+          onChange={(event) => setSeverity(event.target.value)}
+        >
+          {["Critical", "High", "Medium", "Low"].map((item) => (
+            <option key={item} value={item}>
+              {t(`incidentsPage.severities.${item}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <label className="field">
+        <span>{t("incidentsPage.description")}</span>
+        <textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          required
+        />
+      </label>
+      <button className="btn primary" type="submit">
+        {t("mePage.reportIncident")}
+      </button>
+    </form>
   );
 }

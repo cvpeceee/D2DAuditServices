@@ -15,6 +15,7 @@
     "people": "People & devices",
     "computers": "Computers",
     "vulnerabilities": "Vulnerabilities",
+    "incidents": "Incidents",
     "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
@@ -662,7 +663,9 @@
       "attest": "I enrolled MFA",
       "upload": "Save device note",
       "record": "Record check"
-    }
+    },
+    "reportIncident": "Report an incident",
+    "incidentSent": "The incident is on the register."
   },
   "trainingPage": {
     "title": "Security training",
@@ -799,6 +802,40 @@
       "Employee": "Employee",
       "Auditor": "Auditor",
       "ControlOwner": "Control owner"
+    }
+  },
+  "incidentsPage": {
+    "title": "Incidents",
+    "sub": "Severity, SLA, timeline, root cause, and the control the incident touches.",
+    "code": "Incident",
+    "severity": "Severity",
+    "status": "Status",
+    "sla": "SLA due",
+    "reporter": "Reported by",
+    "inside": "Inside SLA",
+    "late": "Missed SLA",
+    "cause": "Root cause",
+    "timeline": "Timeline",
+    "note": "Timeline note",
+    "report": "Report an incident",
+    "titleField": "Title",
+    "description": "What happened",
+    "severities": {
+      "Critical": "Critical",
+      "High": "High",
+      "Medium": "Medium",
+      "Low": "Low"
+    },
+    "statuses": {
+      "Open": "Open",
+      "Investigating": "Investigating",
+      "Resolved": "Resolved"
+    },
+    "kinds": {
+      "Reported": "Reported",
+      "Status": "Status",
+      "Note": "Note",
+      "Resolved": "Resolved"
     }
   },
   "computersPage": {
