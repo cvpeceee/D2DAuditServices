@@ -41,9 +41,9 @@ public sealed class ProviderSet(
         string redirectUri,
         CancellationToken cancellationToken)
     {
-        if (provider == "aws")
+        if (provider is "aws" or "azure" or "gcp")
         {
-            return await Cloud().ConnectAsync(existing, request, cancellationToken);
+            return await Cloud(provider).ConnectAsync(existing, request, cancellationToken);
         }
 
         if (provider is "google" or "microsoft")
@@ -67,9 +67,9 @@ public sealed class ProviderSet(
         }
 
         var connection = ToConnection(row);
-        if (row.Provider == "aws")
+        if (row.Provider is "aws" or "azure" or "gcp")
         {
-            return await Cloud().CollectAsync(connection, cancellationToken);
+            return await Cloud(row.Provider).CollectAsync(connection, cancellationToken);
         }
 
         if (row.Provider is "google" or "microsoft")
@@ -110,8 +110,8 @@ public sealed class ProviderSet(
         return new NormalizedResource(snapshot.Provider, snapshot.Kind, snapshot.ExternalId, snapshot.Name, attributes);
     }
 
-    private ICloudProvider Cloud() =>
-        clouds.First(item => item.ProviderKey == "aws");
+    private ICloudProvider Cloud(string provider) =>
+        clouds.First(item => item.ProviderKey == provider);
 
     private IWorkspaceDirectory Directory(string provider) =>
         directories.First(item => item.ProviderKey == provider);

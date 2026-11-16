@@ -8,7 +8,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 
 | # | Priority | Item | Status | PR |
 | --- | --- | --- | --- | --- |
-| 1 | P0 | Live Azure and GCP collectors (Entra ID users and MFA, storage public access, Key Vault or KMS, logging, network rules; GCP IAM, buckets, KMS, audit logs) with tests mapped to controls | Not started | |
+| 1 | P0 | Live Azure and GCP collectors (Entra ID users and MFA, storage public access, Key Vault or KMS, logging, network rules; GCP IAM, buckets, KMS, audit logs) with tests mapped to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/12 |
 | 2 | P0 | Framework readiness percent on the dashboard and framework pages, plus a one-page executive PDF | Not started | |
 | 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Not started | |
 | 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Not started | |

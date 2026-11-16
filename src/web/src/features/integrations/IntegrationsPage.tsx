@@ -13,7 +13,7 @@ import {
 import { Pager } from "../../shared/ui/Pager";
 import { Pill } from "../../shared/ui/ui";
 
-const providers = ["aws", "google", "microsoft", "github"] as const;
+const providers = ["aws", "azure", "gcp", "google", "microsoft", "github"] as const;
 const providerNames: Record<string, string> = {
   aws: "Amazon Web Services",
   azure: "Microsoft Azure",
@@ -34,6 +34,13 @@ export function IntegrationsPage() {
   const [busy, setBusy] = useState(false);
   const [roleArn, setRoleArn] = useState("");
   const [installationId, setInstallationId] = useState("");
+  const [azure, setAzure] = useState({
+    tenantId: "",
+    clientId: "",
+    clientSecret: "",
+    subscriptionId: "",
+  });
+  const [gcp, setGcp] = useState({ projectId: "", clientId: "", clientSecret: "" });
   const [connect, setConnect] = useState<ConnectResult | null>(null);
   const [resourceQuery, setResourceQuery] = useState("");
   const [resourcePage, setResourcePage] = useState(1);
@@ -264,6 +271,75 @@ export function IntegrationsPage() {
                 >
                   {t("integrations.authorize")}
                 </button>
+              )}
+              {workspace?.canWrite && provider === "azure" && !row?.example && (
+                <form
+                  className="stack"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void send("azure", azure);
+                  }}
+                >
+                  <input
+                    aria-label={t("integrations.tenantId")}
+                    placeholder={t("integrations.tenantId")}
+                    value={azure.tenantId}
+                    onChange={(event) => setAzure({ ...azure, tenantId: event.target.value })}
+                  />
+                  <input
+                    aria-label={t("integrations.clientId")}
+                    placeholder={t("integrations.clientId")}
+                    value={azure.clientId}
+                    onChange={(event) => setAzure({ ...azure, clientId: event.target.value })}
+                  />
+                  <input
+                    aria-label={t("integrations.clientSecret")}
+                    placeholder={t("integrations.clientSecret")}
+                    type="password"
+                    value={azure.clientSecret}
+                    onChange={(event) => setAzure({ ...azure, clientSecret: event.target.value })}
+                  />
+                  <input
+                    aria-label={t("integrations.subscriptionId")}
+                    placeholder={t("integrations.subscriptionId")}
+                    value={azure.subscriptionId}
+                    onChange={(event) => setAzure({ ...azure, subscriptionId: event.target.value })}
+                  />
+                  <button className="btn" type="submit" disabled={busy}>
+                    {t("integrations.connect")}
+                  </button>
+                </form>
+              )}
+              {workspace?.canWrite && provider === "gcp" && !row?.example && (
+                <form
+                  className="stack"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void send("gcp", gcp);
+                  }}
+                >
+                  <input
+                    aria-label={t("integrations.projectId")}
+                    placeholder={t("integrations.projectId")}
+                    value={gcp.projectId}
+                    onChange={(event) => setGcp({ ...gcp, projectId: event.target.value })}
+                  />
+                  <input
+                    aria-label={t("integrations.clientId")}
+                    placeholder={t("integrations.serviceAccount")}
+                    value={gcp.clientId}
+                    onChange={(event) => setGcp({ ...gcp, clientId: event.target.value })}
+                  />
+                  <textarea
+                    aria-label={t("integrations.privateKey")}
+                    placeholder={t("integrations.privateKey")}
+                    value={gcp.clientSecret}
+                    onChange={(event) => setGcp({ ...gcp, clientSecret: event.target.value })}
+                  />
+                  <button className="btn" type="submit" disabled={busy}>
+                    {t("integrations.connect")}
+                  </button>
+                </form>
               )}
               {workspace?.canWrite && provider === "github" && (
                 <form

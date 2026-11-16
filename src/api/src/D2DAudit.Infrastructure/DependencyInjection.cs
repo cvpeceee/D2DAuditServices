@@ -83,7 +83,11 @@ public static class DependencyInjection
         }
 
         services.AddSingleton<AwsCloudProvider>();
+        services.AddHttpClient<AzureCloudProvider>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddHttpClient<GcpCloudProvider>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddScoped<ICloudProvider>(provider => provider.GetRequiredService<AwsCloudProvider>());
+        services.AddScoped<ICloudProvider>(provider => provider.GetRequiredService<AzureCloudProvider>());
+        services.AddScoped<ICloudProvider>(provider => provider.GetRequiredService<GcpCloudProvider>());
         services.AddHttpClient<GoogleWorkspaceDirectory>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddHttpClient<Microsoft365Directory>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddHttpClient<GitHubSourceControl>(client => client.Timeout = TimeSpan.FromSeconds(30));

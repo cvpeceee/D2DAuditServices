@@ -10,7 +10,56 @@ type SeedResource = {
   attributes: Record<string, string>;
 };
 
-const resources = clientSeed.resources as unknown as SeedResource[];
+const resources = [
+  ...(clientSeed.resources as unknown as SeedResource[]),
+  {
+    provider: "azure",
+    kind: "keyVault",
+    externalId: "hl-keys",
+    name: "hl-keys",
+    attributes: { enabled: "true" },
+  },
+  {
+    provider: "azure",
+    kind: "network",
+    externalId: "prod-nsg",
+    name: "prod-nsg",
+    attributes: { open: "false" },
+  },
+  {
+    provider: "azure",
+    kind: "network",
+    externalId: "staging-nsg",
+    name: "staging-nsg",
+    attributes: { open: "true" },
+  },
+  {
+    provider: "azure",
+    kind: "user",
+    externalId: "entra-priya",
+    name: "Priya Nair",
+    attributes: {
+      email: "priya.nair@harborline.example",
+      mfa: "true",
+      offboarded: "false",
+      status: "active",
+    },
+  },
+  {
+    provider: "gcp",
+    kind: "kms",
+    externalId: "key-rings",
+    name: "key-rings",
+    attributes: { enabled: "true" },
+  },
+  {
+    provider: "gcp",
+    kind: "iam",
+    externalId: "project-iam",
+    name: "project-iam",
+    attributes: { public: "false" },
+  },
+];
 
 export function decisionFor(index: number) {
   if (index % 11 === 0) return "Revoked";
@@ -37,6 +86,28 @@ function evaluateUsers(
   return missing.length === 0
     ? { outcome: "pass" as const, detail: `${users.length} active users match.` }
     : { outcome: "fail" as const, detail: `${failure}: ${missing.join(", ")}.` };
+}
+
+function evaluateProvider(
+  provider: string,
+  kind: string,
+  attribute: string,
+  expected: string,
+  empty: string,
+  failure: string,
+  any = false,
+) {
+  const rows = resources.filter((item) => item.provider === provider && item.kind === kind);
+  if (rows.length === 0) return { outcome: "notRun" as const, detail: empty };
+  if (any) {
+    return rows.some((item) => flag(item, attribute) === expected)
+      ? { outcome: "pass" as const, detail: `${rows.length} ${provider} ${kind} resources match.` }
+      : { outcome: "fail" as const, detail: failure };
+  }
+  const bad = rows.filter((item) => flag(item, attribute) !== expected).map((item) => item.name);
+  return bad.length === 0
+    ? { outcome: "pass" as const, detail: `${rows.length} ${provider} ${kind} resources match.` }
+    : { outcome: "fail" as const, detail: `${failure}: ${bad.join(", ")}.` };
 }
 
 function evaluateAll(
@@ -107,6 +178,91 @@ export function evaluateCheck(key: string) {
       );
     case "offboarded-removed":
       return evaluateLeavers();
+    case "azure-storage-public":
+      return evaluateProvider(
+        "azure",
+        "bucket",
+        "public",
+        "false",
+        "No Azure storage accounts were collected.",
+        "Public blob access is on",
+      );
+    case "azure-key-vault":
+      return evaluateProvider(
+        "azure",
+        "keyVault",
+        "enabled",
+        "true",
+        "No Azure Key Vault was collected.",
+        "A Key Vault is not enabled.",
+        true,
+      );
+    case "azure-activity-log":
+      return evaluateProvider(
+        "azure",
+        "trail",
+        "enabled",
+        "true",
+        "No Azure activity log was collected.",
+        "Activity log alerts are off.",
+        true,
+      );
+    case "azure-network-rules":
+      return evaluateProvider(
+        "azure",
+        "network",
+        "open",
+        "false",
+        "No Azure network rules were collected.",
+        "A network rule allows the internet",
+      );
+    case "entra-mfa":
+      return evaluateProvider(
+        "azure",
+        "user",
+        "mfa",
+        "true",
+        "No active Entra ID users were collected.",
+        "These active users have no MFA",
+      );
+    case "gcp-bucket-public":
+      return evaluateProvider(
+        "gcp",
+        "bucket",
+        "public",
+        "false",
+        "No GCP buckets were collected.",
+        "Public access prevention is off",
+      );
+    case "gcp-kms":
+      return evaluateProvider(
+        "gcp",
+        "kms",
+        "enabled",
+        "true",
+        "No GCP KMS inventory was collected.",
+        "Cloud KMS key rings are missing.",
+        true,
+      );
+    case "gcp-audit-log":
+      return evaluateProvider(
+        "gcp",
+        "trail",
+        "enabled",
+        "true",
+        "No GCP audit log was collected.",
+        "An audit log sink is missing.",
+        true,
+      );
+    case "gcp-iam-public":
+      return evaluateProvider(
+        "gcp",
+        "iam",
+        "public",
+        "false",
+        "No GCP IAM policy was collected.",
+        "The project policy is public",
+      );
     default:
       return { outcome: "notRun" as const, detail: "" };
   }
