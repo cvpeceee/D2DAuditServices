@@ -291,6 +291,13 @@ async function route(
     record(actor, "people.synced", "ok", String(data.people.length));
     return json(data.people.length);
   }
+  if (
+    (path === "/api/v1/people/import/okta" || path === "/api/v1/people/import/hris") &&
+    method === "POST"
+  ) {
+    requireWrite(actor);
+    return json({ imported: 0 });
+  }
   if (path.startsWith("/api/v1/people/") && path.endsWith("/tasks") && method === "POST") {
     return json(setTask(data, actor, path.slice("/api/v1/people/".length, -"/tasks".length), body));
   }

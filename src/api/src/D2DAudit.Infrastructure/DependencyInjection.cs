@@ -104,8 +104,12 @@ public static class DependencyInjection
         services.AddScoped<CollectionRunner>();
         services.AddScoped<IIntegrationQuery, IntegrationQuery>();
         services.AddScoped<IPolicyPortal, PolicyPortal>();
-        services.AddScoped<IIssueTracker, FakeIssueTracker>();
-        services.AddScoped<INotifier, FakeNotifier>();
+        services.AddHttpClient<ConfiguredIssueTracker>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddScoped<IIssueTracker>(provider => provider.GetRequiredService<ConfiguredIssueTracker>());
+        services.AddHttpClient<ConfiguredNotifier>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddScoped<INotifier>(provider => provider.GetRequiredService<ConfiguredNotifier>());
+        services.AddHttpClient<WorkforceImport>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddScoped<IWorkforceImport>(provider => provider.GetRequiredService<WorkforceImport>());
         services.AddScoped<IAutomationDispatcher, AutomationDispatcher>();
         services.AddScoped<IGovernance, GovernancePortal>();
         services.AddScoped<IOperations, OperationsPortal>();

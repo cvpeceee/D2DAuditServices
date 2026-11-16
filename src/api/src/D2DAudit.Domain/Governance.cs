@@ -21,6 +21,8 @@ public enum DirectorySource
     Google,
     Microsoft,
     Mixed,
+    Okta,
+    Hris,
 }
 
 public enum TrainingState
