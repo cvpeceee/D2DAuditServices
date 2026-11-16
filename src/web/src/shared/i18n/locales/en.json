@@ -16,6 +16,7 @@
     "computers": "Computers",
     "vulnerabilities": "Vulnerabilities",
     "incidents": "Incidents",
+    "changes": "Changes",
     "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
@@ -836,6 +837,39 @@
       "Status": "Status",
       "Note": "Note",
       "Resolved": "Resolved"
+    }
+  },
+  "changesPage": {
+    "title": "Changes",
+    "sub": "Pull requests, Jira issues, and manual changes, with the approval and the deploy they shipped in.",
+    "code": "Change",
+    "source": "Source",
+    "status": "Status",
+    "review": "Approval",
+    "deploy": "Deploy",
+    "deployRef": "Deploy reference",
+    "repository": "Repository",
+    "author": "Author",
+    "key": "External key",
+    "unreviewed": "Not reviewed",
+    "approve": "Approve",
+    "linkDeploy": "Link deploy",
+    "reject": "Reject",
+    "record": "Record a change",
+    "titleField": "Title",
+    "sync": "Sync GitHub and Jira",
+    "synced": "Imported {{count}} changes.",
+    "saved": "Change recorded.",
+    "sources": {
+      "github": "GitHub",
+      "jira": "Jira",
+      "manual": "Manual"
+    },
+    "statuses": {
+      "Open": "Open",
+      "Approved": "Approved",
+      "Deployed": "Deployed",
+      "Rejected": "Rejected"
     }
   },
   "computersPage": {

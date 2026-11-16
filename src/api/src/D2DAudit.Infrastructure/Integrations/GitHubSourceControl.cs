@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -63,6 +64,84 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
         }
 
         return CollectLiveAsync(connection, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ExternalChange>> MergedPullRequestsAsync(ProviderConnection connection, CancellationToken cancellationToken)
+    {
+        if (connection.Example || string.IsNullOrWhiteSpace(connection.InstallationId))
+        {
+            return [];
+        }
+
+        var token = await InstallationTokenAsync(connection.InstallationId, cancellationToken);
+        var api = configuration["Integrations:GitHubApiEndpoint"];
+        if (token is null || string.IsNullOrWhiteSpace(api))
+        {
+            return [];
+        }
+
+        var root = api.TrimEnd('/');
+        using var repos = await GetAsync(root + "/installation/repositories?per_page=10", token, cancellationToken);
+        if (repos is null || !repos.RootElement.TryGetProperty("repositories", out var rows))
+        {
+            return [];
+        }
+
+        var changes = new List<ExternalChange>();
+        var seen = 0;
+        foreach (var repo in rows.EnumerateArray())
+        {
+            if (seen == 10)
+            {
+                break;
+            }
+
+            seen++;
+            var name = Text(repo, "full_name");
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            using var pulls = await GetAsync(root + "/repos/" + RepoPath(name) + "/pulls?state=closed&per_page=10&sort=updated&direction=desc", token, cancellationToken);
+            if (pulls is null)
+            {
+                continue;
+            }
+
+            foreach (var pull in pulls.RootElement.EnumerateArray())
+            {
+                var merged = Text(pull, "merged_at");
+                if (string.IsNullOrWhiteSpace(merged) || !DateTimeOffset.TryParse(merged, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var deployedAt))
+                {
+                    continue;
+                }
+
+                var number = pull.TryGetProperty("number", out var numberValue) && numberValue.TryGetInt32(out var parsed) ? parsed : 0;
+                if (number == 0)
+                {
+                    continue;
+                }
+
+                var title = Text(pull, "title");
+                var author = pull.TryGetProperty("user", out var user) ? Text(user, "login") : "";
+                var sha = Text(pull, "merge_commit_sha");
+                var approver = await ApproverAsync(root, token, name, number, author, cancellationToken);
+                var label = string.IsNullOrWhiteSpace(title) ? "Pull request " + number.ToString(CultureInfo.InvariantCulture) : title;
+                changes.Add(new ExternalChange(
+                    "github",
+                    name + "#" + number.ToString(CultureInfo.InvariantCulture),
+                    label,
+                    name,
+                    author,
+                    approver.Length > 0,
+                    approver,
+                    deployedAt,
+                    sha));
+            }
+        }
+
+        return changes;
     }
 
     private async Task<Result<ProviderCollect>> CollectLiveAsync(ProviderConnection connection, CancellationToken cancellationToken)
@@ -159,6 +238,41 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
                 ["status"] = "active",
             }));
         }
+    }
+
+    private async Task<string> ApproverAsync(string api, string token, string fullName, int number, string author, CancellationToken cancellationToken)
+    {
+        using var reviews = await GetAsync(
+            api + "/repos/" + RepoPath(fullName) + "/pulls/" + number.ToString(CultureInfo.InvariantCulture) + "/reviews",
+            token,
+            cancellationToken);
+        if (reviews is null)
+        {
+            return "";
+        }
+
+        foreach (var review in reviews.RootElement.EnumerateArray())
+        {
+            var state = Text(review, "state");
+            var login = review.TryGetProperty("user", out var user) ? Text(user, "login") : "";
+            if (state == "APPROVED" && login.Length > 0 && !string.Equals(login, author, StringComparison.OrdinalIgnoreCase))
+            {
+                return login;
+            }
+        }
+
+        return "";
+    }
+
+    private static string RepoPath(string fullName)
+    {
+        var parts = fullName.Split('/', 2);
+        if (parts.Length != 2)
+        {
+            return Uri.EscapeDataString(fullName);
+        }
+
+        return Uri.EscapeDataString(parts[0]) + "/" + Uri.EscapeDataString(parts[1]);
     }
 
     private async Task<bool> BranchProtectedAsync(string api, string token, string fullName, string branch, CancellationToken cancellationToken)

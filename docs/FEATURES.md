@@ -11,7 +11,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 1 | P0 | Live Azure and GCP collectors (Entra ID users and MFA, storage public access, Key Vault or KMS, logging, network rules; GCP IAM, buckets, KMS, audit logs) with tests mapped to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/12 |
 | 2 | P0 | Framework readiness percent on the dashboard and framework pages, plus a one-page executive PDF | Done | https://github.com/cvpeceee/D2DAuditServices/pull/13 |
 | 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/14 |
-| 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Not started | |
+| 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/15 |
 | 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Not started | |
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Not started | |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Not started | |
@@ -49,7 +49,9 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/people` | Directory, MFA, training, device, background check. | Sync, set status, record a background check. | Write roles |
 | `/people/computers` | Serial, OS, owner, encryption, screen lock, antivirus, password manager, auto-update, check-in, MDM or manual. | Add a computer, upload a screenshot as evidence. | Write roles |
 | `/vulnerabilities` | By asset, by vulnerability, ignored, SLA history. | Ignore with a reason, set SLA days. | Write roles |
-| `/me` | The signed-in person's policy, training, MFA, device, and background cards. | Complete a card. Evidence is stored. | The signed-in person |
+| `/incidents` | Severity, SLA, timeline, root cause, and a linked control. | Report, update status, record a root cause. | Report: any member. Update: write roles |
+| `/changes` | GitHub pull requests, Jira issues, and manual changes, with approval and the deploy they shipped in. | Record, approve, reject, link a deploy, sync. | Write roles record and update. Anyone in the workspace can read. |
+| `/me` | The signed-in person's policy, training, MFA, device, background cards, and incident report. | Complete a card. Report an incident. | The signed-in person |
 | `/training` | Annual module and an external course with a certificate upload. | Take the quiz, upload a certificate. | Assigned people |
 | `/assets` | Inventory from connections, owners, scope, CSV. | Import and export. | Write roles |
 | `/tasks` | Work linked to a control, test, risk, vendor, or policy. | Create and complete. | Write roles create. Owners complete |
@@ -76,6 +78,12 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 ## Trust center
 
 `/trust/harborline` is public. It shows frameworks, how many mapped controls are passing, public documents, and NDA documents without the file name. A visitor can request access. `/trust-center` is where an admin publishes the page and approves or denies requests.
+
+## Changes
+
+`/changes` is the production change log. Harborline is seeded with two GitHub pull requests and one Jira issue. CHG-02 is deployed without an approval, so the CM-11 test "production changes are reviewed" fails and names that change. Approving it, or linking a deploy on a change that already has an approval, refreshes the test.
+
+Sync reads merged pull requests when a non-example GitHub App installation is connected. A merged request counts as the deploy, and an approving review by someone other than the author counts as the approval. Jira is read when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `JIRA_PROJECT` are set. The feed asks for issues labeled `production-change`. Status Approved, Done, or Deployed counts as approval. Status Deployed also links the deploy. With those settings missing, sync adds nothing. The Harborline Jira row is seed data.
 
 ## Automation
 

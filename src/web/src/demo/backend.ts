@@ -11,6 +11,7 @@ import {
 import { assetCsv, handleProgram } from "./program";
 import { currentPeriod, handleM6, inAuditPeriod, publicTrust, resetPeriod } from "./m6";
 import { handleIncidents } from "./incidents";
+import { handleChanges } from "./changes";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -153,6 +154,8 @@ async function route(
   if (milestone) return milestone;
   const incident = handleIncidents(method, path, body, data, actor);
   if (incident) return incident;
+  const change = handleChanges(method, path, body, data, actor);
+  if (change) return change;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
