@@ -119,6 +119,9 @@ public static class DependencyInjection
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddSingleton<AwsInspectorFeed>();
         services.AddScoped<IVulnerabilityIngest, VulnerabilityIngest>();
+        services.AddHttpClient<MdmImport>(client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddScoped<IMdmImport>(provider => provider.GetRequiredService<MdmImport>());
+        services.AddScoped<IDeviceFleet, DeviceFleet>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();
