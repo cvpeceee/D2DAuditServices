@@ -19,6 +19,7 @@
     "changes": "Changes",
     "questionnaires": "Questionnaires",
     "description": "System description",
+    "continuity": "Continuity",
     "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
@@ -904,6 +905,45 @@
     "saved": "Description saved. The audit package includes this text.",
     "redraft": "Draft again from workspace data",
     "redrafted": "Draft replaced from the current workspace."
+  },
+  "continuityPage": {
+    "title": "Continuity",
+    "sub": "Business impact, continuity and recovery plans, and the exercises that prove them. A failed exercise fails BC-01.",
+    "services": "Business impact",
+    "service": "Service",
+    "criticality": "Criticality",
+    "rto": "RTO",
+    "rpo": "RPO",
+    "hours": "{{count}} hours",
+    "owner": "Owner",
+    "control": "Control",
+    "plans": "Plans",
+    "plan": "Plan",
+    "kind": "Kind",
+    "body": "Plan text",
+    "exercises": "Exercises",
+    "exercise": "Exercise",
+    "result": "Result",
+    "ran": "Ran",
+    "notes": "Notes",
+    "noPlan": "No plan",
+    "addService": "Add a service",
+    "addPlan": "Add a plan",
+    "addExercise": "Record an exercise",
+    "criticalities": {
+      "Critical": "Critical",
+      "High": "High",
+      "Medium": "Medium",
+      "Low": "Low"
+    },
+    "kinds": {
+      "Continuity": "Continuity",
+      "DisasterRecovery": "Disaster recovery"
+    },
+    "results": {
+      "Pass": "Passed",
+      "Fail": "Failed"
+    }
   },
   "computersPage": {
     "title": "Computers",

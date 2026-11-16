@@ -126,6 +126,7 @@ app.MapIncidentEndpoints();
 app.MapChangeEndpoints();
 app.MapQuestionnaireEndpoints();
 app.MapSystemDescriptionEndpoints();
+app.MapContinuityEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

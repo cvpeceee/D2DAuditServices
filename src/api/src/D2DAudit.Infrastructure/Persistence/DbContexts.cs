@@ -195,6 +195,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<SystemDescription> SystemDescriptions => Set<SystemDescription>();
 
+    public DbSet<ImpactAnalysis> ImpactAnalyses => Set<ImpactAnalysis>();
+
+    public DbSet<ContinuityPlan> ContinuityPlans => Set<ContinuityPlan>();
+
+    public DbSet<RecoveryExercise> RecoveryExercises => Set<RecoveryExercise>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -682,6 +688,31 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         description.HasKey(x => x.Id);
         description.Property(x => x.Body).HasMaxLength(20000).IsRequired();
         description.Property(x => x.UpdatedBy).HasMaxLength(200).HasDefaultValue("");
+
+        var impact = modelBuilder.Entity<ImpactAnalysis>();
+        impact.ToTable("impact_analyses");
+        impact.HasKey(x => x.Id);
+        impact.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        impact.Property(x => x.Criticality).HasMaxLength(16).IsRequired();
+        impact.Property(x => x.OwnerName).HasMaxLength(200).HasDefaultValue("");
+        impact.Property(x => x.ControlCode).HasMaxLength(32).HasDefaultValue("");
+        impact.Property(x => x.Notes).HasMaxLength(2000).HasDefaultValue("");
+
+        var plan = modelBuilder.Entity<ContinuityPlan>();
+        plan.ToTable("continuity_plans");
+        plan.HasKey(x => x.Id);
+        plan.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        plan.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        plan.Property(x => x.Body).HasMaxLength(8000).IsRequired();
+        plan.Property(x => x.ControlCode).HasMaxLength(32).HasDefaultValue("");
+
+        var exercise = modelBuilder.Entity<RecoveryExercise>();
+        exercise.ToTable("recovery_exercises");
+        exercise.HasKey(x => x.Id);
+        exercise.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        exercise.Property(x => x.Result).HasMaxLength(16).IsRequired();
+        exercise.Property(x => x.Notes).HasMaxLength(2000).HasDefaultValue("");
+        exercise.Property(x => x.ControlCode).HasMaxLength(32).HasDefaultValue("");
     }
 }
 

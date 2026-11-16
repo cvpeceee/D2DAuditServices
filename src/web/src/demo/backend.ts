@@ -14,6 +14,7 @@ import { handleIncidents } from "./incidents";
 import { handleChanges } from "./changes";
 import { handleQuestionnaires } from "./questionnaires";
 import { descriptionOf, handleDescription } from "./description";
+import { handleContinuity } from "./continuity";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -162,6 +163,8 @@ async function route(
   if (questionnaire) return questionnaire;
   const description = handleDescription(method, path, body, data, actor);
   if (description) return description;
+  const continuity = handleContinuity(method, path, body, data, actor);
+  if (continuity) return continuity;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
