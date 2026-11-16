@@ -2,6 +2,7 @@ using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Audits;
 using D2DAudit.Infrastructure.Changes;
+using D2DAudit.Infrastructure.Questionnaires;
 using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Catalog;
 using D2DAudit.Infrastructure.Policies;
@@ -110,6 +111,8 @@ public static class DependencyInjection
         services.AddHttpClient<JiraChangeFeed>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddScoped<IJiraChangeFeed>(provider => provider.GetRequiredService<JiraChangeFeed>());
         services.AddScoped<IChanges, ChangePortal>();
+        services.AddSingleton<IQuestionnaireAssistant, DeterministicQuestionnaireAssistant>();
+        services.AddScoped<IQuestionnaires, QuestionnairePortal>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();

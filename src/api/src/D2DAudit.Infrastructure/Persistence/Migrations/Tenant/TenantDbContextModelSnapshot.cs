@@ -1184,6 +1184,61 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("policy_versions", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.QuestionnaireAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Accepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Citation")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasDefaultValue("");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("QuestionnaireId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReviewerName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Suggestion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasDefaultValue("");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionnaireId");
+
+                    b.ToTable("questionnaire_answers", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.Requirement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1523,6 +1578,35 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                         .IsUnique();
 
                     b.ToTable("incidents", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.SecurityQuestionnaire", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("questionnaires", (string)null);
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.SlaEvent", b =>
@@ -2239,6 +2323,17 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Policy");
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.QuestionnaireAnswer", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.SecurityQuestionnaire", "Questionnaire")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionnaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Questionnaire");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.Requirement", b =>
                 {
                     b.HasOne("D2DAudit.Domain.FrameworkRecord", "Framework")
@@ -2373,6 +2468,11 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
             modelBuilder.Entity("D2DAudit.Domain.SecurityIncident", b =>
                 {
                     b.Navigation("Timeline");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.SecurityQuestionnaire", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.VendorRecord", b =>

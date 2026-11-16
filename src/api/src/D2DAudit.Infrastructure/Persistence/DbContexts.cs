@@ -189,6 +189,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<ChangeRecord> Changes => Set<ChangeRecord>();
 
+    public DbSet<SecurityQuestionnaire> Questionnaires => Set<SecurityQuestionnaire>();
+
+    public DbSet<QuestionnaireAnswer> QuestionnaireAnswers => Set<QuestionnaireAnswer>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -653,6 +657,23 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         change.Property(x => x.DeployRef).HasMaxLength(80).HasDefaultValue("");
         change.HasIndex(x => x.Code).IsUnique();
         change.HasIndex(x => new { x.Source, x.ExternalKey });
+
+        var questionnaire = modelBuilder.Entity<SecurityQuestionnaire>();
+        questionnaire.ToTable("questionnaires");
+        questionnaire.HasKey(x => x.Id);
+        questionnaire.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        questionnaire.Property(x => x.CustomerName).HasMaxLength(200).IsRequired();
+        questionnaire.Property(x => x.Status).HasMaxLength(16).IsRequired();
+
+        var answer = modelBuilder.Entity<QuestionnaireAnswer>();
+        answer.ToTable("questionnaire_answers");
+        answer.HasKey(x => x.Id);
+        answer.Property(x => x.Question).HasMaxLength(1000).IsRequired();
+        answer.Property(x => x.Suggestion).HasMaxLength(4000).HasDefaultValue("");
+        answer.Property(x => x.Citation).HasMaxLength(300).HasDefaultValue("");
+        answer.Property(x => x.Answer).HasMaxLength(4000).HasDefaultValue("");
+        answer.Property(x => x.ReviewerName).HasMaxLength(200).HasDefaultValue("");
+        answer.HasOne(x => x.Questionnaire).WithMany(x => x.Answers).HasForeignKey(x => x.QuestionnaireId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 
