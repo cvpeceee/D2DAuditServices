@@ -177,6 +177,22 @@ export async function buildM6(controls: DemoControl[], evidence: DemoEvidence[],
       shift(now, -2),
     ),
   );
+  computers.push({
+    id: crypto.randomUUID(),
+    serial: "HL-AGT-1001",
+    operatingSystem: "macOS 15.1",
+    ownerName: "Dev Patel",
+    ownerEmail: `dev.patel@${company.domain}`,
+    encrypted: true,
+    screenLock: false,
+    antivirus: true,
+    passwordManager: true,
+    autoUpdate: true,
+    lastCheckIn: shift(now, 0).toISOString(),
+    source: "Agent",
+    screenshotName: null,
+    evidenceId: null,
+  });
 
   const findings: DemoVulnerability[] = [
     finding(
@@ -746,6 +762,13 @@ export function handleM6(
 ) {
   if (path === "/api/v1/computers" && method === "GET") return json(stateOf(data).computers);
   if (path === "/api/v1/computers" && method === "POST") return saveComputer(data, actor, body);
+  if (path === "/api/v1/computers/check-in" && method === "POST") {
+    return saveComputer(data, actor, { ...body, source: "Agent" });
+  }
+  if (path === "/api/v1/computers/mdm-sync" && method === "POST") {
+    if (!canWrite(actor)) return fail(403, "forbidden");
+    return json({ imported: 0 });
+  }
   if (path.startsWith("/api/v1/computers/") && path.endsWith("/screenshot") && method === "POST") {
     return screenshot(data, actor, path.split("/")[4], body);
   }
@@ -801,7 +824,7 @@ function saveComputer(data: DemoWorld, actor: Actor, body: Record<string, unknow
   const operatingSystem = String(body.operatingSystem ?? "").trim();
   const ownerName = String(body.ownerName ?? "").trim();
   const ownerEmail = String(body.ownerEmail ?? "").trim();
-  const source = body.source === "Mdm" ? "Mdm" : "Manual";
+  const source = body.source === "Mdm" || body.source === "Agent" ? String(body.source) : "Manual";
   if (!serial || !operatingSystem || !ownerName || !ownerEmail.includes("@"))
     return fail(400, "invalid_computer");
   const computers = stateOf(data).computers;

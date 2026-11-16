@@ -51,6 +51,7 @@ internal static class OperationsExample
         var domain = ClientSeed.Company.Domain;
         db.Computers.Add(Computer("HL-MAN-1044", "macOS 15.1", "Chandra Vell", "chandra.vell@" + domain, true, true, true, true, true, now.AddHours(-6), "Manual"));
         db.Computers.Add(Computer("HL-MAN-2201", "Windows 11 24H2", "Lena Cho", "lena.cho@" + domain, true, true, false, true, true, now.AddDays(-2), "Manual"));
+        db.Computers.Add(Computer("HL-AGT-1001", "macOS 15.1", "Dev Patel", "dev.patel@" + domain, true, false, true, true, true, now.AddHours(-1), "Agent"));
     }
 
     private static ComputerRecord Computer(string serial, string os, string owner, string email, bool encrypted, bool screen, bool antivirus, bool passwords, bool updates, DateTimeOffset seen, string source) => new()

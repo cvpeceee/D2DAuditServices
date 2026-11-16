@@ -64,7 +64,8 @@ export function ComputersPage() {
     if (!tenantId) return;
     setError(null);
     try {
-      await api("/api/v1/computers", { method: "POST", tenantId, body: form });
+      const path = form.source === "Agent" ? "/api/v1/computers/check-in" : "/api/v1/computers";
+      await api(path, { method: "POST", tenantId, body: form });
       setForm(blank);
       setNotice(t("computersPage.saved"));
       load();
@@ -96,6 +97,24 @@ export function ComputersPage() {
           <h1>{t("computersPage.title")}</h1>
           <div className="sub">{t("computersPage.sub")}</div>
         </div>
+        {workspace?.canWrite && (
+          <button
+            className="btn"
+            type="button"
+            onClick={() => {
+              if (!tenantId) return;
+              void api<{ imported: number }>("/api/v1/computers/mdm-sync", {
+                method: "POST",
+                tenantId,
+              }).then((result) => {
+                setNotice(t("computersPage.mdmSynced", { count: result.imported }));
+                load();
+              });
+            }}
+          >
+            {t("computersPage.mdmSync")}
+          </button>
+        )}
       </div>
       {error && (
         <div className="error" role="alert">
@@ -210,6 +229,7 @@ export function ComputersPage() {
               onChange={(event) => setForm({ ...form, source: event.target.value })}
             >
               <option value="Manual">{t("computersPage.sources.Manual")}</option>
+              <option value="Agent">{t("computersPage.sources.Agent")}</option>
               <option value="Mdm">{t("computersPage.sources.Mdm")}</option>
             </select>
           </div>

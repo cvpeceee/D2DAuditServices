@@ -16,7 +16,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Done | https://github.com/cvpeceee/D2DAuditServices/pull/17 |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
-| 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Not started | |
+| 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Done | https://github.com/cvpeceee/D2DAuditServices/pull/20 |
 | 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
 | 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, FedRAMP Moderate, HITRUST, CMMC, and custom framework upload | Not started | |
 | 12 | P1 | Public REST API with API keys, OpenAPI, and webhooks | Not started | |
@@ -72,7 +72,7 @@ The person drawer records a provider, a link, an uploaded report, a completed da
 
 ## Computers
 
-`/people/computers` lists machines. MDM rows come from the example device list. Manual rows are entered on the form. A screenshot upload is stored as evidence. A read-only device agent is still later. The screen does not invent agent telemetry beyond the seeded MDM rows and the file the user uploads.
+`/people/computers` lists machines. An agent check-in records encryption, screen lock, antivirus, password manager, and OS update, and marks the row Agent. Jamf, Intune, and Kandji are read when `JAMF_BASE_URL` and `JAMF_TOKEN`, `INTUNE_GRAPH_URL` and `INTUNE_TOKEN`, or `KANDJI_BASE_URL` and `KANDJI_TOKEN` are set. Without those settings sync imports nothing. Harborline keeps its example MDM rows and one agent check-in, HL-AGT-1001, whose screen lock is off. A screenshot upload is stored as evidence.
 
 ## Vulnerabilities
 

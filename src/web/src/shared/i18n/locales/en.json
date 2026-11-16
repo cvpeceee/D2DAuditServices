@@ -947,7 +947,9 @@
   },
   "computersPage": {
     "title": "Computers",
-    "sub": "Laptops and workstations reported by MDM, plus machines recorded by hand. A device agent can replace the manual check later.",
+    "sub": "Laptops reported by the read-only agent, by Jamf, Intune, or Kandji when those are configured, and by hand.",
+    "mdmSync": "Sync Jamf, Intune, and Kandji",
+    "mdmSynced": "Imported {{count}} devices. Harborline keeps its example MDM rows until a live tenant is connected.",
     "serial": "Serial",
     "os": "Operating system",
     "owner": "Owner",
@@ -970,7 +972,8 @@
     "off": "Off",
     "sources": {
       "Mdm": "MDM",
-      "Manual": "Manual"
+      "Manual": "Manual",
+      "Agent": "Agent"
     }
   },
   "vulnPage": {
