@@ -1,5 +1,6 @@
 using System.Text.Json;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Operations;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,8 @@ internal static class ProgramExample
             AddTasks(db, today);
         }
 
+        await OperationsExample.ApplyAsync(db, today, now, cancellationToken);
+
         if (!db.AccessCampaigns.Local.Any(item => item.State == CampaignState.Draft))
         {
             db.AccessCampaigns.Add(new AccessCampaign
@@ -48,15 +51,25 @@ internal static class ProgramExample
         {
             person.MfaEnrolled = Mfa(snapshots, person.Email);
             person.DeviceStatus = devices.Contains(person.Email) ? "Reporting" : "Missing";
-            var tenured = person.HireOn is DateOnly hired && hired.AddDays(30) <= today;
-            if (person.State == PersonState.Active && !tenured)
+            var age = person.HireOn is DateOnly hired ? today.DayNumber - hired.DayNumber : 400;
+            if (person.Email.StartsWith("avery.dunn@", StringComparison.OrdinalIgnoreCase))
+            {
+                person.BackgroundStatus = "Excluded";
+                person.BackgroundExcluded = true;
+                person.BackgroundExclusionReason = "The staffing agency confirmed screening in the contract file.";
+                person.BackgroundProvider = "Agency";
+                person.BackgroundOn = person.HireOn;
+            }
+            else if (person.State == PersonState.Active && age <= 10)
             {
                 person.BackgroundStatus = "Pending";
             }
-            else if (tenured)
+            else if (person.State == PersonState.Active && person.HireOn is DateOnly hiredOn)
             {
                 person.BackgroundStatus = "Clear";
-                person.BackgroundOn = person.HireOn?.AddDays(14);
+                person.BackgroundOn = hiredOn.AddDays(5);
+                person.BackgroundProvider = age % 2 == 0 ? "Checkr" : "Sterling";
+                person.BackgroundLink = "https://checks.example/" + person.Email;
             }
 
             if (person.Training == TrainingState.Complete)

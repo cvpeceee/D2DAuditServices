@@ -165,6 +165,24 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<TrainingCompletion> TrainingCompletions => Set<TrainingCompletion>();
 
+    public DbSet<ComputerRecord> Computers => Set<ComputerRecord>();
+
+    public DbSet<VulnerabilityRecord> Vulnerabilities => Set<VulnerabilityRecord>();
+
+    public DbSet<VulnerabilityPolicy> VulnerabilityPolicies => Set<VulnerabilityPolicy>();
+
+    public DbSet<SlaEvent> SlaEvents => Set<SlaEvent>();
+
+    public DbSet<TrustProfile> TrustProfiles => Set<TrustProfile>();
+
+    public DbSet<TrustDocument> TrustDocuments => Set<TrustDocument>();
+
+    public DbSet<TrustAccessRequest> TrustRequests => Set<TrustAccessRequest>();
+
+    public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();
+
+    public DbSet<AutomationDelivery> AutomationDeliveries => Set<AutomationDelivery>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -197,6 +215,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         control.Property(x => x.OwnerName).HasMaxLength(200);
         control.Property(x => x.OwnerEmail).HasMaxLength(320);
         control.Property(x => x.Frequency).HasMaxLength(64).IsRequired();
+        control.Property(x => x.Custom).HasDefaultValue(false);
         control.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
         control.HasIndex(x => x.Code).IsUnique();
 
@@ -370,6 +389,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         person.Property(x => x.State).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.Training).HasConversion<string>().HasMaxLength(32);
         person.Property(x => x.BackgroundStatus).HasMaxLength(32).HasDefaultValue("NotStarted");
+        person.Property(x => x.BackgroundProvider).HasMaxLength(100).HasDefaultValue("");
+        person.Property(x => x.BackgroundLink).HasMaxLength(500).HasDefaultValue("");
+        person.Property(x => x.BackgroundExclusionReason).HasMaxLength(500).HasDefaultValue("");
+        person.Property(x => x.BackgroundExcluded).HasDefaultValue(false);
         person.Property(x => x.DeviceStatus).HasMaxLength(32).HasDefaultValue("Missing");
         person.Property(x => x.StatusReason).HasMaxLength(500).HasDefaultValue("");
         person.Property(x => x.MfaEnrolled).HasDefaultValue(false);
@@ -512,6 +535,81 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         completion.Property(x => x.PersonEmail).HasMaxLength(320).IsRequired();
         completion.HasIndex(x => new { x.ModuleId, x.PersonEmail }).IsUnique();
         completion.HasOne(x => x.Module).WithMany().HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.Cascade);
+
+        var computer = modelBuilder.Entity<ComputerRecord>();
+        computer.ToTable("computers");
+        computer.HasKey(x => x.Id);
+        computer.Property(x => x.Serial).HasMaxLength(64).IsRequired();
+        computer.Property(x => x.OperatingSystem).HasMaxLength(80).IsRequired();
+        computer.Property(x => x.OwnerName).HasMaxLength(200).IsRequired();
+        computer.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        computer.Property(x => x.Source).HasMaxLength(16).IsRequired();
+        computer.Property(x => x.ScreenshotName).HasMaxLength(200);
+        computer.HasIndex(x => x.Serial).IsUnique();
+
+        var vulnerability = modelBuilder.Entity<VulnerabilityRecord>();
+        vulnerability.ToTable("vulnerabilities");
+        vulnerability.HasKey(x => x.Id);
+        vulnerability.Property(x => x.Cve).HasMaxLength(32).IsRequired();
+        vulnerability.Property(x => x.Title).HasMaxLength(300).IsRequired();
+        vulnerability.Property(x => x.Severity).HasMaxLength(16).IsRequired();
+        vulnerability.Property(x => x.AssetName).HasMaxLength(200).IsRequired();
+        vulnerability.Property(x => x.Source).HasMaxLength(40).IsRequired();
+        vulnerability.Property(x => x.IgnoreReason).HasMaxLength(500).HasDefaultValue("");
+        vulnerability.HasIndex(x => new { x.Cve, x.AssetName }).IsUnique();
+
+        var slaPolicy = modelBuilder.Entity<VulnerabilityPolicy>();
+        slaPolicy.ToTable("vulnerability_policies");
+        slaPolicy.HasKey(x => x.Id);
+
+        var sla = modelBuilder.Entity<SlaEvent>();
+        sla.ToTable("sla_events");
+        sla.HasKey(x => x.Id);
+        sla.Property(x => x.Cve).HasMaxLength(32).IsRequired();
+        sla.Property(x => x.AssetName).HasMaxLength(200).IsRequired();
+        sla.Property(x => x.EventKind).HasMaxLength(32).IsRequired();
+        sla.Property(x => x.Detail).HasMaxLength(500).IsRequired();
+
+        var trust = modelBuilder.Entity<TrustProfile>();
+        trust.ToTable("trust_profiles");
+        trust.HasKey(x => x.Id);
+        trust.Property(x => x.Headline).HasMaxLength(200).IsRequired();
+        trust.Property(x => x.Summary).HasMaxLength(2000).IsRequired();
+        trust.Property(x => x.ContactEmail).HasMaxLength(320).IsRequired();
+
+        var trustDocument = modelBuilder.Entity<TrustDocument>();
+        trustDocument.ToTable("trust_documents");
+        trustDocument.HasKey(x => x.Id);
+        trustDocument.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        trustDocument.Property(x => x.Summary).HasMaxLength(1000).IsRequired();
+        trustDocument.Property(x => x.Access).HasMaxLength(16).IsRequired();
+        trustDocument.Property(x => x.FileName).HasMaxLength(200).IsRequired();
+
+        var trustRequest = modelBuilder.Entity<TrustAccessRequest>();
+        trustRequest.ToTable("trust_requests");
+        trustRequest.HasKey(x => x.Id);
+        trustRequest.Property(x => x.RequesterName).HasMaxLength(200).IsRequired();
+        trustRequest.Property(x => x.RequesterEmail).HasMaxLength(320).IsRequired();
+        trustRequest.Property(x => x.Company).HasMaxLength(200).IsRequired();
+        trustRequest.Property(x => x.Purpose).HasMaxLength(1000).IsRequired();
+        trustRequest.Property(x => x.Status).HasMaxLength(16).IsRequired();
+
+        var rule = modelBuilder.Entity<AutomationRule>();
+        rule.ToTable("automation_rules");
+        rule.HasKey(x => x.Id);
+        rule.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        rule.Property(x => x.Trigger).HasMaxLength(32).IsRequired();
+        rule.Property(x => x.Action).HasMaxLength(16).IsRequired();
+        rule.Property(x => x.Target).HasMaxLength(200).IsRequired();
+
+        var delivery = modelBuilder.Entity<AutomationDelivery>();
+        delivery.ToTable("automation_deliveries");
+        delivery.HasKey(x => x.Id);
+        delivery.Property(x => x.Trigger).HasMaxLength(32).IsRequired();
+        delivery.Property(x => x.Action).HasMaxLength(16).IsRequired();
+        delivery.Property(x => x.Target).HasMaxLength(200).IsRequired();
+        delivery.Property(x => x.Summary).HasMaxLength(300).IsRequired();
+        delivery.Property(x => x.ExternalId).HasMaxLength(80).IsRequired();
     }
 }
 

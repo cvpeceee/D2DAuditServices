@@ -178,6 +178,11 @@
           "framework": "soc2",
           "requirement": "CC1.4",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.3",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -186,6 +191,12 @@
           "kind": "attestation",
           "outcome": "pass",
           "detail": "Example data in the {{company}} workspace."
+        },
+        {
+          "name": "New hires have a background check",
+          "kind": "document",
+          "outcome": "needsEvidence",
+          "detail": "Record a background check, or an exclusion with a reason, for each new hire."
         }
       ]
     },
@@ -207,6 +218,11 @@
           "framework": "soc2",
           "requirement": "CC1.4",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.5",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -246,6 +262,11 @@
           "framework": "iso27018",
           "requirement": "A.10.3",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.3",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -280,6 +301,11 @@
           "framework": "soc2",
           "requirement": "CC6.3",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.4",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -318,6 +344,16 @@
         {
           "framework": "iso27017",
           "requirement": "CLD.12.1.5",
+          "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.312.d",
+          "coverage": "full"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.32",
           "coverage": "partial"
         }
       ],
@@ -422,6 +458,16 @@
           "framework": "iso27018",
           "requirement": "A.11.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.312.e",
+          "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.32",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -490,6 +536,11 @@
           "framework": "soc2",
           "requirement": "CC8.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.25",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -552,6 +603,11 @@
         {
           "framework": "soc2",
           "requirement": "CC6.1",
+          "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.310.d",
           "coverage": "partial"
         }
       ],
@@ -626,6 +682,11 @@
           "framework": "soc2",
           "requirement": "CC9.2",
           "coverage": "full"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.1",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -665,6 +726,11 @@
           "framework": "soc2",
           "requirement": "A1.3",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.7",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -738,6 +804,16 @@
           "framework": "soc2",
           "requirement": "CC7.5",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.6",
+          "coverage": "full"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.33",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -777,6 +853,11 @@
           "framework": "iso27017",
           "requirement": "CLD.12.4.5",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.312.b",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -845,6 +926,11 @@
           "framework": "iso27018",
           "requirement": "A.5.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.28",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -869,6 +955,31 @@
           "framework": "iso27001",
           "requirement": "A.5.34",
           "coverage": "full"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.5",
+          "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.6",
+          "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.30",
+          "coverage": "full"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.15",
+          "coverage": "partial"
+        },
+        {
+          "framework": "gdpr",
+          "requirement": "Art.17",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -897,6 +1008,11 @@
         {
           "framework": "soc2",
           "requirement": "CC6.4",
+          "coverage": "full"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.310.a",
           "coverage": "full"
         }
       ],
@@ -932,6 +1048,11 @@
           "framework": "iso27017",
           "requirement": "CLD.9.5.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.312.a",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -961,6 +1082,11 @@
           "framework": "soc2",
           "requirement": "CC6.8",
           "coverage": "full"
+        },
+        {
+          "framework": "hipaa",
+          "requirement": "164.308.a.5",
+          "coverage": "partial"
         }
       ],
       "tests": [

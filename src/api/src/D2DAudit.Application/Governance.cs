@@ -93,9 +93,23 @@ public sealed record PersonDetail(
     DateOnly? BackgroundOn = null,
     string Device = "Missing",
     string StatusReason = "",
-    DateOnly? TrainingCompletedOn = null);
+    DateOnly? TrainingCompletedOn = null,
+    string BackgroundProvider = "",
+    string BackgroundLink = "",
+    Guid? BackgroundEvidenceId = null,
+    bool BackgroundExcluded = false,
+    string BackgroundExclusionReason = "");
 
 public sealed record SetTaskRequest(string TaskCode, bool Done);
+
+public sealed record BackgroundCheckRequest(
+    string Provider,
+    string? Link,
+    string? FileName,
+    string? ContentBase64,
+    DateOnly? CompletedOn,
+    bool Excluded,
+    string? ExclusionReason);
 
 public sealed record SoaRow(string Code, string Title, bool Applicable, string Justification, string Implementation);
 
@@ -227,4 +241,6 @@ public interface IGovernance
     Task<Result<AccessCampaignDetail>> RemediateAsync(Guid campaignId, Guid itemId, RemediateRequest request, CancellationToken cancellationToken);
 
     Task<Result<PersonDetail>> SetStatusAsync(Guid id, PersonStatusRequest request, CancellationToken cancellationToken);
+
+    Task<Result<PersonDetail>> RecordBackgroundAsync(Guid id, BackgroundCheckRequest request, CancellationToken cancellationToken);
 }

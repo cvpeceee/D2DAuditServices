@@ -9,6 +9,7 @@ import {
   type DemoWorld,
 } from "./catalog";
 import { assetCsv, handleProgram } from "./program";
+import { currentPeriod, handleM6, inAuditPeriod, publicTrust, resetPeriod } from "./m6";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -58,6 +59,7 @@ export async function resetDemo() {
   activity = [];
   activitySeeded = false;
   idCounter = 1;
+  resetPeriod();
   seedActivity(data);
   sessionStorage.removeItem(sessionKey);
 }
@@ -111,6 +113,9 @@ async function route(
   query: URLSearchParams,
   body: Record<string, unknown>,
 ) {
+  if (path.startsWith("/api/v1/public/trust/")) {
+    return publicTrust(method, path, body, await world());
+  }
   if (path === "/api/v1/auth/mode" && method === "GET") {
     return json({
       mode: "demo",
@@ -143,6 +148,8 @@ async function route(
     record(actor, action, "ok", detail),
   );
   if (handled) return handled;
+  const milestone = handleM6(method, path, body, data, actor);
+  if (milestone) return milestone;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -222,6 +229,7 @@ async function route(
         "Checking the hash chain",
         "Packing evidence files",
         "Writing the manifest and control matrix",
+        "Writing connections, vendors, and access",
         "Writing the asset inventory",
         "Storing the package",
       ],
@@ -796,8 +804,8 @@ function auditPage(data: DemoWorld) {
       firmName: "Northgate Assurance LLP",
       frameworkKey: "soc2",
       scope: `${company.name} (${company.legalName}), a ${company.product}. SOC 2 Type II (Security, Availability) example engagement. The program also covers ISO 27001, ISO 27017, and ISO 27018.`,
-      periodStart: "2026-04-01",
-      periodEnd: "2026-09-30",
+      periodStart: currentPeriod().start,
+      periodEnd: currentPeriod().end,
       fieldworkOn: "2026-11-30",
       controlsPassing: data.controls.filter((item) => item.status === "passing").length,
       controlsTotal: data.controls.length,
@@ -809,11 +817,14 @@ function auditPage(data: DemoWorld) {
     },
     requests: [...data.requests],
     findings: [...data.findings],
-    evidence: data.evidence.slice(0, 40).map((item) => ({
-      id: item.id,
-      title: item.title,
-      controlCode: item.controlCode,
-    })),
+    evidence: data.evidence
+      .filter((item) => inAuditPeriod(item.collectedAt))
+      .slice(0, 40)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        controlCode: item.controlCode,
+      })),
   };
 }
 
@@ -950,6 +961,69 @@ async function finishPackage(data: DemoWorld, scoped: DemoWorld, job: Job | unde
       ].join(",");
     }),
   ].join("\n");
+  const mapping = [
+    "control,requirement,framework,coverage",
+    ...scoped.controls.flatMap((control) =>
+      control.mappings.map((item) =>
+        [control.code, item.requirement, item.framework, item.coverage].join(","),
+      ),
+    ),
+  ].join("\n");
+  const connections = [
+    "provider,name,status,account,lastCollected",
+    ...integrations().map((item) =>
+      [item.provider, csvCell(item.displayName), item.status, item.accountLabel ?? "", ""].join(
+        ",",
+      ),
+    ),
+  ].join("\n");
+  const vendors = [
+    "name,service,criticality,reviewState,reviewDue,decision",
+    ...data.vendors.map((item) =>
+      [
+        csvCell(item.name),
+        csvCell(item.service),
+        item.criticality,
+        item.reviewState,
+        item.reviewDueOn,
+        item.decision ?? "",
+      ].join(","),
+    ),
+  ].join("\n");
+  const access = [
+    "person,email,provider,account,active",
+    ...data.people.flatMap((person) =>
+      person.accounts.map((account) =>
+        [
+          csvCell(person.name),
+          person.email,
+          account.provider,
+          csvCell(account.accountName),
+          account.active ? "true" : "false",
+        ].join(","),
+      ),
+    ),
+  ].join("\n");
+  const repositories = [
+    "provider,name,externalId",
+    ...data.resources
+      .filter((item) => item.kind === "repository")
+      .map((item) => [item.provider, csvCell(item.name), csvCell(item.detail)].join(",")),
+  ].join("\n");
+  const manual = [
+    "control,title,source,collectedAt,sha256",
+    ...scoped.evidence
+      .filter((item) => item.source !== "Example fixture")
+      .map((item) =>
+        [
+          item.controlCode,
+          csvCell(item.title),
+          csvCell(item.source),
+          item.collectedAt.slice(0, 10),
+          item.sha256,
+        ].join(","),
+      ),
+  ].join("\n");
   job.zip = zipStore([
     { name: "manifest.json", text: JSON.stringify(manifest, null, 2) },
     {
@@ -961,7 +1035,13 @@ async function finishPackage(data: DemoWorld, scoped: DemoWorld, job: Job | unde
       }),
     },
     { name: "control-matrix.csv", text: csv },
+    { name: "control-mapping.csv", text: mapping },
+    { name: "connections.csv", text: connections },
+    { name: "vendors.csv", text: vendors },
     { name: "assets.csv", text: assetCsv(data) },
+    { name: "infrastructure-access.csv", text: access },
+    { name: "version-control.csv", text: repositories },
+    { name: "manual-evidence.csv", text: manual },
     ...files.map((file) => ({ name: file.path, text: file.text })),
   ]);
 }
@@ -1336,6 +1416,11 @@ function personList(person: DemoWorld["people"][number]) {
     mfaEnrolled: person.mfaEnrolled ?? false,
     background: person.background ?? "NotStarted",
     backgroundOn: person.backgroundOn ?? null,
+    backgroundProvider: person.backgroundProvider ?? "",
+    backgroundLink: person.backgroundLink ?? "",
+    backgroundEvidenceId: person.backgroundEvidenceId ?? null,
+    backgroundExcluded: person.backgroundExcluded ?? false,
+    backgroundExclusionReason: person.backgroundExclusionReason ?? "",
     device: person.device ?? "Missing",
     statusReason: person.statusReason ?? "",
     trainingCompletedOn: person.trainingCompletedOn ?? null,
@@ -1619,7 +1704,9 @@ function inScope(data: DemoWorld, actor: Session): DemoWorld {
   return {
     ...data,
     controls,
-    evidence: data.evidence.filter((item) => codes.has(item.controlCode)),
+    evidence: data.evidence.filter(
+      (item) => codes.has(item.controlCode) && inAuditPeriod(item.collectedAt),
+    ),
     checks: data.checks.filter((item) => codes.has(item.controlCode)),
     policies: data.policies
       .filter((policy) => policy.controlCodes.some((code) => codes.has(code)))

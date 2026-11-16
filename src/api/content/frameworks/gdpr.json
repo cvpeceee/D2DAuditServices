@@ -1,0 +1,95 @@
+{
+  "key": "gdpr",
+  "name": "GDPR",
+  "version": "2016",
+  "description": "Selected duties for protecting personal data. Titles and summaries are our own short wording, not the regulation text.",
+  "requirements": [
+    {
+      "code": "Principles",
+      "title": "Principles and records",
+      "summary": "Why personal data is used, and how that use is written down.",
+      "children": [
+        {
+          "code": "Art.5",
+          "title": "Principles for processing",
+          "summary": "Personal data is used for a clear purpose, kept accurate, and not held longer than needed.",
+          "children": []
+        },
+        {
+          "code": "Art.6",
+          "title": "Lawful basis",
+          "summary": "Each use of personal data rests on a reason the organization can explain.",
+          "children": []
+        },
+        {
+          "code": "Art.30",
+          "title": "Records of processing",
+          "summary": "The organization keeps a record of the processing it carries out.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "Rights",
+      "title": "People's rights",
+      "summary": "How people can ask about, correct, or remove their personal data.",
+      "children": [
+        {
+          "code": "Art.15",
+          "title": "Access by the person",
+          "summary": "A person can ask what personal data the organization holds about them.",
+          "children": []
+        },
+        {
+          "code": "Art.17",
+          "title": "Erasure",
+          "summary": "A person can ask for personal data to be deleted when the organization no longer needs it.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "Security",
+      "title": "Security and processors",
+      "summary": "How personal data is protected and how vendors are bound.",
+      "children": [
+        {
+          "code": "Art.25",
+          "title": "Protection by design",
+          "summary": "Protection of personal data is built into the product and the default settings.",
+          "children": []
+        },
+        {
+          "code": "Art.28",
+          "title": "Processors",
+          "summary": "Vendors that handle personal data work under a written set of duties.",
+          "children": []
+        },
+        {
+          "code": "Art.32",
+          "title": "Security of processing",
+          "summary": "The organization uses measures that fit the risk to personal data, including access control and encryption where it helps.",
+          "children": []
+        },
+        {
+          "code": "Art.33",
+          "title": "Breach notification",
+          "summary": "A breach of personal data is reported to the authority on the required timeline.",
+          "children": []
+        },
+        {
+          "code": "Art.35",
+          "title": "Impact assessment",
+          "summary": "High-risk processing is assessed before it starts.",
+          "children": []
+        },
+        {
+          "code": "Art.44",
+          "title": "Transfers",
+          "summary": "Personal data sent to another country uses a transfer tool the organization can show.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

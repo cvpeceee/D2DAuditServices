@@ -18,6 +18,11 @@ type PersonExtras = {
   mfaEnrolled?: boolean;
   background?: string;
   backgroundOn?: string | null;
+  backgroundProvider?: string;
+  backgroundLink?: string;
+  backgroundEvidenceId?: string | null;
+  backgroundExcluded?: boolean;
+  backgroundExclusionReason?: string;
   device?: string;
   statusReason?: string;
   trainingCompletedOn?: string | null;
@@ -26,6 +31,117 @@ type PersonExtras = {
 type RichPerson = PersonDetail & PersonExtras;
 
 const states = ["Active", "Offboarding", "Offboarded"] as const;
+
+function BackgroundForm({
+  person,
+  tenantId,
+  onSaved,
+}: {
+  person: RichPerson;
+  tenantId: string;
+  onSaved: () => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [provider, setProvider] = useState(person.backgroundProvider ?? "");
+  const [link, setLink] = useState(person.backgroundLink ?? "");
+  const [completedOn, setCompletedOn] = useState(person.backgroundOn ?? "");
+  const [excluded, setExcluded] = useState(Boolean(person.backgroundExcluded));
+  const [reason, setReason] = useState(person.backgroundExclusionReason ?? "");
+  const [fileName, setFileName] = useState("");
+  const [contentBase64, setContentBase64] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    try {
+      await api(`/api/v1/people/${person.id}/background`, {
+        method: "POST",
+        tenantId,
+        body: {
+          provider,
+          link,
+          fileName,
+          contentBase64,
+          completedOn: completedOn || null,
+          excluded,
+          exclusionReason: reason,
+        },
+      });
+      await onSaved();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
+  }
+
+  return (
+    <form onSubmit={(event) => void save(event)}>
+      <h3>{t("peoplePage.recordBackground")}</h3>
+      <div className="split-fields">
+        <input
+          aria-label={t("peoplePage.provider")}
+          placeholder={t("peoplePage.provider")}
+          value={provider}
+          onChange={(event) => setProvider(event.target.value)}
+          required
+        />
+        <input
+          aria-label={t("peoplePage.link")}
+          placeholder={t("peoplePage.link")}
+          value={link}
+          onChange={(event) => setLink(event.target.value)}
+        />
+        <input
+          aria-label={t("peoplePage.completed")}
+          type="date"
+          value={completedOn ?? ""}
+          onChange={(event) => setCompletedOn(event.target.value)}
+        />
+      </div>
+      <label className="check-row">
+        <input
+          type="checkbox"
+          checked={excluded}
+          onChange={(event) => setExcluded(event.target.checked)}
+        />
+        {t("peoplePage.exclude")}
+      </label>
+      {excluded && (
+        <label className="field">
+          <span>{t("peoplePage.exclusion")}</span>
+          <input value={reason} onChange={(event) => setReason(event.target.value)} required />
+        </label>
+      )}
+      <label className="field">
+        <span>{t("peoplePage.upload")}</span>
+        <input
+          type="file"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            setFileName(file.name);
+            void file.arrayBuffer().then((buffer) => {
+              const bytes = new Uint8Array(buffer);
+              let binary = "";
+              bytes.forEach((byte) => {
+                binary += String.fromCharCode(byte);
+              });
+              setContentBase64(btoa(binary));
+            });
+          }}
+        />
+      </label>
+      <button className="btn" type="submit">
+        {t("peoplePage.saveBackground")}
+      </button>
+      {error && (
+        <div className="error" role="alert">
+          {t("errors.load")}
+        </div>
+      )}
+    </form>
+  );
+}
 
 function StatusOverride({
   person,
@@ -293,6 +409,17 @@ export function PeoplePage() {
               <small>{t("peoplePage.background")}</small>
               {t(`peoplePage.backgrounds.${detail.background ?? "NotStarted"}`)}
               {detail.backgroundOn ? ` · ${formatDate(detail.backgroundOn)}` : ""}
+              {detail.backgroundProvider ? ` · ${detail.backgroundProvider}` : ""}
+              {detail.backgroundLink && (
+                <div className="id">
+                  <a href={detail.backgroundLink}>{detail.backgroundLink}</a>
+                </div>
+              )}
+              {detail.backgroundExcluded && detail.backgroundExclusionReason && (
+                <div className="id">
+                  {t("peoplePage.exclusion")}: {detail.backgroundExclusionReason}
+                </div>
+              )}
             </div>
             <div>
               <small>{t("peoplePage.device")}</small>
@@ -316,6 +443,18 @@ export function PeoplePage() {
             <p className="m">
               {t("peoplePage.reason")}: {detail.statusReason}
             </p>
+          )}
+          {tenantId && workspace?.canWrite && (
+            <BackgroundForm
+              key={`${detail.id}-background`}
+              person={detail}
+              tenantId={tenantId}
+              onSaved={async () => {
+                setNotice(t("peoplePage.savedBackground"));
+                await open(detail.id);
+                load();
+              }}
+            />
           )}
           {tenantId && (
             <StatusOverride

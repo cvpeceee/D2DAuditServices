@@ -58,6 +58,8 @@ public sealed record ManagementResponseRequest(string Response);
 
 public sealed record PackageFile(byte[] Bytes, string FileName);
 
+public sealed record AuditPeriodRequest(DateOnly PeriodStart, DateOnly PeriodEnd);
+
 public interface IAuditPortal
 {
     Task<AuditPortalPage> GetAsync(CancellationToken cancellationToken);
@@ -75,4 +77,6 @@ public interface IAuditPortal
     Task<Result<Guid>> StartExportAsync(CancellationToken cancellationToken);
 
     Task<Result<PackageFile>> OpenPackageAsync(Guid jobId, CancellationToken cancellationToken);
+
+    Task<Result<AuditEngagementDto>> SetPeriodAsync(DateOnly periodStart, DateOnly periodEnd, CancellationToken cancellationToken);
 }

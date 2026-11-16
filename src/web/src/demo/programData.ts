@@ -209,21 +209,37 @@ export function buildProgram(
   const devices = new Set(seedDevices.map((item) => item.ownerEmail.toLowerCase()));
   const enriched = people.map((person) => {
     const hired = person.hireOn ? new Date(`${person.hireOn}T00:00:00Z`) : null;
-    const tenured = hired ? hired.getTime() + 30 * 86400000 <= now.getTime() : false;
+    const age = hired ? Math.round((now.getTime() - hired.getTime()) / 86400000) : 400;
     let background = "NotStarted";
     let backgroundOn: string | null = null;
-    if (person.state === "Active" && !tenured) background = "Pending";
-    else if (tenured) {
+    let backgroundProvider = "";
+    let backgroundLink = "";
+    let backgroundExcluded = false;
+    let backgroundExclusionReason = "";
+    if (person.email.startsWith("avery.dunn@")) {
+      background = "Excluded";
+      backgroundExcluded = true;
+      backgroundExclusionReason = "The staffing agency confirmed screening in the contract file.";
+      backgroundProvider = "Agency";
+      backgroundOn = person.hireOn;
+    } else if (person.state === "Active" && age <= 10) {
+      background = "Pending";
+    } else if (person.state === "Active" && hired && person.hireOn) {
       background = "Clear";
-      backgroundOn = person.hireOn
-        ? day(addDays(new Date(`${person.hireOn}T00:00:00Z`), 14))
-        : null;
+      backgroundOn = day(addDays(hired, 5));
+      backgroundProvider = age % 2 === 0 ? "Checkr" : "Sterling";
+      backgroundLink = `https://checks.example/${person.email}`;
     }
     return {
       ...person,
       mfaEnrolled: personMfa(person.email),
       background,
       backgroundOn,
+      backgroundProvider,
+      backgroundLink,
+      backgroundEvidenceId: null,
+      backgroundExcluded,
+      backgroundExclusionReason,
       device: devices.has(person.email.toLowerCase()) ? "Reporting" : "Missing",
       statusReason: person.email.startsWith("sam.leaved@") ? "Leave date confirmed by People." : "",
       trainingCompletedOn: person.training === "Complete" ? day(addDays(now, -40)) : null,

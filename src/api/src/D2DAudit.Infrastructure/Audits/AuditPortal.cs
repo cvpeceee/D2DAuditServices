@@ -45,7 +45,9 @@ public sealed class AuditPortal(
             .ToListAsync(cancellationToken);
         var evidenceIds = requests.Where(item => item.Response?.EvidenceId is not null).Select(item => item.Response!.EvidenceId!.Value).ToArray();
         var evidence = await db.Evidence.AsNoTracking().Where(item => evidenceIds.Contains(item.Id)).ToDictionaryAsync(item => item.Id, cancellationToken);
-        var choices = controls.SelectMany(controlItem => controlItem.Evidence.Select(item => new EvidenceChoiceDto(item.Id, item.Title, controlItem.Code)))
+        var choices = controls.SelectMany(controlItem => controlItem.Evidence
+                .Where(item => AuditWindow.Contains(engagement.PeriodStart, engagement.PeriodEnd, item.CollectedAt))
+                .Select(item => new EvidenceChoiceDto(item.Id, item.Title, controlItem.Code)))
             .OrderBy(item => item.ControlCode, StringComparer.Ordinal)
             .Take(40)
             .ToArray();
@@ -244,9 +246,47 @@ public sealed class AuditPortal(
     {
         var id = await jobs.CreateAsync(tenant.TenantId, "export", "Queued", cancellationToken);
         var keys = tenant.IsAuditor ? tenant.AuditorFrameworkKeys.ToArray() : null;
-        await queue.EnqueueAsync(new ExportWork(tenant.TenantId, id, keys), cancellationToken);
+        DateOnly? periodStart = null;
+        DateOnly? periodEnd = null;
+        if (tenant.IsAuditor)
+        {
+            await using var db = Open();
+            var engagement = await EngagementAsync(db, cancellationToken);
+            if (engagement is not null)
+            {
+                periodStart = engagement.PeriodStart;
+                periodEnd = engagement.PeriodEnd;
+            }
+        }
+
+        await queue.EnqueueAsync(new ExportWork(tenant.TenantId, id, keys, periodStart, periodEnd), cancellationToken);
         await WriteAsync("audit.package.started", id.ToString("N"), cancellationToken);
         return Result<Guid>.Ok(id);
+    }
+
+    public async Task<Result<AuditEngagementDto>> SetPeriodAsync(DateOnly periodStart, DateOnly periodEnd, CancellationToken cancellationToken)
+    {
+        if (periodEnd < periodStart)
+        {
+            return Result<AuditEngagementDto>.Fail("invalid_period");
+        }
+
+        await using var db = Open();
+        var snapshot = await EngagementAsync(db, cancellationToken);
+        if (snapshot is null)
+        {
+            return Result<AuditEngagementDto>.Fail("not_found");
+        }
+
+        var engagement = await db.Audits.FirstAsync(item => item.Id == snapshot.Id, cancellationToken);
+        engagement.PeriodStart = periodStart;
+        engagement.PeriodEnd = periodEnd;
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("audit.period", periodStart.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " " + periodEnd.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), cancellationToken);
+        var page = await GetAsync(cancellationToken);
+        return page.Engagement is null
+            ? Result<AuditEngagementDto>.Fail("not_found")
+            : Result<AuditEngagementDto>.Ok(page.Engagement);
     }
 
     public async Task<Result<PackageFile>> OpenPackageAsync(Guid jobId, CancellationToken cancellationToken)

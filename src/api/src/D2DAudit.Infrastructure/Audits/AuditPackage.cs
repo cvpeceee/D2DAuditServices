@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace D2DAudit.Infrastructure.Audits;
 
-public sealed record ExportWork(Guid TenantId, Guid JobId, string[]? FrameworkKeys);
+public sealed record ExportWork(Guid TenantId, Guid JobId, string[]? FrameworkKeys, DateOnly? PeriodStart = null, DateOnly? PeriodEnd = null);
 
 public sealed class AuditExportQueue(IServiceScopeFactory scopes, ILogger<AuditExportQueue> logger) : BackgroundService
 {
@@ -51,7 +51,7 @@ public sealed class AuditPackageRunner(
     TimeProvider time,
     ILogger<AuditPackageRunner> logger)
 {
-    private const int Steps = 6;
+    private const int Steps = 7;
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
@@ -87,7 +87,7 @@ public sealed class AuditPackageRunner(
         var packed = new List<PackedFile>();
         foreach (var controlItem in inScope)
         {
-            foreach (var item in controlItem.Evidence.Where(entry => !string.IsNullOrWhiteSpace(entry.ObjectKey)))
+            foreach (var item in controlItem.Evidence.Where(entry => !string.IsNullOrWhiteSpace(entry.ObjectKey) && InPeriod(work, entry.CollectedAt)))
             {
                 var body = await storage.GetAsync(item.ObjectKey!, cancellationToken);
                 var parts = item.ObjectKey!.Split('/');
@@ -106,12 +106,21 @@ public sealed class AuditPackageRunner(
             report.Reason,
             packed.Select(file => new PackageManifestFile(file.Path, file.Sha256, file.RecordedSha256, file.ControlCode, file.Title)).ToArray());
         var matrix = MatrixRows(inScope);
-        await jobs.AdvanceAsync(work.JobId, 5, Steps, "Writing the asset inventory", cancellationToken);
+        await jobs.AdvanceAsync(work.JobId, 5, Steps, "Writing connections, vendors, and access", cancellationToken);
         var assets = await db.Assets.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
-        var zip = BuildZip(manifest, matrix, packed, AssetCsv(assets));
+        var connections = await db.Integrations.AsNoTracking().OrderBy(item => item.Provider).ToListAsync(cancellationToken);
+        var vendors = await db.Vendors.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
+        var accounts = await db.PersonAccounts.AsNoTracking().Include(item => item.Person).OrderBy(item => item.Provider).ToListAsync(cancellationToken);
+        var repositories = await db.Resources.AsNoTracking().Where(item => item.Kind == "repository").OrderBy(item => item.Name).ToListAsync(cancellationToken);
+        var manual = inScope.SelectMany(controlItem => controlItem.Evidence
+                .Where(item => InPeriod(work, item.CollectedAt) && !item.Source.StartsWith("Automated", StringComparison.Ordinal))
+                .Select(item => (controlItem.Code, item)))
+            .ToArray();
+        await jobs.AdvanceAsync(work.JobId, 6, Steps, "Writing the asset inventory", cancellationToken);
+        var zip = BuildZip(manifest, matrix, packed, assets, connections, vendors, accounts, repositories, manual, inScope);
         var key = $"{work.TenantId:N}/exports/{work.JobId:N}.zip";
 
-        await jobs.AdvanceAsync(work.JobId, 6, Steps, "Storing the package", cancellationToken);
+        await jobs.AdvanceAsync(work.JobId, 7, Steps, "Storing the package", cancellationToken);
         await storage.PutAsync(key, zip, "application/zip", null, cancellationToken);
         await jobs.FinishAsync(work.JobId, true, null, "Package ready", cancellationToken);
     }
@@ -137,7 +146,20 @@ public sealed class AuditPackageRunner(
             item.Evidence.Count,
             string.Join(" ", item.Evidence.Select(entry => entry.Sha256).Where(hash => !string.IsNullOrWhiteSpace(hash))))).ToArray();
 
-    private static byte[] BuildZip(PackageManifest manifest, IReadOnlyList<MatrixRow> matrix, IReadOnlyList<PackedFile> files, string assetsCsv)
+    private static bool InPeriod(ExportWork work, DateTimeOffset? collected) =>
+        work.PeriodStart is not DateOnly start || work.PeriodEnd is not DateOnly end || AuditWindow.Contains(start, end, collected);
+
+    private static byte[] BuildZip(
+        PackageManifest manifest,
+        IReadOnlyList<MatrixRow> matrix,
+        IReadOnlyList<PackedFile> files,
+        IReadOnlyList<TrackedAsset> assets,
+        IReadOnlyList<IntegrationConnection> connections,
+        IReadOnlyList<VendorRecord> vendors,
+        IReadOnlyList<PersonAccount> accounts,
+        IReadOnlyList<ResourceSnapshot> repositories,
+        IReadOnlyList<(string Code, EvidenceItem Item)> manual,
+        IReadOnlyList<Control> controls)
     {
         using var buffer = new MemoryStream();
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
@@ -151,7 +173,13 @@ public sealed class AuditPackageRunner(
             }, Json));
             Write(zip, "control-matrix.csv", Encoding.UTF8.GetBytes(Csv(matrix)));
             Write(zip, "control-matrix.pdf", PlainPdf.FromLines(PdfLines(matrix)));
-            Write(zip, "assets.csv", Encoding.UTF8.GetBytes(assetsCsv));
+            Write(zip, "control-mapping.csv", Encoding.UTF8.GetBytes(MappingCsv(controls)));
+            Write(zip, "connections.csv", Encoding.UTF8.GetBytes(ConnectionCsv(connections)));
+            Write(zip, "vendors.csv", Encoding.UTF8.GetBytes(VendorCsv(vendors)));
+            Write(zip, "assets.csv", Encoding.UTF8.GetBytes(AssetCsv(assets)));
+            Write(zip, "infrastructure-access.csv", Encoding.UTF8.GetBytes(AccessCsv(accounts)));
+            Write(zip, "version-control.csv", Encoding.UTF8.GetBytes(RepositoryCsv(repositories)));
+            Write(zip, "manual-evidence.csv", Encoding.UTF8.GetBytes(ManualCsv(manual)));
             foreach (var file in files)
             {
                 Write(zip, file.Path, file.Body);
@@ -200,6 +228,109 @@ public sealed class AuditPackageRunner(
                 .Append(Cell(row.Classification)).Append(',')
                 .Append(row.InScope ? "true" : "false").Append(',')
                 .Append(row.LastSeen.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string MappingCsv(IReadOnlyList<Control> controls)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("control,requirement,framework,coverage");
+        foreach (var control in controls.OrderBy(item => item.Code, StringComparer.Ordinal))
+        {
+            foreach (var mapping in control.Mappings.OrderBy(item => item.Requirement?.Code, StringComparer.Ordinal))
+            {
+                builder.Append(Cell(control.Code)).Append(',')
+                    .Append(Cell(mapping.Requirement?.Code ?? "")).Append(',')
+                    .Append(Cell(mapping.Requirement?.Framework?.Key ?? "")).Append(',')
+                    .Append(Cell(mapping.Coverage.ToString()))
+                    .AppendLine();
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string ConnectionCsv(IReadOnlyList<IntegrationConnection> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("provider,name,status,account,lastCollected");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Provider)).Append(',')
+                .Append(Cell(row.DisplayName)).Append(',')
+                .Append(Cell(row.Status)).Append(',')
+                .Append(Cell(row.AccountLabel ?? row.Domain ?? "")).Append(',')
+                .Append(row.LastCollectedAt?.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "")
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string VendorCsv(IReadOnlyList<VendorRecord> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("name,service,criticality,reviewState,reviewDue,decision");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Name)).Append(',')
+                .Append(Cell(row.Service)).Append(',')
+                .Append(Cell(row.Criticality.ToString())).Append(',')
+                .Append(Cell(row.ReviewState.ToString())).Append(',')
+                .Append(row.ReviewDueOn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(',')
+                .Append(Cell(row.Decision))
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string AccessCsv(IReadOnlyList<PersonAccount> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("person,email,provider,account,active");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Person?.Name ?? "")).Append(',')
+                .Append(Cell(row.Person?.Email ?? "")).Append(',')
+                .Append(Cell(row.Provider)).Append(',')
+                .Append(Cell(row.AccountName)).Append(',')
+                .Append(row.Active ? "true" : "false")
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string RepositoryCsv(IReadOnlyList<ResourceSnapshot> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("provider,name,externalId");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Provider)).Append(',')
+                .Append(Cell(row.Name)).Append(',')
+                .Append(Cell(row.ExternalId))
+                .AppendLine();
+        }
+
+        return builder.ToString();
+    }
+
+    private static string ManualCsv(IReadOnlyList<(string Code, EvidenceItem Item)> rows)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("control,title,source,collectedAt,sha256");
+        foreach (var row in rows)
+        {
+            builder.Append(Cell(row.Code)).Append(',')
+                .Append(Cell(row.Item.Title)).Append(',')
+                .Append(Cell(row.Item.Source)).Append(',')
+                .Append(row.Item.CollectedAt?.UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "").Append(',')
+                .Append(Cell(row.Item.Sha256 ?? ""))
                 .AppendLine();
         }
 

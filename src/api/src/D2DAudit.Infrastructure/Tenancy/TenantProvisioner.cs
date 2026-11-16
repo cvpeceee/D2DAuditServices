@@ -241,12 +241,9 @@ public sealed class TenantProvisioner(
 
     private async Task LoadFrameworksAsync(TenantDbContext db, CancellationToken cancellationToken)
     {
-        if (await db.Frameworks.AnyAsync(cancellationToken))
-        {
-            return;
-        }
-
-        var sort = 0;
+        var existing = await db.Frameworks.Select(item => item.Key).ToListAsync(cancellationToken);
+        var have = existing.ToHashSet(StringComparer.Ordinal);
+        var sort = await db.Requirements.CountAsync(cancellationToken);
         void AddNodes(IReadOnlyList<RequirementNode> nodes, Guid frameworkId, Guid? parentId)
         {
             foreach (var node in nodes)
@@ -268,6 +265,11 @@ public sealed class TenantProvisioner(
 
         foreach (var document in catalog.Frameworks)
         {
+            if (!have.Add(document.Key))
+            {
+                continue;
+            }
+
             var framework = new FrameworkRecord
             {
                 Id = Guid.NewGuid(),

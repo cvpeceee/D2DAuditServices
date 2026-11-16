@@ -173,6 +173,9 @@ public sealed class IntegrationQuery(
             .Where(item => item.Id == tenant.TenantId)
             .Select(item => item.RetentionYears)
             .FirstAsync(cancellationToken);
+        var window = tenant.IsAuditor
+            ? await db.Audits.AsNoTracking().OrderByDescending(item => item.PeriodEnd).FirstOrDefaultAsync(cancellationToken)
+            : null;
         var items = controls
             .Where(InScope)
             .SelectMany(controlItem => controlItem.Evidence.Select(item => new EvidenceListItem(
@@ -185,6 +188,7 @@ public sealed class IntegrationQuery(
                 item.Sha256,
                 item.LockedUntil,
                 item.ObjectKey)))
+            .Where(item => window is null || AuditWindow.Contains(window.PeriodStart, window.PeriodEnd, item.CollectedAt))
             .OrderByDescending(item => item.CollectedAt)
             .ToArray();
         var automated = items.Count(item => item.Source.StartsWith("Automated", StringComparison.Ordinal));

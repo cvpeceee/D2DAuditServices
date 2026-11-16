@@ -125,9 +125,11 @@ public sealed class FoundationTests
             Assert.NotEmpty(control.Mappings);
             Assert.All(control.Mappings, mapping => Assert.Contains((mapping.Framework, mapping.Requirement), leaves));
         });
-        Assert.All(
-            catalog.ExampleControls.Controls.Single(control => control.Code == "PP-01").Mappings,
-            mapping => Assert.Equal(("iso27001", "A.5.34"), (mapping.Framework, mapping.Requirement)));
+        var privacy = catalog.ExampleControls.Controls.Single(control => control.Code == "PP-01");
+        Assert.Contains(privacy.Mappings, mapping => mapping.Framework == "iso27001" && mapping.Requirement == "A.5.34");
+        Assert.Contains(catalog.Frameworks, framework => framework.Key == "hipaa");
+        Assert.Contains(catalog.Frameworks, framework => framework.Key == "gdpr");
+        Assert.Contains(catalog.ExampleControls.Controls.SelectMany(control => control.Tests), test => test.Name == "New hires have a background check");
     }
 
     [Fact]

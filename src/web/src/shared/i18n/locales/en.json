@@ -13,6 +13,9 @@
     "risks": "Risks",
     "vendors": "Vendors",
     "people": "People & devices",
+    "computers": "Computers",
+    "vulnerabilities": "Vulnerabilities",
+    "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
     "me": "My tasks",
@@ -179,7 +182,17 @@
     "ownerName": "Owner name",
     "ownerEmail": "Owner email",
     "close": "Close",
-    "search": "Search by code or title"
+    "search": "Search by code or title",
+    "new": "New control",
+    "code": "Code",
+    "controlTitle": "Title",
+    "description": "Description",
+    "framework": "Framework key",
+    "requirement": "Requirement",
+    "create": "Create control",
+    "created": "Saved {{code}}.",
+    "import": "Import CSV",
+    "csv": "CSV"
   },
   "status": {
     "passing": "Passing",
@@ -201,10 +214,6 @@
     "actor": "Actor",
     "detail": "Detail",
     "empty": "No activity yet."
-  },
-  "placeholder": {
-    "title": "Not in this milestone",
-    "body": "{{name}} is on the roadmap. This screen is here so the navigation matches the product, and it does not show invented data."
   },
   "jobs": {
     "title": "Jobs",
@@ -370,6 +379,12 @@
     "title": "Auditor portal",
     "empty": "No audit engagement is in scope.",
     "export": "Download audit package",
+    "period": "Audit date range",
+    "periodHelp": "Evidence sampling uses this window. Auditors see evidence collected inside it.",
+    "periodStart": "Period start",
+    "periodEnd": "Period end",
+    "savePeriod": "Save date range",
+    "sampleCount": "{{count}} evidence items are in this period",
     "progress": "Audit package",
     "download": "Save zip",
     "tested": "Controls tested",
@@ -481,10 +496,20 @@
     "override": "Status override",
     "saveStatus": "Save status",
     "savedStatus": "Status saved.",
+    "recordBackground": "Background check",
+    "provider": "Provider",
+    "link": "Report link",
+    "completed": "Completed",
+    "exclude": "Exclude this person",
+    "exclusion": "Exclusion reason",
+    "upload": "Upload the report",
+    "saveBackground": "Save background check",
+    "savedBackground": "Background check saved.",
     "backgrounds": {
       "NotStarted": "Not started",
       "Pending": "Pending",
-      "Clear": "Clear"
+      "Clear": "Clear",
+      "Excluded": "Excluded"
     },
     "devices": {
       "Missing": "Missing",
@@ -737,6 +762,27 @@
     "deactivate": "Deactivate",
     "grants": "Auditor grants",
     "saveGrant": "Save grant",
+    "automation": "Automation",
+    "automationHelp": "When a trigger happens, the matching action runs. Jira, Slack, Teams, and email use a fake sender in this workspace and record the delivery here.",
+    "ruleName": "Rule name",
+    "trigger": "Trigger",
+    "action": "Action",
+    "target": "Target",
+    "saveRule": "Save rule",
+    "runDue": "Run reviews that are due",
+    "deliveries": "Recent deliveries",
+    "triggers": {
+      "TestFailed": "Test failed",
+      "ControlNotReady": "Control not ready",
+      "RiskCreated": "Risk created",
+      "ReviewDue": "Review due"
+    },
+    "actions": {
+      "Jira": "Create a Jira issue",
+      "Slack": "Slack notification",
+      "Teams": "Teams notification",
+      "Email": "Email notification"
+    },
     "roles": {
       "Admin": "Admin",
       "Editor": "Editor",
@@ -745,6 +791,116 @@
       "Auditor": "Auditor",
       "ControlOwner": "Control owner"
     }
+  },
+  "computersPage": {
+    "title": "Computers",
+    "sub": "Laptops and workstations reported by MDM, plus machines recorded by hand. A device agent can replace the manual check later.",
+    "serial": "Serial",
+    "os": "Operating system",
+    "owner": "Owner",
+    "email": "Owner email",
+    "encryption": "Encryption",
+    "screen": "Screen lock",
+    "antivirus": "Antivirus",
+    "passwords": "Password manager",
+    "updates": "Auto-update",
+    "checkIn": "Last check-in",
+    "source": "Source",
+    "screenshot": "Screenshot",
+    "upload": "Upload screenshot",
+    "uploaded": "Screenshot stored as evidence.",
+    "add": "Record a computer",
+    "save": "Save computer",
+    "saved": "Computer saved.",
+    "empty": "No computers are recorded yet.",
+    "on": "On",
+    "off": "Off",
+    "sources": {
+      "Mdm": "MDM",
+      "Manual": "Manual"
+    }
+  },
+  "vulnPage": {
+    "title": "Vulnerabilities",
+    "sub": "Findings from AWS Inspector and GitHub Dependabot, with the SLA from workspace settings.",
+    "byVulnerability": "By vulnerability",
+    "byAsset": "By asset",
+    "ignored": "Ignored",
+    "history": "SLA history",
+    "cve": "CVE",
+    "severity": "Severity",
+    "asset": "Asset",
+    "source": "Source",
+    "seen": "First / last seen",
+    "due": "SLA due",
+    "fix": "Fix",
+    "fixYes": "Fix available",
+    "fixNo": "No fix yet",
+    "overdue": "Past SLA",
+    "ignore": "Ignore with a reason",
+    "reason": "Reason",
+    "openCount": "{{count}} open",
+    "sla": "SLA windows",
+    "criticalDays": "Critical days",
+    "highDays": "High days",
+    "mediumDays": "Medium days",
+    "lowDays": "Low days",
+    "saveSla": "Save SLA",
+    "severities": {
+      "Critical": "Critical",
+      "High": "High",
+      "Medium": "Medium",
+      "Low": "Low"
+    },
+    "events": {
+      "Ignored": "Ignored",
+      "DueChanged": "Due date changed",
+      "Breached": "SLA breached"
+    }
+  },
+  "trustPage": {
+    "title": "Trust center",
+    "sub": "What this workspace publishes, and who has asked to see an NDA document.",
+    "viewPublic": "Open the public page",
+    "published": "Published",
+    "headline": "Headline",
+    "summary": "Summary",
+    "contact": "Contact email",
+    "save": "Save trust center",
+    "documents": "Documents",
+    "requests": "Access requests",
+    "allDocuments": "General request",
+    "addDocument": "Add a document",
+    "docTitle": "Document title",
+    "fileName": "File name",
+    "accessLabel": "Access",
+    "approve": "Approve",
+    "deny": "Deny",
+    "access": {
+      "Public": "Public",
+      "Nda": "NDA"
+    },
+    "statuses": {
+      "Pending": "Pending",
+      "Approved": "Approved",
+      "Denied": "Denied"
+    }
+  },
+  "trustPublic": {
+    "title": "Trust center",
+    "missing": "This trust center is not published.",
+    "frameworks": "Frameworks",
+    "controls": "{{passing}} of {{total}} mapped controls are passing",
+    "documents": "Documents",
+    "request": "Request access",
+    "sent": "The request is with the workspace. An admin can approve it.",
+    "name": "Your name",
+    "email": "Email",
+    "company": "Company",
+    "document": "Document",
+    "allDocuments": "Any NDA document",
+    "purpose": "Why you need it",
+    "send": "Send request"
   },
   "demo": {
     "banner": "Demo, example data",

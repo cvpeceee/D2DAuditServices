@@ -22,7 +22,8 @@ public sealed class GovernancePortal(
     IValidator<SaveRiskRequest> risks,
     IValidator<SaveSoaRequest> soa,
     IValidator<SaveVendorRequest> vendors,
-    IValidator<StartCampaignRequest> campaigns) : IGovernance
+    IValidator<StartCampaignRequest> campaigns,
+    IAutomationDispatcher automation) : IGovernance
 {
     private const string NotApplicableCode = "A.7.5";
 
@@ -50,6 +51,7 @@ public sealed class GovernancePortal(
 
         var code = string.IsNullOrWhiteSpace(request.Code) ? await NextRiskCodeAsync(db, cancellationToken) : request.Code.Trim();
         var row = await db.Risks.Include(item => item.Controls).FirstOrDefaultAsync(item => item.Code == code, cancellationToken);
+        var created = row is null;
         if (row is null)
         {
             row = new RiskItem { Id = Guid.NewGuid(), Code = code };
@@ -87,6 +89,11 @@ public sealed class GovernancePortal(
 
         await db.SaveChangesAsync(cancellationToken);
         await WriteAsync("risk.saved", row.Code, cancellationToken);
+        if (created)
+        {
+            await automation.DispatchAsync("RiskCreated", row.Code + " " + row.Title, row.Statement, cancellationToken);
+        }
+
         return Result<RiskListItem>.Ok(ToRisk(row));
     }
 
@@ -667,6 +674,151 @@ public sealed class GovernancePortal(
         return Result<PersonDetail>.Ok(await ToDetailAsync(db, person, cancellationToken));
     }
 
+    public async Task<Result<PersonDetail>> RecordBackgroundAsync(Guid id, BackgroundCheckRequest request, CancellationToken cancellationToken)
+    {
+        var provider = (request.Provider ?? "").Trim();
+        var link = (request.Link ?? "").Trim();
+        var reason = (request.ExclusionReason ?? "").Trim();
+        if (provider.Length is 0 or > 100 || link.Length > 500 || reason.Length > 500)
+        {
+            return Result<PersonDetail>.Fail("invalid_background");
+        }
+
+        if (request.Excluded && reason.Length == 0)
+        {
+            return Result<PersonDetail>.Fail("invalid_background");
+        }
+
+        if (!request.Excluded && request.CompletedOn is null && string.IsNullOrWhiteSpace(request.ContentBase64) && link.Length == 0)
+        {
+            return Result<PersonDetail>.Fail("invalid_background");
+        }
+
+        await using var db = Open();
+        var person = await db.People.Include(item => item.Accounts).Include(item => item.Tasks).FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        if (person is null)
+        {
+            return Result<PersonDetail>.Fail("not_found");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ContentBase64))
+        {
+            byte[] body;
+            try
+            {
+                body = Convert.FromBase64String(request.ContentBase64);
+            }
+            catch (FormatException)
+            {
+                return Result<PersonDetail>.Fail("invalid_evidence");
+            }
+
+            if (body.Length is 0 or > 750_000)
+            {
+                return Result<PersonDetail>.Fail("invalid_evidence");
+            }
+
+            var controlItem = await db.Controls.FirstOrDefaultAsync(item => item.Code == "HR-01", cancellationToken);
+            if (controlItem is null)
+            {
+                return Result<PersonDetail>.Fail("not_found");
+            }
+
+            var retention = await control.Tenants.AsNoTracking().Where(item => item.Id == tenant.TenantId).Select(item => item.RetentionYears).FirstAsync(cancellationToken);
+            var evidenceId = Guid.NewGuid();
+            var item = new EvidenceItem
+            {
+                Id = evidenceId,
+                ControlId = controlItem.Id,
+                Title = person.Name + " background check",
+                Source = "Manual",
+                ObjectKey = tenant.TenantId.ToString("N") + "/" + evidenceId.ToString("N") + ".bin",
+                Integrity = EvidenceIntegrity.NotStored,
+            };
+            db.Evidence.Add(item);
+            await evidence.AppendAsync(db, tenant.TenantId, item, body, "application/octet-stream", time.GetUtcNow().AddYears(retention), cancellationToken);
+            person.BackgroundEvidenceId = evidenceId;
+        }
+
+        person.BackgroundProvider = provider;
+        person.BackgroundLink = link;
+        person.BackgroundExcluded = request.Excluded;
+        person.BackgroundExclusionReason = request.Excluded ? reason : "";
+        if (request.CompletedOn is DateOnly completed)
+        {
+            person.BackgroundOn = completed;
+        }
+        else if (request.Excluded)
+        {
+            person.BackgroundOn = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        }
+
+        if (request.Excluded)
+        {
+            person.BackgroundStatus = "Excluded";
+        }
+        else if (request.CompletedOn is null && person.BackgroundEvidenceId is null)
+        {
+            person.BackgroundStatus = "Pending";
+        }
+        else
+        {
+            person.BackgroundStatus = "Clear";
+        }
+        if (person.BackgroundStatus == "Clear" && person.BackgroundOn is null)
+        {
+            person.BackgroundOn = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await RefreshBackgroundTestAsync(db, cancellationToken);
+        await WriteAsync("people.background", person.BackgroundStatus, cancellationToken);
+        return Result<PersonDetail>.Ok(await ToDetailAsync(db, person, cancellationToken));
+    }
+
+    private async Task RefreshBackgroundTestAsync(TenantDbContext db, CancellationToken cancellationToken)
+    {
+        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        var people = await db.People.AsNoTracking().ToListAsync(cancellationToken);
+        var result = BackgroundRules.Evaluate(
+            people.Select(person => (person.State, person.HireOn, person.BackgroundStatus, person.BackgroundExcluded, person.BackgroundExclusionReason, person.Name)),
+            today);
+        var controlItem = await db.Controls.Include(item => item.Tests).FirstOrDefaultAsync(item => item.Code == "HR-01", cancellationToken);
+        if (controlItem is null)
+        {
+            return;
+        }
+
+        var test = controlItem.Tests.FirstOrDefault(item => item.Name == BackgroundRules.TestName);
+        var previous = test?.Outcome;
+        if (test is null)
+        {
+            test = new ControlTest
+            {
+                Id = Guid.NewGuid(),
+                ControlId = controlItem.Id,
+                Name = BackgroundRules.TestName,
+                Kind = TestKind.Document,
+            };
+            controlItem.Tests.Add(test);
+            db.ControlTests.Add(test);
+        }
+
+        test.Outcome = result.Outcome;
+        test.Detail = result.Detail;
+        if (result.Outcome == TestOutcome.Fail)
+        {
+            controlItem.Status = ControlStatus.Failing;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        if (result.Outcome == TestOutcome.Fail && previous != TestOutcome.Fail)
+        {
+            await automation.DispatchAsync("TestFailed", BackgroundRules.TestName, result.Detail, cancellationToken);
+            await automation.DispatchAsync("ControlNotReady", controlItem.Code, controlItem.Title, cancellationToken);
+        }
+    }
+
     public async Task<IReadOnlyList<DueItem>> DueItemsAsync(CancellationToken cancellationToken)
     {
         await using var db = Open();
@@ -935,7 +1087,12 @@ public sealed class GovernancePortal(
             person.BackgroundOn,
             person.DeviceStatus,
             person.StatusReason,
-            person.TrainingCompletedOn);
+            person.TrainingCompletedOn,
+            person.BackgroundProvider,
+            person.BackgroundLink,
+            person.BackgroundEvidenceId,
+            person.BackgroundExcluded,
+            person.BackgroundExclusionReason);
     }
 
     private static RiskListItem ToRisk(RiskItem row)

@@ -314,6 +314,8 @@ public sealed class Control
 
     public string Frequency { get; set; } = "";
 
+    public bool Custom { get; set; }
+
     public List<ControlRequirementMap> Mappings { get; set; } = [];
 
     public List<ControlTest> Tests { get; set; } = [];

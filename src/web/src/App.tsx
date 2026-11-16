@@ -25,6 +25,10 @@ import { MePage } from "./features/program/MePage";
 import { SettingsPage } from "./features/program/SettingsPage";
 import { TasksPage } from "./features/program/TasksPage";
 import { TrainingPage } from "./features/program/TrainingPage";
+import { ComputersPage } from "./features/computers/ComputersPage";
+import { VulnerabilitiesPage } from "./features/vulnerabilities/VulnerabilitiesPage";
+import { TrustAdminPage } from "./features/trust/TrustAdminPage";
+import { TrustPublicPage } from "./features/trust/TrustPublicPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -70,6 +74,7 @@ export function App() {
         }
       />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/trust/:slug" element={<TrustPublicPage />} />
       <Route
         element={
           <RequireAuth>
@@ -89,6 +94,9 @@ export function App() {
         <Route path="soa" element={<SoaPage />} />
         <Route path="vendors" element={<VendorsPage />} />
         <Route path="people" element={<PeoplePage />} />
+        <Route path="people/computers" element={<ComputersPage />} />
+        <Route path="vulnerabilities" element={<VulnerabilitiesPage />} />
+        <Route path="trust-center" element={<TrustAdminPage />} />
         <Route path="me" element={<MePage />} />
         <Route path="training" element={<TrainingPage />} />
         <Route path="assets" element={<AssetsPage />} />

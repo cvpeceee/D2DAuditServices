@@ -29,6 +29,21 @@ export function ControlsPage() {
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [saving, setSaving] = useState(false);
+  const [created, setCreated] = useState<string | null>(null);
+  const [draft, setDraft] = useState({
+    code: "",
+    title: "",
+    description: "",
+    frequency: "Annual",
+    ownerName: "",
+    ownerEmail: "",
+    framework: "iso27001",
+    requirement: "A.5.1",
+    coverage: "full",
+  });
+  const [csv, setCsv] = useState(
+    "code,title,description,frequency,ownerName,ownerEmail,framework,requirement,coverage",
+  );
 
   useEffect(() => {
     if (!tenantId) return;
@@ -123,6 +138,86 @@ export function ControlsPage() {
           <div className="sub">{t("controls.sub")}</div>
         </div>
       </div>
+      {workspace?.canWrite && (
+        <form
+          className="card"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!tenantId) return;
+            void api("/api/v1/controls", { method: "POST", tenantId, body: draft }).then(() => {
+              setCreated(draft.code);
+              setDraft({ ...draft, code: "", title: "", description: "" });
+            });
+          }}
+        >
+          <h3>{t("controls.new")}</h3>
+          <div className="split-fields">
+            <input
+              aria-label={t("controls.code")}
+              placeholder={t("controls.code")}
+              value={draft.code}
+              onChange={(event) => setDraft({ ...draft, code: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("controls.controlTitle")}
+              placeholder={t("controls.controlTitle")}
+              value={draft.title}
+              onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("controls.framework")}
+              placeholder={t("controls.framework")}
+              value={draft.framework}
+              onChange={(event) => setDraft({ ...draft, framework: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("controls.requirement")}
+              placeholder={t("controls.requirement")}
+              value={draft.requirement}
+              onChange={(event) => setDraft({ ...draft, requirement: event.target.value })}
+              required
+            />
+          </div>
+          <label className="field">
+            <span>{t("controls.description")}</span>
+            <input
+              value={draft.description}
+              onChange={(event) => setDraft({ ...draft, description: event.target.value })}
+              required
+            />
+          </label>
+          <button className="btn primary" type="submit">
+            {t("controls.create")}
+          </button>
+          {created && (
+            <div className="notice" role="status">
+              {t("controls.created", { code: created })}
+            </div>
+          )}
+          <h3>{t("controls.import")}</h3>
+          <label className="field">
+            <span>{t("controls.csv")}</span>
+            <textarea value={csv} onChange={(event) => setCsv(event.target.value)} rows={4} />
+          </label>
+          <button
+            className="btn"
+            type="button"
+            onClick={() => {
+              if (!tenantId) return;
+              void api<number>("/api/v1/controls/import", {
+                method: "POST",
+                tenantId,
+                body: { csv },
+              }).then((count) => setCreated(String(count)));
+            }}
+          >
+            {t("controls.import")}
+          </button>
+        </form>
+      )}
       <div className="tabs" role="tablist">
         {tabs.map((item) => (
           <button
