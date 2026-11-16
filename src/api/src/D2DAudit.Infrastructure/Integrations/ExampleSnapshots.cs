@@ -11,7 +11,23 @@ public static class ExampleSnapshots
         return all.Where(item => item.Provider == provider).ToArray();
     }
 
-    private static IReadOnlyList<NormalizedResource> Acme() => ClientSeed.Resources;
+    private static IReadOnlyList<NormalizedResource> Acme()
+    {
+        var rows = ClientSeed.Resources.ToList();
+        rows.Add(new NormalizedResource("azure", "keyVault", "hl-keys", "hl-keys", Attr(("enabled", true))));
+        rows.Add(new NormalizedResource("azure", "network", "prod-nsg", "prod-nsg", Attr(("open", false))));
+        rows.Add(new NormalizedResource("azure", "network", "staging-nsg", "staging-nsg", Attr(("open", true))));
+        rows.Add(new NormalizedResource("azure", "user", "entra-priya", "Priya Nair", new Dictionary<string, string>
+        {
+            ["email"] = "priya.nair@" + ClientSeed.Company.Domain,
+            ["mfa"] = "true",
+            ["offboarded"] = "false",
+            ["status"] = "active",
+        }));
+        rows.Add(new NormalizedResource("gcp", "kms", "key-rings", "key-rings", Attr(("enabled", true))));
+        rows.Add(new NormalizedResource("gcp", "iam", "project-iam", "project-iam", Attr(("public", false))));
+        return rows;
+    }
 
     private static IReadOnlyList<NormalizedResource> Northwind() =>
     [

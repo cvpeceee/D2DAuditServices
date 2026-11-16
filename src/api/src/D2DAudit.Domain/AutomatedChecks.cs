@@ -62,6 +62,60 @@ public static class AutomatedChecks
             "HR-08",
             ["soc2 CC6.2", "soc2 CC6.3", "iso27001 A.6.5"],
             "Remove or suspend the leaver in every connected system."),
+        new(
+            "azure-storage-public",
+            "Azure storage public access blocked",
+            "CFG-01",
+            ["soc2 CC6.1", "iso27001 A.8.3"],
+            "Turn off public blob access on every storage account."),
+        new(
+            "azure-key-vault",
+            "Azure Key Vault is in use",
+            "CR-02",
+            ["soc2 CC6.7", "iso27001 A.8.24"],
+            "Create a Key Vault with soft delete for the subscription."),
+        new(
+            "azure-activity-log",
+            "Azure activity log alerts are on",
+            "LG-03",
+            ["soc2 CC7.2", "iso27001 A.8.15"],
+            "Create an activity log alert so subscription changes are recorded."),
+        new(
+            "azure-network-rules",
+            "Azure network rules are not wide open",
+            "CFG-01",
+            ["soc2 CC6.6", "iso27001 A.8.20"],
+            "Remove inbound rules that allow SSH or RDP from the internet."),
+        new(
+            "entra-mfa",
+            "Entra ID MFA for active users",
+            "AC-07",
+            ["soc2 CC6.1", "iso27001 A.8.5"],
+            "Turn on MFA for every active Entra ID user."),
+        new(
+            "gcp-bucket-public",
+            "GCP bucket public access blocked",
+            "CFG-01",
+            ["soc2 CC6.1", "iso27001 A.8.3"],
+            "Enforce public access prevention on every bucket."),
+        new(
+            "gcp-kms",
+            "GCP KMS keys are present",
+            "CR-02",
+            ["soc2 CC6.7", "iso27001 A.8.24"],
+            "Create a Cloud KMS key ring for customer data."),
+        new(
+            "gcp-audit-log",
+            "GCP audit logs are exported",
+            "LG-03",
+            ["soc2 CC7.2", "iso27001 A.8.15"],
+            "Create a logging sink for admin activity."),
+        new(
+            "gcp-iam-public",
+            "GCP IAM is not public",
+            "AC-07",
+            ["soc2 CC6.1", "iso27001 A.5.15"],
+            "Remove allUsers and allAuthenticatedUsers from the project policy."),
     ];
 
     public static CheckResult Evaluate(string key, IReadOnlyList<NormalizedResource> resources) => key switch
@@ -73,6 +127,15 @@ public static class AutomatedChecks
         "encryption-at-rest" => AllOf(resources, "bucket", "encrypted", "true", "No buckets were collected.", "Encryption at rest is off"),
         "branch-protection" => AllOf(resources, "repository", "protected", "true", "No repositories were collected.", "The default branch is not protected"),
         "offboarded-removed" => Leavers(resources),
+        "azure-storage-public" => ProviderAll(resources, "azure", "bucket", "public", "false", "No Azure storage accounts were collected.", "Public blob access is on"),
+        "azure-key-vault" => ProviderAny(resources, "azure", "keyVault", "enabled", "true", "No Azure Key Vault was collected.", "A Key Vault is enabled."),
+        "azure-activity-log" => ProviderAny(resources, "azure", "trail", "enabled", "true", "No Azure activity log was collected.", "Activity log alerts are on."),
+        "azure-network-rules" => ProviderAll(resources, "azure", "network", "open", "false", "No Azure network rules were collected.", "A network rule allows the internet"),
+        "entra-mfa" => ProviderUsers(resources, "azure"),
+        "gcp-bucket-public" => ProviderAll(resources, "gcp", "bucket", "public", "false", "No GCP buckets were collected.", "Public access prevention is off"),
+        "gcp-kms" => ProviderAny(resources, "gcp", "kms", "enabled", "true", "No GCP KMS inventory was collected.", "Cloud KMS key rings are present."),
+        "gcp-audit-log" => ProviderAny(resources, "gcp", "trail", "enabled", "true", "No GCP audit log was collected.", "An audit log sink is present."),
+        "gcp-iam-public" => ProviderAll(resources, "gcp", "iam", "public", "false", "No GCP IAM policy was collected.", "The project policy is public"),
         _ => throw new InvalidOperationException($"Unknown automated check {key}."),
     };
 
@@ -82,8 +145,75 @@ public static class AutomatedChecks
         "s3-public-access" or "encryption-at-rest" => resources.Where(item => item.Kind == "bucket").ToArray(),
         "cloudtrail-enabled" => resources.Where(item => item.Kind == "trail").ToArray(),
         "branch-protection" => resources.Where(item => item.Kind == "repository").ToArray(),
+        "azure-storage-public" => Of(resources, "azure", "bucket"),
+        "gcp-bucket-public" => Of(resources, "gcp", "bucket"),
+        "azure-key-vault" => Of(resources, "azure", "keyVault"),
+        "azure-activity-log" => Of(resources, "azure", "trail"),
+        "azure-network-rules" => Of(resources, "azure", "network"),
+        "entra-mfa" => Of(resources, "azure", "user"),
+        "gcp-kms" => Of(resources, "gcp", "kms"),
+        "gcp-audit-log" => Of(resources, "gcp", "trail"),
+        "gcp-iam-public" => Of(resources, "gcp", "iam"),
         _ => resources.Where(item => item.Kind == "user").ToArray(),
     };
+
+    private static NormalizedResource[] Of(IReadOnlyList<NormalizedResource> resources, string provider, string kind) =>
+        resources.Where(item => item.Provider == provider && item.Kind == kind).ToArray();
+
+    private static CheckResult ProviderAll(
+        IReadOnlyList<NormalizedResource> resources,
+        string provider,
+        string kind,
+        string attribute,
+        string expected,
+        string empty,
+        string failure)
+    {
+        var rows = Of(resources, provider, kind);
+        if (rows.Length == 0)
+        {
+            return new CheckResult(TestOutcome.NotRun, empty);
+        }
+
+        var bad = rows.Where(item => Flag(item, attribute) != expected).Select(item => item.Name).ToArray();
+        return bad.Length == 0
+            ? new CheckResult(TestOutcome.Pass, $"{rows.Length} {provider} {kind} resources match.")
+            : new CheckResult(TestOutcome.Fail, $"{failure}: {string.Join(", ", bad)}.");
+    }
+
+    private static CheckResult ProviderAny(
+        IReadOnlyList<NormalizedResource> resources,
+        string provider,
+        string kind,
+        string attribute,
+        string expected,
+        string empty,
+        string success)
+    {
+        var rows = Of(resources, provider, kind);
+        if (rows.Length == 0)
+        {
+            return new CheckResult(TestOutcome.NotRun, empty);
+        }
+
+        return rows.Any(item => Flag(item, attribute) == expected)
+            ? new CheckResult(TestOutcome.Pass, success)
+            : new CheckResult(TestOutcome.Fail, $"No {provider} {kind} has {attribute} {expected}.");
+    }
+
+    private static CheckResult ProviderUsers(IReadOnlyList<NormalizedResource> resources, string provider)
+    {
+        var users = Of(resources, provider, "user").Where(item => Flag(item, "status") != "suspended" && Flag(item, "offboarded") != "true").ToArray();
+        if (users.Length == 0)
+        {
+            return new CheckResult(TestOutcome.NotRun, "No active " + provider + " users were collected.");
+        }
+
+        var missing = users.Where(item => Flag(item, "mfa") != "true").Select(item => item.Name).ToArray();
+        return missing.Length == 0
+            ? new CheckResult(TestOutcome.Pass, $"{users.Length} active users match.")
+            : new CheckResult(TestOutcome.Fail, $"These active users have no MFA: {string.Join(", ", missing)}.");
+    }
 
     private static CheckResult Users(
         IReadOnlyList<NormalizedResource> resources,

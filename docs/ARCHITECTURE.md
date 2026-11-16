@@ -36,7 +36,7 @@ GitHub Pages is a static review build. It does not receive customer data. The de
 
 ## Gap program
 
-The Nov 21, 2026 Harborline demo is tracked in [FEATURES.md](FEATURES.md). New modules land as their own pull requests and this section records them when they merge. As of the tracker, the runtime is still the M6 modular monolith: AWS, Google Workspace, Microsoft 365, and GitHub collectors; fixture Azure and GCP resources; fixture vulnerabilities; fake Jira, Slack, Teams, and email actions. No additional module is in the composition root yet.
+The Nov 21, 2026 Harborline demo is tracked in [FEATURES.md](FEATURES.md). New modules land as their own pull requests and this section records them when they merge. Azure and GCP are `ICloudProvider` implementations next to AWS. A non-example workspace collects with an Azure app registration (Resource Manager and Microsoft Graph) or a GCP service account (Storage, KMS, Logging, and IAM). Harborline stays on the example fixture. New automated checks cover Azure storage, Key Vault, activity log, network rules, and Entra MFA, plus GCP buckets, KMS, audit sinks, and public IAM. Jira, Slack, Teams, and email actions are still the fake implementations.
 
 ## Layers and projects
 

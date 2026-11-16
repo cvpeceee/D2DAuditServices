@@ -32,7 +32,12 @@ public sealed record ConnectIntegrationRequest(
     string? InstallationId,
     string? Code,
     string? State,
-    string? RedirectUri);
+    string? RedirectUri,
+    string? TenantId = null,
+    string? ClientId = null,
+    string? ClientSecret = null,
+    string? SubscriptionId = null,
+    string? ProjectId = null);
 
 public interface ICloudProvider
 {

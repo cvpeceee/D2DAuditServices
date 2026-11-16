@@ -38,6 +38,31 @@ public sealed class CheckAndChainTests
     }
 
     [Fact]
+    public void Azure_and_gcp_checks_use_only_that_cloud()
+    {
+        var resources = new NormalizedResource[]
+        {
+            new("azure", "bucket", "az-warehouse", "az-warehouse", Flags(("public", false), ("encrypted", true))),
+            new("azure", "network", "staging-nsg", "staging-nsg", Flags(("open", true))),
+            new("azure", "keyVault", "hl-keys", "hl-keys", Flags(("enabled", true))),
+            new("azure", "trail", "activity-log", "activity-log", Flags(("enabled", true))),
+            new("azure", "user", "entra-priya", "Priya Nair", new Dictionary<string, string> { ["mfa"] = "true", ["status"] = "active", ["offboarded"] = "false" }),
+            new("gcp", "bucket", "gcp-shares", "gcp-shares", Flags(("public", false), ("encrypted", true))),
+            new("gcp", "kms", "key-rings", "key-rings", Flags(("enabled", true))),
+            new("gcp", "trail", "audit-log", "audit-log", Flags(("enabled", true))),
+            new("gcp", "iam", "project-iam", "project-iam", Flags(("public", false))),
+            new("aws", "bucket", "marketing-site", "marketing-site", Flags(("public", true), ("encrypted", false))),
+        };
+
+        Assert.Equal(TestOutcome.Pass, AutomatedChecks.Evaluate("azure-storage-public", resources).Outcome);
+        Assert.Equal(TestOutcome.Fail, AutomatedChecks.Evaluate("azure-network-rules", resources).Outcome);
+        Assert.Contains("staging-nsg", AutomatedChecks.Evaluate("azure-network-rules", resources).Detail, StringComparison.Ordinal);
+        Assert.Equal(TestOutcome.Pass, AutomatedChecks.Evaluate("entra-mfa", resources).Outcome);
+        Assert.Equal(TestOutcome.Pass, AutomatedChecks.Evaluate("gcp-iam-public", resources).Outcome);
+        Assert.Equal(TestOutcome.Fail, AutomatedChecks.Evaluate("s3-public-access", resources).Outcome);
+    }
+
+    [Fact]
     public void A_leaver_who_is_still_active_in_another_system_fails()
     {
         var resources = new NormalizedResource[]
