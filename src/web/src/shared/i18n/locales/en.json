@@ -17,6 +17,7 @@
     "vulnerabilities": "Vulnerabilities",
     "incidents": "Incidents",
     "changes": "Changes",
+    "questionnaires": "Questionnaires",
     "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
@@ -870,6 +871,27 @@
       "Approved": "Approved",
       "Deployed": "Deployed",
       "Rejected": "Rejected"
+    }
+  },
+  "questionnairesPage": {
+    "title": "Questionnaires",
+    "sub": "Upload a customer spreadsheet. Suggestions come from policies, controls, and evidence, and a person accepts the answer before it is exported.",
+    "name": "Questionnaire",
+    "customer": "Customer",
+    "status": "Status",
+    "progress": "Accepted",
+    "acceptedOf": "{{accepted}} of {{questions}} accepted",
+    "citation": "Citation",
+    "answer": "Answer",
+    "accept": "Accept",
+    "reopen": "Reopen",
+    "reviewedBy": "Accepted by {{name}}",
+    "upload": "Upload a questionnaire",
+    "file": "CSV or XLSX",
+    "export": "Export CSV",
+    "statuses": {
+      "InReview": "In review",
+      "Accepted": "Accepted"
     }
   },
   "computersPage": {

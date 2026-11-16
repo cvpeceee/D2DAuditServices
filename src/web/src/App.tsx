@@ -29,6 +29,7 @@ import { ComputersPage } from "./features/computers/ComputersPage";
 import { VulnerabilitiesPage } from "./features/vulnerabilities/VulnerabilitiesPage";
 import { IncidentsPage } from "./features/incidents/IncidentsPage";
 import { ChangesPage } from "./features/changes/ChangesPage";
+import { QuestionnairesPage } from "./features/questionnaires/QuestionnairesPage";
 import { TrustAdminPage } from "./features/trust/TrustAdminPage";
 import { TrustPublicPage } from "./features/trust/TrustPublicPage";
 
@@ -100,6 +101,7 @@ export function App() {
         <Route path="vulnerabilities" element={<VulnerabilitiesPage />} />
         <Route path="incidents" element={<IncidentsPage />} />
         <Route path="changes" element={<ChangesPage />} />
+        <Route path="questionnaires" element={<QuestionnairesPage />} />
         <Route path="trust-center" element={<TrustAdminPage />} />
         <Route path="me" element={<MePage />} />
         <Route path="training" element={<TrainingPage />} />

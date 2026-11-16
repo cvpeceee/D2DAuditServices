@@ -17,6 +17,7 @@ export type IconName =
   | "vulnerabilities"
   | "incidents"
   | "changes"
+  | "questionnaires"
   | "trust"
   | "assets"
   | "tasks"
@@ -294,6 +295,16 @@ export function Icon({ name, size = 16, className = "", ...rest }: IconProps) {
           <path d="M8 3H3v5" />
           <path d="M12 22V8" />
           <path d="m17 18-5-5-5 5" />
+        </svg>
+      );
+
+    case "questionnaires":
+      return (
+        <svg {...commonProps}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M8 13h8" />
+          <path d="M8 17h5" />
         </svg>
       );
 

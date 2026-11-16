@@ -32,7 +32,7 @@ Done. The person drawer records a background-check provider, link, upload, compl
 
 ## M7 — Competitor gaps for the Nov 21 demo
 
-In progress. The ordered list, priority, and status live in the gap tracker in [FEATURES.md](FEATURES.md). P0 is the Harborline walkthrough. Azure and GCP collection, readiness, the executive PDF, the incident register, and change management are done. Questionnaire automation, the SOC 2 system description, business continuity, and live vulnerability ingest are still open. P1 through P3 follow that list. Each pull request updates this file, the tracker, and [ARCHITECTURE.md](ARCHITECTURE.md).
+In progress. The ordered list, priority, and status live in the gap tracker in [FEATURES.md](FEATURES.md). P0 is the Harborline walkthrough. Azure and GCP collection, readiness, the executive PDF, the incident register, and change management are done. Questionnaire upload, review, and export are in, with a deterministic suggestion assistant until a model is connected. The SOC 2 system description, business continuity, and live vulnerability ingest are still open. P1 through P3 follow that list. Each pull request updates this file, the tracker, and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## M4 — Demo polish
 

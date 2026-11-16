@@ -12,7 +12,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 2 | P0 | Framework readiness percent on the dashboard and framework pages, plus a one-page executive PDF | Done | https://github.com/cvpeceee/D2DAuditServices/pull/13 |
 | 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/14 |
 | 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/15 |
-| 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Not started | |
+| 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Faked-for-demo | https://github.com/cvpeceee/D2DAuditServices/pull/16 |
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Not started | |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Not started | |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Not started | |
@@ -51,6 +51,7 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/vulnerabilities` | By asset, by vulnerability, ignored, SLA history. | Ignore with a reason, set SLA days. | Write roles |
 | `/incidents` | Severity, SLA, timeline, root cause, and a linked control. | Report, update status, record a root cause. | Report: any member. Update: write roles |
 | `/changes` | GitHub pull requests, Jira issues, and manual changes, with approval and the deploy they shipped in. | Record, approve, reject, link a deploy, sync. | Write roles record and update. Anyone in the workspace can read. |
+| `/questionnaires` | Customer security questionnaires. Suggestions cite a policy, control, or evidence item. A person accepts or edits each answer, then exports CSV. | Upload CSV or XLSX, accept, export. | Write roles upload and review. Anyone in the workspace can read and export. |
 | `/me` | The signed-in person's policy, training, MFA, device, background cards, and incident report. | Complete a card. Report an incident. | The signed-in person |
 | `/training` | Annual module and an external course with a certificate upload. | Take the quiz, upload a certificate. | Assigned people |
 | `/assets` | Inventory from connections, owners, scope, CSV. | Import and export. | Write roles |
@@ -84,6 +85,10 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 `/changes` is the production change log. Harborline is seeded with two GitHub pull requests and one Jira issue. CHG-02 is deployed without an approval, so the CM-11 test "production changes are reviewed" fails and names that change. Approving it, or linking a deploy on a change that already has an approval, refreshes the test.
 
 Sync reads merged pull requests when a non-example GitHub App installation is connected. A merged request counts as the deploy, and an approving review by someone other than the author counts as the approval. Jira is read when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `JIRA_PROJECT` are set. The feed asks for issues labeled `production-change`. Status Approved, Done, or Deployed counts as approval. Status Deployed also links the deploy. With those settings missing, sync adds nothing. The Harborline Jira row is seed data.
+
+## Questionnaires
+
+`/questionnaires` uploads a CSV or XLSX whose first column, or a column headed `question`, is the question list. The knowledge base is the workspace policies, controls, and recent evidence titles. `IQuestionnaireAssistant` is the boundary. The implementation in this release is deterministic: it scores word overlap and cites the closest item. It does not call a model. That is why the tracker row is Faked-for-demo. A person edits the answer, accepts it, and exports the sheet as CSV. Harborline already has the Northgate questionnaire, with the change-management question still open.
 
 ## Automation
 
