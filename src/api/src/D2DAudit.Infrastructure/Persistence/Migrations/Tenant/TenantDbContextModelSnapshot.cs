@@ -1084,6 +1084,43 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("integration_connections", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.PentestReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("FindingCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasDefaultValue("");
+
+                    b.Property<DateOnly>("TestedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Vendor")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("pentest_reports", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.PersonAccount", b =>
                 {
                     b.Property<Guid>("Id")

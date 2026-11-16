@@ -15,7 +15,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Faked-for-demo | https://github.com/cvpeceee/D2DAuditServices/pull/16 |
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Done | https://github.com/cvpeceee/D2DAuditServices/pull/17 |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
-| 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Not started | |
+| 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Not started | |
 | 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
 | 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, FedRAMP Moderate, HITRUST, CMMC, and custom framework upload | Not started | |
@@ -27,7 +27,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 17 | P2 | Terraform for ECS Fargate, RDS, and S3 Object Lock, with an EU region option | Not started | |
 | 18 | P3 | RoPA and DPIA, AI governance registry, phishing simulations, attack surface monitoring, auditor network | Not started | |
 
-Harborline already shows fixture Azure, GCP, Inspector, and Dependabot data from M4 and M6. Those rows stay Not started until a connected workspace collects or ingests live data, or the screen is explicitly marked Faked-for-demo.
+Harborline already shows fixture Azure, GCP, Inspector, and Dependabot data. Live Inspector and Dependabot ingest runs only for a connected workspace that is not the example fixture. Sync on Harborline leaves those rows in place.
 
 Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-only on customer records and limited to the frameworks on the grant.
 
@@ -87,6 +87,12 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 `/changes` is the production change log. Harborline is seeded with two GitHub pull requests and one Jira issue. CHG-02 is deployed without an approval, so the CM-11 test "production changes are reviewed" fails and names that change. Approving it, or linking a deploy on a change that already has an approval, refreshes the test.
 
 Sync reads merged pull requests when a non-example GitHub App installation is connected. A merged request counts as the deploy, and an approving review by someone other than the author counts as the approval. Jira is read when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `JIRA_PROJECT` are set. The feed asks for issues labeled `production-change`. Status Approved, Done, or Deployed counts as approval. Status Deployed also links the deploy. With those settings missing, sync adds nothing. The Harborline Jira row is seed data.
+
+## Vulnerabilities, live ingest, and pentests
+
+`/vulnerabilities` still lists findings by asset, by vulnerability, ignored, and SLA history. Sync asks AWS Inspector and GitHub Dependabot when the matching connection is connected and is not an example fixture. A successful list replaces the open findings from that source. Ignored rows stay. If the call fails, the current rows stay. Harborline's connections are examples, so sync imports nothing and the seeded Inspector and Dependabot rows remain.
+
+A penetration-test upload takes `cve,severity,asset,title` and adds those rows with source Pentest. Harborline includes the 2026 application test and CVE-2024-5535.
 
 ## Continuity
 

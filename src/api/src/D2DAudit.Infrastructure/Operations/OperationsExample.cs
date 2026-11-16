@@ -85,6 +85,17 @@ internal static class OperationsExample
         AddFinding(db, "CVE-2023-44487", "Request flood in the public gateway", "Medium", "edge-gateway", "AWS Inspector", now.AddDays(-8), now.AddDays(-1), now.AddDays(-8).AddDays(60), false, false, "");
         AddFinding(db, "CVE-2024-3094", "Build tool package accepts a malicious upstream", "Critical", "analytics-ci", "GitHub Dependabot", now.AddDays(-6), now.AddDays(-1), now.AddDays(-6).AddDays(7), true, false, "");
         AddFinding(db, "CVE-2022-41741", "Media module flaw in an internal player", "Low", "support-portal", "GitHub Dependabot", now.AddDays(-15), now.AddDays(-4), now.AddDays(-15).AddDays(90), true, true, "The player is not reachable from the internet and the fix is scheduled.");
+        AddFinding(db, "CVE-2024-5535", "OpenSSL handshake accepts an empty extension", "Medium", "edge-gateway", "Pentest", now.AddDays(-8), now.AddDays(-8), now.AddDays(-8).AddDays(60), false, false, "");
+        db.PentestReports.Add(new PentestReport
+        {
+            Id = Guid.NewGuid(),
+            Title = "2026 application test",
+            Vendor = "Northgate Assurance",
+            TestedOn = DateOnly.FromDateTime(now.AddDays(-8).UtcDateTime),
+            Summary = "CVE-2024-5535,Medium,edge-gateway,OpenSSL handshake accepts an empty extension",
+            FindingCount = 1,
+            UploadedAt = now.AddDays(-8),
+        });
         db.SlaEvents.Add(Event("CVE-2024-6387", "bastion", "Breached", DateOnly.FromDateTime(now.AddDays(-10).UtcDateTime), "High findings are due 30 days after first seen.", now.AddDays(-9)));
         db.SlaEvents.Add(Event("CVE-2024-3094", "build-runner", "DueChanged", DateOnly.FromDateTime(now.AddDays(-13).UtcDateTime), "Critical window moved from 14 days to 7 days.", now.AddDays(-18)));
         db.SlaEvents.Add(Event("CVE-2022-41741", "support-portal", "Ignored", DateOnly.FromDateTime(now.AddDays(-15).AddDays(90).UtcDateTime), "The player is not reachable from the internet and the fix is scheduled.", now.AddDays(-2)));

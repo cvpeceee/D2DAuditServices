@@ -127,6 +127,7 @@ app.MapChangeEndpoints();
 app.MapQuestionnaireEndpoints();
 app.MapSystemDescriptionEndpoints();
 app.MapContinuityEndpoints();
+app.MapVulnerabilityIngestEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

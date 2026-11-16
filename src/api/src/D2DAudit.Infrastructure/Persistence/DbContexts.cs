@@ -201,6 +201,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RecoveryExercise> RecoveryExercises => Set<RecoveryExercise>();
 
+    public DbSet<PentestReport> PentestReports => Set<PentestReport>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -713,6 +715,13 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         exercise.Property(x => x.Result).HasMaxLength(16).IsRequired();
         exercise.Property(x => x.Notes).HasMaxLength(2000).HasDefaultValue("");
         exercise.Property(x => x.ControlCode).HasMaxLength(32).HasDefaultValue("");
+
+        var pentest = modelBuilder.Entity<PentestReport>();
+        pentest.ToTable("pentest_reports");
+        pentest.HasKey(x => x.Id);
+        pentest.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        pentest.Property(x => x.Vendor).HasMaxLength(200).IsRequired();
+        pentest.Property(x => x.Summary).HasMaxLength(2000).HasDefaultValue("");
     }
 }
 

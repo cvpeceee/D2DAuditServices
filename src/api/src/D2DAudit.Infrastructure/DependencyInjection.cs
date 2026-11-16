@@ -117,6 +117,8 @@ public static class DependencyInjection
         services.AddScoped<IQuestionnaires, QuestionnairePortal>();
         services.AddScoped<ISystemDescription, SystemDescriptionPortal>();
         services.AddScoped<IContinuity, ContinuityPortal>();
+        services.AddSingleton<AwsInspectorFeed>();
+        services.AddScoped<IVulnerabilityIngest, VulnerabilityIngest>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();

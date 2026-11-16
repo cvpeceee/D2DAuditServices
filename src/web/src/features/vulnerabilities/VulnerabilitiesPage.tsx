@@ -53,6 +53,11 @@ export function VulnerabilitiesPage() {
   const [reason, setReason] = useState("");
   const [selected, setSelected] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [reports, setReports] = useState<
+    { id: string; title: string; vendor: string; testedOn: string; findingCount: number }[]
+  >([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pentest, setPentest] = useState({ title: "", vendor: "", testedOn: "", csv: "" });
 
   function load() {
     if (!tenantId) return;
@@ -62,6 +67,9 @@ export function VulnerabilitiesPage() {
         setSla(value.sla);
       })
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
+    void api<typeof reports>("/api/v1/vulnerabilities/pentests", { tenantId })
+      .then(setReports)
+      .catch(() => setReports([]));
   }
 
   useEffect(() => {
@@ -155,7 +163,86 @@ export function VulnerabilitiesPage() {
           <h1>{t("vulnPage.title")}</h1>
           <div className="sub">{t("vulnPage.sub")}</div>
         </div>
+        {workspace?.canWrite && (
+          <button
+            className="btn"
+            type="button"
+            onClick={() => {
+              if (!tenantId) return;
+              void api<{ imported: number }>("/api/v1/vulnerabilities/sync", {
+                method: "POST",
+                tenantId,
+              }).then((result) => {
+                setNotice(t("vulnPage.synced", { count: result.imported }));
+                load();
+              });
+            }}
+          >
+            {t("vulnPage.sync")}
+          </button>
+        )}
       </div>
+      {notice && (
+        <div className="notice" role="status">
+          {notice}
+        </div>
+      )}
+      <section className="card">
+        <h3>{t("vulnPage.pentests")}</h3>
+        <ul>
+          {reports.map((report) => (
+            <li key={report.id}>
+              <b>{report.title}</b> · {report.vendor} · {report.testedOn} ·{" "}
+              {t("vulnPage.findingCount", { count: report.findingCount })}
+            </li>
+          ))}
+        </ul>
+        {workspace?.canWrite && (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!tenantId) return;
+              void api("/api/v1/vulnerabilities/pentests", {
+                method: "POST",
+                tenantId,
+                body: pentest,
+              }).then(() => {
+                setPentest({ title: "", vendor: "", testedOn: "", csv: "" });
+                setNotice(t("vulnPage.pentestSaved"));
+                load();
+              });
+            }}
+          >
+            <label className="field">
+              <span>{t("vulnPage.pentestTitle")}</span>
+              <input
+                aria-label={t("vulnPage.pentestTitle")}
+                value={pentest.title}
+                onChange={(event) => setPentest({ ...pentest, title: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>{t("vulnPage.vendor")}</span>
+              <input
+                aria-label={t("vulnPage.vendor")}
+                value={pentest.vendor}
+                onChange={(event) => setPentest({ ...pentest, vendor: event.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>{t("vulnPage.csv")}</span>
+              <textarea
+                aria-label={t("vulnPage.csv")}
+                value={pentest.csv}
+                onChange={(event) => setPentest({ ...pentest, csv: event.target.value })}
+              />
+            </label>
+            <button className="btn primary" type="submit">
+              {t("vulnPage.uploadPentest")}
+            </button>
+          </form>
+        )}
+      </section>
       {error && (
         <div className="error" role="alert">
           {t("errors.load")}

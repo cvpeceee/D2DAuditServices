@@ -144,6 +144,90 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
         return changes;
     }
 
+    public async Task<IReadOnlyList<ImportedFinding>?> DependabotAlertsAsync(ProviderConnection connection, CancellationToken cancellationToken)
+    {
+        if (connection.Example || string.IsNullOrWhiteSpace(connection.InstallationId))
+        {
+            return null;
+        }
+
+        var token = await InstallationTokenAsync(connection.InstallationId, cancellationToken);
+        var api = configuration["Integrations:GitHubApiEndpoint"];
+        if (token is null || string.IsNullOrWhiteSpace(api))
+        {
+            return null;
+        }
+
+        var root = api.TrimEnd('/');
+        using var repos = await GetAsync(root + "/installation/repositories?per_page=10", token, cancellationToken);
+        if (repos is null || !repos.RootElement.TryGetProperty("repositories", out var rows))
+        {
+            return null;
+        }
+
+        var findings = new List<ImportedFinding>();
+        foreach (var repo in rows.EnumerateArray().Take(10))
+        {
+            var name = Text(repo, "full_name");
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            using var alerts = await GetAsync(root + "/repos/" + RepoPath(name) + "/dependabot/alerts?state=open&per_page=20", token, cancellationToken);
+            if (alerts is null || alerts.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                continue;
+            }
+
+            foreach (var alert in alerts.RootElement.EnumerateArray())
+            {
+                if (!alert.TryGetProperty("security_advisory", out var advisory))
+                {
+                    continue;
+                }
+
+                var cve = Text(advisory, "cve_id");
+                var title = Text(advisory, "summary");
+                var severity = Severity(Text(advisory, "severity"));
+                var asset = name;
+                if (alert.TryGetProperty("dependency", out var dependency) && dependency.TryGetProperty("package", out var package))
+                {
+                    var packageName = Text(package, "name");
+                    if (packageName.Length > 0)
+                    {
+                        asset = packageName;
+                    }
+                }
+
+                var fix = alert.TryGetProperty("security_vulnerability", out var vulnerability)
+                    && vulnerability.TryGetProperty("first_patched_version", out var patched)
+                    && patched.ValueKind != JsonValueKind.Null;
+                if (cve.Length == 0)
+                {
+                    cve = "GHSA-" + Text(alert, "number");
+                }
+
+                if (cve.Length == 0 || title.Length == 0)
+                {
+                    continue;
+                }
+
+                findings.Add(new ImportedFinding("GitHub Dependabot", cve, title, severity, asset, fix));
+            }
+        }
+
+        return findings;
+    }
+
+    private static string Severity(string value) => value.ToLowerInvariant() switch
+    {
+        "critical" => "Critical",
+        "high" => "High",
+        "low" => "Low",
+        _ => "Medium",
+    };
+
     private async Task<Result<ProviderCollect>> CollectLiveAsync(ProviderConnection connection, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(connection.InstallationId))
