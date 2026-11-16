@@ -2,6 +2,8 @@ import exampleControls from "../../../api/content/frameworks/example-controls.js
 import iso27001 from "../../../api/content/frameworks/iso27001.json";
 import iso27017 from "../../../api/content/frameworks/iso27017.json";
 import iso27018 from "../../../api/content/frameworks/iso27018.json";
+import hipaa from "../../../api/content/frameworks/hipaa.json";
+import gdpr from "../../../api/content/frameworks/gdpr.json";
 import soc2 from "../../../api/content/frameworks/soc2.json";
 import {
   company,
@@ -22,6 +24,7 @@ import {
   seedRisks,
   seedVendors,
 } from "./client";
+import { attachM6, buildM6, type M6State } from "./m6";
 import {
   buildProgram,
   withRiskApproval,
@@ -182,6 +185,11 @@ export type DemoPerson = {
   mfaEnrolled?: boolean;
   background?: string;
   backgroundOn?: string | null;
+  backgroundProvider?: string;
+  backgroundLink?: string;
+  backgroundEvidenceId?: string | null;
+  backgroundExcluded?: boolean;
+  backgroundExclusionReason?: string;
   device?: string;
   statusReason?: string;
   trainingCompletedOn?: string | null;
@@ -264,6 +272,7 @@ export type DemoWorld = {
     description: string;
     requirements: DemoNode[];
   }[];
+  m6: M6State;
 };
 
 export type DemoNode = {
@@ -283,7 +292,7 @@ type RawFramework = {
   requirements: RawNode[];
 };
 
-const frameworks = [soc2, iso27001, iso27017, iso27018] as RawFramework[];
+const frameworks = [soc2, iso27001, iso27017, iso27018, hipaa, gdpr] as RawFramework[];
 
 const automated = [
   {
@@ -601,7 +610,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
 
   const governed = governance(now, controls);
   const program = buildProgram(governed.people, governed.campaigns, governed.vendors, now);
-  return {
+  const world: DemoWorld = {
     controls,
     evidence,
     checks,
@@ -645,6 +654,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
       detail: item.detail,
       actor: item.actor,
     })),
+    m6: await buildM6(controls, evidence, now),
     frameworks: frameworks.map((framework) => ({
       key: framework.key,
       name: framework.name,
@@ -653,6 +663,8 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
       requirements: decorate(framework.requirements, framework.key, controls),
     })),
   };
+  attachM6(world, world.m6);
+  return world;
 }
 
 function policy(code: string, title: string, control: string, body: string, now: Date): DemoPolicy {

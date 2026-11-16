@@ -57,7 +57,7 @@ public sealed class AuditPackageFixture : IAsyncLifetime
             FrameworkKey = "soc2",
             Scope = "Security and Availability",
             PeriodStart = new DateOnly(2026, 4, 1),
-            PeriodEnd = new DateOnly(2026, 9, 30),
+            PeriodEnd = new DateOnly(2026, 12, 31),
             FieldworkOn = new DateOnly(2026, 11, 30),
         });
         await db.SaveChangesAsync();
@@ -216,15 +216,41 @@ public sealed class AuditPackageTests(AuditPackageFixture fixture) : IClassFixtu
         var outsider = await fixture.LoginAsync("audit-other@example.com");
         await UploadAsync(admin, "AC-07", "Access review", "access-review");
         await UploadAsync(admin, "PP-01", "Privacy notice", "privacy-notice");
+        await UploadAsync(admin, "AC-07", "Old sample", "old-sample");
+        using (var scope = fixture.Factory.Services.CreateScope())
+        {
+            var databases = scope.ServiceProvider.GetRequiredService<TenantDatabases>();
+            var plane = scope.ServiceProvider.GetRequiredService<ControlPlaneDbContext>();
+            var tenant = await plane.Tenants.FirstAsync(item => item.Id == fixture.TenantId);
+            await using var db = databases.Create(tenant.DatabaseName!);
+            var old = await db.Evidence.FirstAsync(item => item.Title == "Old sample");
+            old.CollectedAt = new DateTimeOffset(2025, 1, 15, 0, 0, 0, TimeSpan.Zero);
+            await db.SaveChangesAsync();
+        }
+
+        var auditorEvidence = await JsonAsync(auditor, HttpMethod.Get, "/api/v1/evidence");
+        var auditorTitles = auditorEvidence.GetProperty("items").EnumerateArray().Select(item => item.GetProperty("title").GetString()).ToArray();
+        Assert.Contains("Access review", auditorTitles);
+        Assert.DoesNotContain("Old sample", auditorTitles);
 
         var auditorZip = await PackageAsync(auditor);
         var auditorNames = auditorZip.Entries.Select(entry => entry.FullName).ToArray();
         Assert.Contains(auditorNames, name => name.Contains("AC-07", StringComparison.Ordinal));
         Assert.DoesNotContain(auditorNames, name => name.Contains("PP-01", StringComparison.Ordinal));
+        Assert.Contains("control,requirement,framework,coverage", Read(auditorZip, "control-mapping.csv"), StringComparison.Ordinal);
+        Assert.NotNull(auditorZip.GetEntry("connections.csv"));
+        Assert.NotNull(auditorZip.GetEntry("vendors.csv"));
+        Assert.NotNull(auditorZip.GetEntry("assets.csv"));
+        Assert.NotNull(auditorZip.GetEntry("infrastructure-access.csv"));
+        Assert.NotNull(auditorZip.GetEntry("version-control.csv"));
+        var auditorManual = Read(auditorZip, "manual-evidence.csv");
+        Assert.Contains("Access review", auditorManual, StringComparison.Ordinal);
+        Assert.DoesNotContain("Old sample", auditorManual, StringComparison.Ordinal);
         AssertManifest(auditorZip, intact: true, reason: null);
 
         var adminZip = await PackageAsync(admin);
         Assert.Contains(adminZip.Entries.Select(entry => entry.FullName), name => name.Contains("PP-01", StringComparison.Ordinal));
+        Assert.Contains("Old sample", Read(adminZip, "manual-evidence.csv"), StringComparison.Ordinal);
         AssertManifest(adminZip, intact: true, reason: null);
 
         var evidence = await JsonAsync(admin, HttpMethod.Get, "/api/v1/evidence");

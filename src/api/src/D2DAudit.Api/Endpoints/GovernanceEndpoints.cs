@@ -19,6 +19,7 @@ public static class GovernanceEndpoints
         group.MapGet("/people/{id:guid}", GetPerson).Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/tasks", SetTask).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/status", SetStatus).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
+        group.MapPost("/people/{id:guid}/background", RecordBackground).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapGet("/soa", (IGovernance portal, CancellationToken cancellationToken) => portal.SoaAsync(cancellationToken)).Produces<IReadOnlyList<SoaRow>>();
         group.MapPut("/soa/{code}", SaveSoa).RequireAuthorization("TenantWrite").Produces<SoaRow>();
         group.MapGet("/soa/export", ExportSoa).Produces<FileExport>();
@@ -44,6 +45,9 @@ public static class GovernanceEndpoints
 
     private static async Task<IResult> SetStatus(Guid id, PersonStatusRequest body, IGovernance portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.SetStatusAsync(id, body, cancellationToken));
+
+    private static async Task<IResult> RecordBackground(Guid id, BackgroundCheckRequest body, IGovernance portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.RecordBackgroundAsync(id, body, cancellationToken));
 
     private static async Task<IResult> DraftCampaign(StartCampaignRequest body, IGovernance portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.DraftCampaignAsync(body, cancellationToken));

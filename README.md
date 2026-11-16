@@ -1,12 +1,12 @@
 # D2D Audit Services
 
-D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with manufacturing and IoT/OT frameworks planned later on the same core. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md).
+D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with HIPAA and GDPR catalogs on the same core. Manufacturing and IoT/OT frameworks come later. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md). The system shape is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Each screen is in [docs/FEATURES.md](docs/FEATURES.md).
 
 A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra.vell@harborline.example` or `auditor@northgate.example`. The example password is on the login screen.
 
 The review site lives on [GitHub Pages](https://cvpeceee.github.io/D2DAuditServices/), holds example data only, and is public. The approved look is [docs/mockups/index.html](docs/mockups/index.html).
 
-Milestone 1 is the foundation slice. Milestone 2 adds integrations, automated tests, and evidence on top of it.
+Milestones 1 through 6 are on main. The Pages demo includes computers, vulnerabilities, the trust center, automation rules, HIPAA and GDPR, custom controls, and the extended auditor package.
 
 ## Run locally
 
@@ -140,7 +140,7 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 - `src/aspire` — Aspire AppHost for local orchestration and the dashboard.
 - `src/web` — React, TypeScript, Vite. Features live under `src/web/src/features`. Visible strings are in `src/web/src/shared/i18n/locales/en.json`.
 - `infra/terraform` — placeholder. Nothing is applied.
-- `docs/` — the GitHub Pages review site, including the mockups.
+- `docs/` — architecture, features, the roadmap, and the GitHub Pages review site, including the mockups.
 
 ## Choices that are not in DECISIONS.md
 
@@ -151,7 +151,7 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 - High contrast is a fourth theme, next to light, dark, and system. System follows `prefers-color-scheme` and `prefers-contrast`.
 - The assistant panel is a reserved shell. It does not call a model.
 - Evidence is a Parquet object (or the original upload bytes) plus a SHA-256 hash chain. Object Lock is required in Production and Staging. Development can use a local folder or MinIO.
-- Example workspaces show fixture integration results. Other workspaces stay empty until someone connects them. The device agent is still empty.
+- Example workspaces show fixture integration results. Other workspaces stay empty until someone connects them. Computers in the example workspace come from the MDM fixture plus manual rows. The installed device agent is still later.
 - Framework content is JSON embedded in the API and loaded into each tenant database. Descriptions are short paraphrases. ISO/IEC 27001 clauses 4–10 are not seeded; Annex A is.
 - An auditor's control mappings are limited to frameworks on the grant.
 - The control-health chart from the mockup is not drawn. The dashboard shows current counts.

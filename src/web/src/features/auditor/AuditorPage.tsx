@@ -33,6 +33,8 @@ export function AuditorPage() {
   const [note, setNote] = useState("");
   const [evidenceId, setEvidenceId] = useState("");
   const [response, setResponse] = useState("");
+  const [periodStart, setPeriodStart] = useState("");
+  const [periodEnd, setPeriodEnd] = useState("");
   const canAct = workspace?.role === "Auditor" || workspace?.canWrite === true;
 
   const load = () => {
@@ -167,6 +169,20 @@ export function AuditorPage() {
     }
   }
 
+  async function savePeriod(event: FormEvent) {
+    event.preventDefault();
+    if (!tenantId) return;
+    await api("/api/v1/audits/period", {
+      method: "POST",
+      tenantId,
+      body: {
+        periodStart: periodStart || engagement?.periodStart,
+        periodEnd: periodEnd || engagement?.periodEnd,
+      },
+    });
+    load();
+  }
+
   const engagement = page?.engagement;
   const tested =
     engagement && engagement.controlsTotal > 0
@@ -197,6 +213,36 @@ export function AuditorPage() {
           </div>
         )}
       </div>
+      {engagement && canAct && (
+        <form className="card" onSubmit={(event) => void savePeriod(event)}>
+          <h3>{t("auditorPage.period")}</h3>
+          <p className="m">{t("auditorPage.periodHelp")}</p>
+          <div className="split-fields">
+            <label className="field">
+              <span>{t("auditorPage.periodStart")}</span>
+              <input
+                type="date"
+                value={periodStart || engagement.periodStart}
+                onChange={(event) => setPeriodStart(event.target.value)}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>{t("auditorPage.periodEnd")}</span>
+              <input
+                type="date"
+                value={periodEnd || engagement.periodEnd}
+                onChange={(event) => setPeriodEnd(event.target.value)}
+                required
+              />
+            </label>
+          </div>
+          <button className="btn" type="submit">
+            {t("auditorPage.savePeriod")}
+          </button>
+          <p className="m">{t("auditorPage.sampleCount", { count: page?.evidence.length ?? 0 })}</p>
+        </form>
+      )}
       {error && (
         <div className="error" role="alert">
           {t("errors.load")}

@@ -29,7 +29,9 @@ const governance = [
   { to: "/risks", key: "risks" },
   { to: "/soa", key: "soa" },
   { to: "/vendors", key: "vendors" },
-  { to: "/people", key: "people" },
+  { to: "/people", key: "people", end: true },
+  { to: "/people/computers", key: "computers" },
+  { to: "/vulnerabilities", key: "vulnerabilities" },
   { to: "/assets", key: "assets" },
   { to: "/tasks", key: "tasks" },
   { to: "/access-reviews", key: "accessReviews" },
@@ -124,6 +126,13 @@ export function AppShell() {
       { id: "soa", label: t("nav.soa"), run: () => navigate("/soa") },
       { id: "vendors", label: t("nav.vendors"), run: () => navigate("/vendors") },
       { id: "people", label: t("nav.people"), run: () => navigate("/people") },
+      { id: "computers", label: t("nav.computers"), run: () => navigate("/people/computers") },
+      {
+        id: "vulnerabilities",
+        label: t("nav.vulnerabilities"),
+        run: () => navigate("/vulnerabilities"),
+      },
+      { id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") },
       { id: "me", label: t("nav.me"), run: () => navigate("/me") },
       { id: "training", label: t("nav.training"), run: () => navigate("/training") },
       { id: "assets", label: t("nav.assets"), run: () => navigate("/assets") },
@@ -168,7 +177,13 @@ export function AppShell() {
   }, []);
 
   const tenant = tenants.find((item) => item.tenantId === tenantId) ?? tenants[0];
-  const crumbKey = location.pathname.split("/")[1] || "dashboard";
+  const parts = location.pathname.split("/").filter(Boolean);
+  const crumbKey =
+    parts[0] === "people" && parts[1] === "computers"
+      ? "computers"
+      : parts[0] === "trust-center"
+        ? "trust"
+        : parts[0] || "dashboard";
   const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>
@@ -245,6 +260,7 @@ export function AppShell() {
           <NavLink
             key={link.to}
             to={link.to}
+            end={"end" in link ? link.end : false}
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
@@ -260,6 +276,14 @@ export function AppShell() {
         >
           <Icon name="auditor" />
           <span>{t("nav.auditor")}</span>
+        </NavLink>
+        <NavLink
+          to="/trust-center"
+          className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Icon name="trust" />
+          <span>{t("nav.trust")}</span>
         </NavLink>
         <NavLink
           to="/integrations"

@@ -57,6 +57,41 @@ describe("demo backend", () => {
     expect(frameworks.map((item) => item.key)).toEqual(["soc2"]);
   });
 
+  it("fills the milestone 6 screens from the example workspace", async () => {
+    await resetDemo();
+    const trust = await demoResponse("/api/v1/public/trust/harborline");
+    expect(trust.status).toBe(200);
+    const published = (await trust.json()) as {
+      frameworks: { key: string }[];
+      documents: { access: string }[];
+    };
+    expect(published.frameworks.map((item) => item.key)).toEqual(
+      expect.arrayContaining(["hipaa", "gdpr", "soc2"]),
+    );
+    expect(published.documents.some((item) => item.access === "Nda")).toBe(true);
+
+    await login("chandra.vell@harborline.example");
+    const computers = (await get("/api/v1/computers")) as { serial: string; source: string }[];
+    expect(computers.length).toBeGreaterThan(3);
+    expect(computers.some((item) => item.source === "Mdm")).toBe(true);
+    expect(computers.some((item) => item.source === "Manual")).toBe(true);
+    const board = (await get("/api/v1/vulnerabilities")) as {
+      findings: { source: string }[];
+      ignored: { ignoreReason: string }[];
+      history: { eventKind: string }[];
+    };
+    expect(board.findings.some((item) => item.source === "AWS Inspector")).toBe(true);
+    expect(board.findings.some((item) => item.source === "GitHub Dependabot")).toBe(true);
+    expect(board.ignored[0]?.ignoreReason.length).toBeGreaterThan(0);
+    expect(board.history.length).toBeGreaterThan(0);
+    const control = (await get("/api/v1/controls/HR-01")) as { tests: { name: string }[] };
+    expect(control.tests.map((item) => item.name)).toContain("New hires have a background check");
+    const rules = (await get("/api/v1/settings/automation")) as { trigger: string }[];
+    expect(rules.map((item) => item.trigger)).toEqual(
+      expect.arrayContaining(["TestFailed", "ControlNotReady", "RiskCreated", "ReviewDue"]),
+    );
+  });
+
   it("builds a package whose manifest matches the evidence hashes", async () => {
     await resetDemo();
     setDemoStepDelay(0);

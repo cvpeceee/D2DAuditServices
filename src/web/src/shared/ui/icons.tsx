@@ -13,6 +13,9 @@ export type IconName =
   | "soa"
   | "vendors"
   | "people"
+  | "computers"
+  | "vulnerabilities"
+  | "trust"
   | "assets"
   | "tasks"
   | "accessReviews"
@@ -262,6 +265,30 @@ export function Icon({ name, size = 16, className = "", ...rest }: IconProps) {
           <path d="M3 3v5h5" />
           <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
           <path d="M16 21h5v-5" />
+        </svg>
+      );
+
+    case "computers":
+      return (
+        <svg {...commonProps}>
+          <rect width="18" height="12" x="3" y="4" rx="2" />
+          <path d="M2 20h20" />
+        </svg>
+      );
+
+    case "vulnerabilities":
+      return (
+        <svg {...commonProps}>
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+          <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+        </svg>
+      );
+
+    case "trust":
+      return (
+        <svg {...commonProps}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
         </svg>
       );
 

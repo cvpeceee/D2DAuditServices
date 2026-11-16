@@ -28,7 +28,7 @@ internal static class DemoPortal
         {
             audit.Scope = Scope();
             audit.PeriodStart = new DateOnly(2026, 4, 1);
-            audit.PeriodEnd = new DateOnly(2026, 9, 30);
+            audit.PeriodEnd = new DateOnly(2026, 12, 15);
         }
 
         if (!await db.Policies.AnyAsync(cancellationToken))

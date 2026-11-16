@@ -2,8 +2,28 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 import { ApiError, api, type Workspace } from "../../shared/api/client";
-import { formatDate, Pill } from "../../shared/ui/ui";
+import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 import type { Grant, Member, SsoStatus } from "./types";
+
+type Rule = {
+  id: string;
+  name: string;
+  trigger: string;
+  action: string;
+  target: string;
+  enabled: boolean;
+};
+type Delivery = {
+  id: string;
+  trigger: string;
+  action: string;
+  target: string;
+  summary: string;
+  externalId: string;
+  at: string;
+};
+const triggers = ["TestFailed", "ControlNotReady", "RiskCreated", "ReviewDue"] as const;
+const actions = ["Jira", "Slack", "Teams", "Email"] as const;
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
@@ -18,6 +38,15 @@ export function SettingsPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof roles)[number]>("Viewer");
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [rule, setRule] = useState({
+    name: "",
+    trigger: "TestFailed",
+    action: "Jira",
+    target: "",
+    enabled: true,
+  });
   const [grantEmail, setGrantEmail] = useState("auditor@northgate.example");
   const [auditName, setAuditName] = useState("SOC 2 Type II");
   const [firmName, setFirmName] = useState("Northgate Assurance LLP");
@@ -29,11 +58,15 @@ export function SettingsPage() {
       api<Member[]>("/api/v1/settings/members", { tenantId }),
       api<SsoStatus>("/api/v1/settings/sso", { tenantId }),
       api<Grant[]>("/api/v1/settings/grants", { tenantId }),
+      api<Rule[]>("/api/v1/settings/automation", { tenantId }),
+      api<Delivery[]>("/api/v1/settings/automation/deliveries", { tenantId }),
     ])
-      .then(([people, domains, rows]) => {
+      .then(([people, domains, rows, automation, sent]) => {
         setMembers(people);
         setSso(domains);
         setGrants(rows);
+        setRules(automation);
+        setDeliveries(sent);
       })
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
   }
@@ -216,6 +249,92 @@ export function SettingsPage() {
             {t("settingsPage.saveGrant")}
           </button>
         </form>
+        <h3>{t("settingsPage.automation")}</h3>
+        <p className="m">{t("settingsPage.automationHelp")}</p>
+        <ul>
+          {rules.map((item) => (
+            <li key={item.id}>
+              <b>{item.name}</b> · {t(`settingsPage.triggers.${item.trigger}`)} ·{" "}
+              {t(`settingsPage.actions.${item.action}`)} · {item.target}
+            </li>
+          ))}
+        </ul>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!tenantId) return;
+            void api("/api/v1/settings/automation", { method: "POST", tenantId, body: rule }).then(
+              () => {
+                setRule({ ...rule, name: "", target: "" });
+                load();
+              },
+            );
+          }}
+        >
+          <div className="split-fields">
+            <input
+              aria-label={t("settingsPage.ruleName")}
+              placeholder={t("settingsPage.ruleName")}
+              value={rule.name}
+              onChange={(event) => setRule({ ...rule, name: event.target.value })}
+              required
+            />
+            <select
+              aria-label={t("settingsPage.trigger")}
+              value={rule.trigger}
+              onChange={(event) => setRule({ ...rule, trigger: event.target.value })}
+            >
+              {triggers.map((item) => (
+                <option key={item} value={item}>
+                  {t(`settingsPage.triggers.${item}`)}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label={t("settingsPage.action")}
+              value={rule.action}
+              onChange={(event) => setRule({ ...rule, action: event.target.value })}
+            >
+              {actions.map((item) => (
+                <option key={item} value={item}>
+                  {t(`settingsPage.actions.${item}`)}
+                </option>
+              ))}
+            </select>
+            <input
+              aria-label={t("settingsPage.target")}
+              placeholder={t("settingsPage.target")}
+              value={rule.target}
+              onChange={(event) => setRule({ ...rule, target: event.target.value })}
+              required
+            />
+          </div>
+          <button className="btn" type="submit">
+            {t("settingsPage.saveRule")}
+          </button>
+          <button
+            className="btn"
+            type="button"
+            onClick={() => {
+              if (!tenantId) return;
+              void api("/api/v1/settings/automation/run", {
+                method: "POST",
+                tenantId,
+                body: {},
+              }).then(() => load());
+            }}
+          >
+            {t("settingsPage.runDue")}
+          </button>
+        </form>
+        <h3>{t("settingsPage.deliveries")}</h3>
+        <ul>
+          {deliveries.map((item) => (
+            <li key={item.id}>
+              {item.externalId} · {item.summary} · {formatWhen(item.at)}
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );

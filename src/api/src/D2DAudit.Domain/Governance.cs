@@ -251,6 +251,16 @@ public sealed class DirectoryPerson
 
     public DateOnly? BackgroundOn { get; set; }
 
+    public string BackgroundProvider { get; set; } = "";
+
+    public string BackgroundLink { get; set; } = "";
+
+    public Guid? BackgroundEvidenceId { get; set; }
+
+    public bool BackgroundExcluded { get; set; }
+
+    public string BackgroundExclusionReason { get; set; } = "";
+
     public string DeviceStatus { get; set; } = "Missing";
 
     public string StatusReason { get; set; } = "";

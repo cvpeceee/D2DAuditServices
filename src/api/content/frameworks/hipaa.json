@@ -1,0 +1,113 @@
+{
+  "key": "hipaa",
+  "name": "HIPAA Security Rule",
+  "version": "2013",
+  "description": "Administrative, physical, and technical safeguards for electronic health information. Titles and summaries are our own short wording, not the regulation text.",
+  "requirements": [
+    {
+      "code": "164.308",
+      "title": "Administrative safeguards",
+      "summary": "How the organization assigns security work and keeps the program running.",
+      "children": [
+        {
+          "code": "164.308.a.1",
+          "title": "Security management",
+          "summary": "The organization looks for risks to health information and reduces them.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.3",
+          "title": "Workforce security",
+          "summary": "People get access only when their role needs it, and access ends when they leave.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.4",
+          "title": "Information access",
+          "summary": "Access to health information follows a written rule for who may see it.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.5",
+          "title": "Security awareness",
+          "summary": "The workforce is reminded how to protect health information.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.6",
+          "title": "Security incidents",
+          "summary": "Security incidents are found, reported, and followed through.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.7",
+          "title": "Contingency plan",
+          "summary": "The organization can keep going and recover health information after a disruption.",
+          "children": []
+        },
+        {
+          "code": "164.308.a.8",
+          "title": "Evaluation",
+          "summary": "The security program is checked against how the organization actually works.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "164.310",
+      "title": "Physical safeguards",
+      "summary": "How rooms, devices, and media that hold health information are protected.",
+      "children": [
+        {
+          "code": "164.310.a",
+          "title": "Facility access",
+          "summary": "Only the right people can enter spaces that hold systems with health information.",
+          "children": []
+        },
+        {
+          "code": "164.310.d",
+          "title": "Device and media",
+          "summary": "Devices and media that hold health information are tracked and wiped before reuse.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "164.312",
+      "title": "Technical safeguards",
+      "summary": "How systems control, record, and protect access to health information.",
+      "children": [
+        {
+          "code": "164.312.a",
+          "title": "Access control",
+          "summary": "Systems allow a person to reach only the health information their role needs.",
+          "children": []
+        },
+        {
+          "code": "164.312.b",
+          "title": "Audit controls",
+          "summary": "Systems record activity so the organization can review who did what.",
+          "children": []
+        },
+        {
+          "code": "164.312.c",
+          "title": "Integrity",
+          "summary": "Health information is protected from improper change or destruction.",
+          "children": []
+        },
+        {
+          "code": "164.312.d",
+          "title": "Person authentication",
+          "summary": "A system checks that the person asking for access is who they claim to be.",
+          "children": []
+        },
+        {
+          "code": "164.312.e",
+          "title": "Transmission security",
+          "summary": "Health information sent over a network is guarded against being read or changed.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

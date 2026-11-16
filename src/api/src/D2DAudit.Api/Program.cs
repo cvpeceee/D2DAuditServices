@@ -121,6 +121,7 @@ app.MapPolicyEndpoints();
 app.MapAuditEndpoints();
 app.MapGovernanceEndpoints();
 app.MapProgramEndpoints();
+app.MapOperationsEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 
