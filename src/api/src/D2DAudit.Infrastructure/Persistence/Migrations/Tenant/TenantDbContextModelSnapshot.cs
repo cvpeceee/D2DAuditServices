@@ -1683,6 +1683,32 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("soa_entries", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.SystemDescription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(20000)
+                        .HasColumnType("character varying(20000)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("system_descriptions", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.TrackedAsset", b =>
                 {
                     b.Property<Guid>("Id")

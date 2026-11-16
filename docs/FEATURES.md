@@ -13,7 +13,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/14 |
 | 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/15 |
 | 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Faked-for-demo | https://github.com/cvpeceee/D2DAuditServices/pull/16 |
-| 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Not started | |
+| 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Done | https://github.com/cvpeceee/D2DAuditServices/pull/17 |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Not started | |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Not started | |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Not started | |
@@ -52,6 +52,7 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/incidents` | Severity, SLA, timeline, root cause, and a linked control. | Report, update status, record a root cause. | Report: any member. Update: write roles |
 | `/changes` | GitHub pull requests, Jira issues, and manual changes, with approval and the deploy they shipped in. | Record, approve, reject, link a deploy, sync. | Write roles record and update. Anyone in the workspace can read. |
 | `/questionnaires` | Customer security questionnaires. Suggestions cite a policy, control, or evidence item. A person accepts or edits each answer, then exports CSV. | Upload CSV or XLSX, accept, export. | Write roles upload and review. Anyone in the workspace can read and export. |
+| `/system-description` | SOC 2 system description drafted from the workspace. The saved text is `system-description.txt` in the audit package. | Edit, save, draft again. | Write roles edit. Anyone in the workspace can read. |
 | `/me` | The signed-in person's policy, training, MFA, device, background cards, and incident report. | Complete a card. Report an incident. | The signed-in person |
 | `/training` | Annual module and an external course with a certificate upload. | Take the quiz, upload a certificate. | Assigned people |
 | `/assets` | Inventory from connections, owners, scope, CSV. | Import and export. | Write roles |
@@ -86,6 +87,10 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 
 Sync reads merged pull requests when a non-example GitHub App installation is connected. A merged request counts as the deploy, and an approving review by someone other than the author counts as the approval. Jira is read when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `JIRA_PROJECT` are set. The feed asks for issues labeled `production-change`. Status Approved, Done, or Deployed counts as approval. Status Deployed also links the deploy. With those settings missing, sync adds nothing. The Harborline Jira row is seed data.
 
+## System description
+
+`/system-description` drafts a SOC 2 system description from the company, region, product summary, connected services, people, vendors, control counts, and framework names. A writer edits the text or drafts it again. The audit package writes that text to `system-description.txt`. Harborline opens on the generated draft.
+
 ## Questionnaires
 
 `/questionnaires` uploads a CSV or XLSX whose first column, or a column headed `question`, is the question list. The knowledge base is the workspace policies, controls, and recent evidence titles. `IQuestionnaireAssistant` is the boundary. The implementation in this release is deterministic: it scores word overlap and cites the closest item. It does not call a model. That is why the tracker row is Faked-for-demo. A person edits the answer, accepts it, and exports the sheet as CSV. Harborline already has the Northgate questionnaire, with the change-management question still open.
@@ -111,6 +116,7 @@ The portal shows the engagement date range and the evidence collected inside it.
 | `infrastructure-access.csv` | Person accounts |
 | `version-control.csv` | Repository snapshots |
 | `manual-evidence.csv` | Uploads and other non-automated evidence in scope |
+| `system-description.txt` | The saved SOC 2 system description, or a fresh draft when none is saved |
 
 The manifest, integrity report, control matrix, and evidence files are unchanged in purpose.
 
