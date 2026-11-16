@@ -117,7 +117,8 @@ public sealed class AuditPackageRunner(
                 .Select(item => (controlItem.Code, item)))
             .ToArray();
         await jobs.AdvanceAsync(work.JobId, 6, Steps, "Writing the asset inventory", cancellationToken);
-        var zip = BuildZip(manifest, matrix, packed, assets, connections, vendors, accounts, repositories, manual, inScope);
+        var description = await SystemDescriptionText.CurrentAsync(db, tenant.Name, tenant.Region, SystemDescriptionText.Product(tenant.IsExample), cancellationToken);
+        var zip = BuildZip(manifest, matrix, packed, assets, connections, vendors, accounts, repositories, manual, inScope, description);
         var key = $"{work.TenantId:N}/exports/{work.JobId:N}.zip";
 
         await jobs.AdvanceAsync(work.JobId, 7, Steps, "Storing the package", cancellationToken);
@@ -159,7 +160,8 @@ public sealed class AuditPackageRunner(
         IReadOnlyList<PersonAccount> accounts,
         IReadOnlyList<ResourceSnapshot> repositories,
         IReadOnlyList<(string Code, EvidenceItem Item)> manual,
-        IReadOnlyList<Control> controls)
+        IReadOnlyList<Control> controls,
+        string systemDescription)
     {
         using var buffer = new MemoryStream();
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
@@ -180,6 +182,7 @@ public sealed class AuditPackageRunner(
             Write(zip, "infrastructure-access.csv", Encoding.UTF8.GetBytes(AccessCsv(accounts)));
             Write(zip, "version-control.csv", Encoding.UTF8.GetBytes(RepositoryCsv(repositories)));
             Write(zip, "manual-evidence.csv", Encoding.UTF8.GetBytes(ManualCsv(manual)));
+            Write(zip, "system-description.txt", Encoding.UTF8.GetBytes(systemDescription));
             foreach (var file in files)
             {
                 Write(zip, file.Path, file.Body);

@@ -13,6 +13,7 @@ import { currentPeriod, handleM6, inAuditPeriod, publicTrust, resetPeriod } from
 import { handleIncidents } from "./incidents";
 import { handleChanges } from "./changes";
 import { handleQuestionnaires } from "./questionnaires";
+import { descriptionOf, handleDescription } from "./description";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -159,6 +160,8 @@ async function route(
   if (change) return change;
   const questionnaire = handleQuestionnaires(method, path, body, data, actor);
   if (questionnaire) return questionnaire;
+  const description = handleDescription(method, path, body, data, actor);
+  if (description) return description;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -1073,6 +1076,7 @@ async function finishPackage(data: DemoWorld, scoped: DemoWorld, job: Job | unde
     { name: "infrastructure-access.csv", text: access },
     { name: "version-control.csv", text: repositories },
     { name: "manual-evidence.csv", text: manual },
+    { name: "system-description.txt", text: descriptionOf(data).body },
     ...files.map((file) => ({ name: file.path, text: file.text })),
   ]);
 }

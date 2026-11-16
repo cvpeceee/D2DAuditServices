@@ -18,6 +18,7 @@
     "incidents": "Incidents",
     "changes": "Changes",
     "questionnaires": "Questionnaires",
+    "description": "System description",
     "trust": "Trust center",
     "soa": "Statement of Applicability",
     "accessReviews": "Access reviews",
@@ -893,6 +894,16 @@
       "InReview": "In review",
       "Accepted": "Accepted"
     }
+  },
+  "descriptionPage": {
+    "title": "System description",
+    "sub": "A SOC 2 system description drafted from this workspace. Edit it before it goes into the audit package.",
+    "body": "Description",
+    "updated": "Last edit by {{name}} · {{when}}",
+    "save": "Save description",
+    "saved": "Description saved. The audit package includes this text.",
+    "redraft": "Draft again from workspace data",
+    "redrafted": "Draft replaced from the current workspace."
   },
   "computersPage": {
     "title": "Computers",

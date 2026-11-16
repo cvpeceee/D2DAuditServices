@@ -243,6 +243,7 @@ public sealed class AuditPackageTests(AuditPackageFixture fixture) : IClassFixtu
         Assert.NotNull(auditorZip.GetEntry("assets.csv"));
         Assert.NotNull(auditorZip.GetEntry("infrastructure-access.csv"));
         Assert.NotNull(auditorZip.GetEntry("version-control.csv"));
+        Assert.Contains("SOC 2", Read(auditorZip, "system-description.txt"), StringComparison.Ordinal);
         var auditorManual = Read(auditorZip, "manual-evidence.csv");
         Assert.Contains("Access review", auditorManual, StringComparison.Ordinal);
         Assert.DoesNotContain("Old sample", auditorManual, StringComparison.Ordinal);

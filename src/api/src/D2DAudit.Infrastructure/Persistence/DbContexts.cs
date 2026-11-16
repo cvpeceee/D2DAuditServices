@@ -193,6 +193,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<QuestionnaireAnswer> QuestionnaireAnswers => Set<QuestionnaireAnswer>();
 
+    public DbSet<SystemDescription> SystemDescriptions => Set<SystemDescription>();
+
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -674,6 +676,12 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         answer.Property(x => x.Answer).HasMaxLength(4000).HasDefaultValue("");
         answer.Property(x => x.ReviewerName).HasMaxLength(200).HasDefaultValue("");
         answer.HasOne(x => x.Questionnaire).WithMany(x => x.Answers).HasForeignKey(x => x.QuestionnaireId).OnDelete(DeleteBehavior.Cascade);
+
+        var description = modelBuilder.Entity<SystemDescription>();
+        description.ToTable("system_descriptions");
+        description.HasKey(x => x.Id);
+        description.Property(x => x.Body).HasMaxLength(20000).IsRequired();
+        description.Property(x => x.UpdatedBy).HasMaxLength(200).HasDefaultValue("");
     }
 }
 
