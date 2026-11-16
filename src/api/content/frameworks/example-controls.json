@@ -822,6 +822,12 @@
           "kind": "attestation",
           "outcome": "needsEvidence",
           "detail": "Example data: this year's exercise record is missing."
+        },
+        {
+          "name": "Incidents resolved within SLA",
+          "kind": "document",
+          "outcome": "fail",
+          "detail": "One incident was resolved after its SLA."
         }
       ]
     },

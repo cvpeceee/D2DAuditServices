@@ -814,6 +814,40 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.ToTable("frameworks", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.IncidentEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId");
+
+                    b.ToTable("incident_events", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.IntegrationConnection", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1334,6 +1368,81 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                         .IsUnique();
 
                     b.ToTable("sample_responses", (string)null);
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.SecurityIncident", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("ControlCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid?>("EvidenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ReportedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReporterEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("ReporterName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RootCause")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateOnly>("SlaDue")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("incidents", (string)null);
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.SlaEvent", b =>
@@ -1984,6 +2093,17 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                     b.Navigation("Finding");
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.IncidentEvent", b =>
+                {
+                    b.HasOne("D2DAudit.Domain.SecurityIncident", "Incident")
+                        .WithMany("Timeline")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.PersonAccount", b =>
                 {
                     b.HasOne("D2DAudit.Domain.DirectoryPerson", "Person")
@@ -2168,6 +2288,11 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
             modelBuilder.Entity("D2DAudit.Domain.SampleRequest", b =>
                 {
                     b.Navigation("Response");
+                });
+
+            modelBuilder.Entity("D2DAudit.Domain.SecurityIncident", b =>
+                {
+                    b.Navigation("Timeline");
                 });
 
             modelBuilder.Entity("D2DAudit.Domain.VendorRecord", b =>
