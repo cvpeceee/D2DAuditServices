@@ -14,7 +14,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/15 |
 | 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Faked-for-demo | https://github.com/cvpeceee/D2DAuditServices/pull/16 |
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Done | https://github.com/cvpeceee/D2DAuditServices/pull/17 |
-| 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Not started | |
+| 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Not started | |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Not started | |
 | 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
@@ -53,6 +53,7 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/changes` | GitHub pull requests, Jira issues, and manual changes, with approval and the deploy they shipped in. | Record, approve, reject, link a deploy, sync. | Write roles record and update. Anyone in the workspace can read. |
 | `/questionnaires` | Customer security questionnaires. Suggestions cite a policy, control, or evidence item. A person accepts or edits each answer, then exports CSV. | Upload CSV or XLSX, accept, export. | Write roles upload and review. Anyone in the workspace can read and export. |
 | `/system-description` | SOC 2 system description drafted from the workspace. The saved text is `system-description.txt` in the audit package. | Edit, save, draft again. | Write roles edit. Anyone in the workspace can read. |
+| `/continuity` | Business impact, continuity and disaster-recovery plans, and exercise results linked to a control. | Add a service, plan, or exercise. | Write roles change records. Anyone in the workspace can read. |
 | `/me` | The signed-in person's policy, training, MFA, device, background cards, and incident report. | Complete a card. Report an incident. | The signed-in person |
 | `/training` | Annual module and an external course with a certificate upload. | Take the quiz, upload a certificate. | Assigned people |
 | `/assets` | Inventory from connections, owners, scope, CSV. | Import and export. | Write roles |
@@ -86,6 +87,10 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 `/changes` is the production change log. Harborline is seeded with two GitHub pull requests and one Jira issue. CHG-02 is deployed without an approval, so the CM-11 test "production changes are reviewed" fails and names that change. Approving it, or linking a deploy on a change that already has an approval, refreshes the test.
 
 Sync reads merged pull requests when a non-example GitHub App installation is connected. A merged request counts as the deploy, and an approving review by someone other than the author counts as the approval. Jira is read when `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, and `JIRA_PROJECT` are set. The feed asks for issues labeled `production-change`. Status Approved, Done, or Deployed counts as approval. Status Deployed also links the deploy. With those settings missing, sync adds nothing. The Harborline Jira row is seed data.
+
+## Continuity
+
+`/continuity` lists the business impact analysis, continuity and disaster-recovery plans, and recovery exercises. Each row names a control. Harborline's region failover drill failed its four-hour RTO, so the BC-01 test "Recovery exercises are recorded" fails and names that exercise. A passing exercise does not clear the test while another exercise failed.
 
 ## System description
 

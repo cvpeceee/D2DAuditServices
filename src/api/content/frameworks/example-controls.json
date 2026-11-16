@@ -708,7 +708,7 @@
       "code": "BC-01",
       "title": "Backups are tested by restore quarterly",
       "description": "Backups are proven by restoring them, not only by watching a success light.",
-      "status": "Passing",
+      "status": "Failing",
       "frequency": "Quarterly",
       "ownerName": "Marcus Lee",
       "ownerEmail": "marcus.lee@{{domain}}",
@@ -745,6 +745,12 @@
           "kind": "manualSampling",
           "outcome": "pass",
           "detail": "Example data in the {{company}} workspace."
+        },
+        {
+          "name": "Recovery exercises are recorded",
+          "kind": "document",
+          "outcome": "fail",
+          "detail": "Exercises failed: Region failover drill."
         }
       ]
     },
