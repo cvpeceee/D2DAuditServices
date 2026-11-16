@@ -30,6 +30,10 @@ Done. My Tasks at `/me` covers policy acknowledgement, security training, MFA, a
 
 Done. The person drawer records a background-check provider, link, upload, completed date, and an exclusion with a reason. The test "New hires have a background check" follows from that. Computers at `/people/computers` list serial, OS, owner, encryption, screen lock, antivirus, password manager, auto-update, last check-in, and MDM or manual source, with a screenshot upload. Vulnerabilities at `/vulnerabilities` group by asset, by vulnerability, ignored, and SLA history. The trust center has a public page and an admin page for documents and access requests. Settings automation rules call fake Jira, Slack, Teams, and email implementations. HIPAA and GDPR are framework catalogs mapped to the existing controls, and controls can be created or imported from CSV. The auditor portal filters evidence to the engagement dates and the package adds control mapping, connections, vendors, assets, infrastructure access, version control, and manual evidence.
 
+## M7 — Competitor gaps for the Nov 21 demo
+
+In progress. The ordered list, priority, and status live in the gap tracker in [FEATURES.md](FEATURES.md). P0 is the Harborline walkthrough: live Azure and GCP collection, per-framework readiness and an executive PDF, incidents, change management, questionnaire automation, the SOC 2 system description, business continuity, and live vulnerability ingest. P1 through P3 follow that list. Each pull request updates this file, the tracker, and [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## M4 — Demo polish
 
-Tighten the walkthrough used with a customer.
+Tighten the walkthrough used with a customer. The Nov 21, 2026 demo is a fictional multi-cloud data platform (Harborline).

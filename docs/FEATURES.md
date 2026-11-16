@@ -1,6 +1,33 @@
 # Features
 
-What is on each screen, who can use it, and how it compares with a Vanta or Drata style program. "Built" means the screen works against the API and the Pages demo with Harborline data. "Later" means the decision is recorded and the screen does not pretend the capability exists.
+What is on each screen, who can use it, and how it compares with a Vanta, Drata, Sprinto, or Oneleet program. "Built" means the screen works against the API and the Pages demo with Harborline data. "Later" means the decision is recorded and the screen does not pretend the capability exists.
+
+## Gap tracker
+
+Source of truth for the Nov 21, 2026 Harborline demo and the remaining competitor gaps. Status is Done, In progress, Not started, or Faked-for-demo. A pull request link is filled when the item merges.
+
+| # | Priority | Item | Status | PR |
+| --- | --- | --- | --- | --- |
+| 1 | P0 | Live Azure and GCP collectors (Entra ID users and MFA, storage public access, Key Vault or KMS, logging, network rules; GCP IAM, buckets, KMS, audit logs) with tests mapped to controls | Not started | |
+| 2 | P0 | Framework readiness percent on the dashboard and framework pages, plus a one-page executive PDF | Not started | |
+| 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Not started | |
+| 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Not started | |
+| 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Not started | |
+| 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Not started | |
+| 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Not started | |
+| 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Not started | |
+| 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Not started | |
+| 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
+| 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, FedRAMP Moderate, HITRUST, CMMC, and custom framework upload | Not started | |
+| 12 | P1 | Public REST API with API keys, OpenAPI, and webhooks | Not started | |
+| 13 | P1 | Checkr background checks and KnowBe4 training | Not started | |
+| 14 | P2 | Multi-entity workspaces inside one customer | Not started | |
+| 15 | P2 | Trust Center badges, browser extension screenshots, evidence comments, frozen samples, common-control map | Not started | |
+| 16 | P2 | AI assistant over product docs and tenant data | Not started | |
+| 17 | P2 | Terraform for ECS Fargate, RDS, and S3 Object Lock, with an EU region option | Not started | |
+| 18 | P3 | RoPA and DPIA, AI governance registry, phishing simulations, attack surface monitoring, auditor network | Not started | |
+
+Harborline already shows fixture Azure, GCP, Inspector, and Dependabot data from M4 and M6. Those rows stay Not started until a connected workspace collects or ingests live data, or the screen is explicitly marked Faked-for-demo.
 
 Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-only on customer records and limited to the frameworks on the grant.
 
