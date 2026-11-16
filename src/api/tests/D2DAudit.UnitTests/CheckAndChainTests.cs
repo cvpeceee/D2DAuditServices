@@ -1,3 +1,4 @@
+using D2DAudit.Application;
 using D2DAudit.Domain;
 
 namespace D2DAudit.UnitTests;
@@ -100,6 +101,15 @@ public sealed class CheckAndChainTests
     {
         var exception = Assert.Throws<InvalidOperationException>(() => AutomatedChecks.Evaluate("not-a-check", []));
         Assert.Contains("Unknown automated check", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_executive_report_lists_each_framework_percent()
+    {
+        var lines = ExecutiveReport.Lines("Harborline", "US", 72, [("SOC 2", 80, 8, 10), ("ISO 27001", 60, 6, 10)], 3, 1);
+        Assert.Contains("Overall readiness 72%", lines);
+        Assert.Contains("SOC 2  80%  8/10", lines);
+        Assert.Contains("Failing controls 3", lines);
     }
 
     private static Dictionary<string, string> Flags(params (string Name, bool Value)[] flags)

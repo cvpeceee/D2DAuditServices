@@ -1,6 +1,7 @@
 using System.Text.Json;
 using D2DAudit.Application;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Audits;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Tenancy;
 using FluentValidation;
@@ -85,6 +86,19 @@ public sealed class WorkspaceQuery(
             await governance.DueItemsAsync(cancellationToken),
             await client.HistoryAsync(cancellationToken),
             await client.DeviceCountAsync(cancellationToken));
+    }
+
+    public async Task<FileExport> ExecutiveReportAsync(CancellationToken cancellationToken)
+    {
+        var dashboard = await DashboardAsync(cancellationToken);
+        var lines = ExecutiveReport.Lines(
+            dashboard.TenantName,
+            dashboard.Region,
+            dashboard.ReadinessPercent,
+            dashboard.Frameworks.Select(item => (item.Name, item.Percent, item.Passing, item.Total)),
+            dashboard.Health.Failing,
+            dashboard.Health.DueSoon);
+        return new FileExport("executive-report.pdf", "application/pdf", PlainPdf.FromLines(lines));
     }
 
     public async Task<IReadOnlyList<FrameworkListItem>> FrameworksAsync(CancellationToken cancellationToken)

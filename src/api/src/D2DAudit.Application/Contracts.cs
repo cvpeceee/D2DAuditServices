@@ -442,6 +442,37 @@ public interface IWorkspaceQuery
     Task<IReadOnlyList<JobDto>> JobsAsync(CancellationToken cancellationToken);
 
     Task<Result<IReadOnlyList<ActivityDto>>> ActivityAsync(CancellationToken cancellationToken);
+
+    Task<FileExport> ExecutiveReportAsync(CancellationToken cancellationToken);
+}
+
+public static class ExecutiveReport
+{
+    public static IReadOnlyList<string> Lines(
+        string tenantName,
+        string region,
+        int overallPercent,
+        IEnumerable<(string Name, int Percent, int Passing, int Total)> frameworks,
+        int failing,
+        int dueSoon)
+    {
+        var lines = new List<string>
+        {
+            "D2D Audit Services executive report",
+            tenantName + "  " + region,
+            "Overall readiness " + overallPercent.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%",
+            "",
+        };
+        foreach (var framework in frameworks)
+        {
+            lines.Add(framework.Name + "  " + framework.Percent.ToString(System.Globalization.CultureInfo.InvariantCulture) + "%  " + framework.Passing.ToString(System.Globalization.CultureInfo.InvariantCulture) + "/" + framework.Total.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        lines.Add("");
+        lines.Add("Failing controls " + failing.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        lines.Add("Due soon " + dueSoon.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        return lines;
+    }
 }
 
 public sealed class RequirementNode
