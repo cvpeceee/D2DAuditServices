@@ -34,6 +34,10 @@ Customers and auditors use the same web app. WorkOS asserts identity. The API re
 
 GitHub Pages is a static review build. It does not receive customer data. The demo installs a `fetch` shim that answers `/api` from example data.
 
+## Gap program
+
+The Nov 21, 2026 Harborline demo is tracked in [FEATURES.md](FEATURES.md). New modules land as their own pull requests and this section records them when they merge. As of the tracker, the runtime is still the M6 modular monolith: AWS, Google Workspace, Microsoft 365, and GitHub collectors; fixture Azure and GCP resources; fixture vulnerabilities; fake Jira, Slack, Teams, and email actions. No additional module is in the composition root yet.
+
 ## Layers and projects
 
 Clean Architecture is enforced by NetArchTest in `D2DAudit.Tests`. Domain has no project references. Application does not reference Infrastructure or ASP.NET Core. Infrastructure does not reference the API. The API does not use Entity Framework directly.
