@@ -205,6 +205,14 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<VendorQuestion> VendorQuestions => Set<VendorQuestion>();
 
+    public DbSet<ExposureFinding> ExposureFindings => Set<ExposureFinding>();
+
+    public DbSet<SecurityScanFinding> SecurityScanFindings => Set<SecurityScanFinding>();
+
+    public DbSet<DataStoreAsset> DataStoreAssets => Set<DataStoreAsset>();
+
+    public DbSet<CostRecommendation> CostRecommendations => Set<CostRecommendation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -722,6 +730,71 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         pentest.Property(x => x.Title).HasMaxLength(200).IsRequired();
         pentest.Property(x => x.Vendor).HasMaxLength(200).IsRequired();
         pentest.Property(x => x.Summary).HasMaxLength(2000).HasDefaultValue("");
+
+        var exposure = modelBuilder.Entity<ExposureFinding>();
+        exposure.ToTable("exposure_findings");
+        exposure.HasKey(x => x.Id);
+        exposure.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        exposure.Property(x => x.ResourceName).HasMaxLength(200).IsRequired();
+        exposure.Property(x => x.ResourceKind).HasMaxLength(32).IsRequired();
+        exposure.Property(x => x.Region).HasMaxLength(32).IsRequired();
+        exposure.Property(x => x.Cidr).HasMaxLength(64).IsRequired();
+        exposure.Property(x => x.Protocol).HasMaxLength(16).IsRequired();
+        exposure.Property(x => x.Service).HasMaxLength(64).IsRequired();
+        exposure.Property(x => x.Severity).HasMaxLength(16).IsRequired();
+        exposure.Property(x => x.ControlCode).HasMaxLength(32).IsRequired();
+        exposure.Property(x => x.Summary).HasMaxLength(500).IsRequired();
+        exposure.Property(x => x.RemediationTerraform).HasMaxLength(2000).IsRequired();
+        exposure.Property(x => x.RemediationCli).HasMaxLength(1000).IsRequired();
+        exposure.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        exposure.Property(x => x.ResolutionNote).HasMaxLength(500).IsRequired();
+        exposure.HasIndex(x => new { x.Provider, x.ResourceName, x.Port });
+
+        var scan = modelBuilder.Entity<SecurityScanFinding>();
+        scan.ToTable("security_scan_findings");
+        scan.HasKey(x => x.Id);
+        scan.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        scan.Property(x => x.Severity).HasMaxLength(16).IsRequired();
+        scan.Property(x => x.AssetName).HasMaxLength(200).IsRequired();
+        scan.Property(x => x.Location).HasMaxLength(300).IsRequired();
+        scan.Property(x => x.RuleId).HasMaxLength(80).IsRequired();
+        scan.Property(x => x.Title).HasMaxLength(300).IsRequired();
+        scan.Property(x => x.Detail).HasMaxLength(1000).IsRequired();
+        scan.Property(x => x.Snippet).HasMaxLength(500).IsRequired();
+        scan.Property(x => x.Source).HasMaxLength(40).IsRequired();
+        scan.Property(x => x.FixVersion).HasMaxLength(80).IsRequired();
+        scan.Property(x => x.ControlCode).HasMaxLength(32).IsRequired();
+        scan.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        scan.HasIndex(x => new { x.Kind, x.AssetName, x.RuleId });
+
+        var dataStore = modelBuilder.Entity<DataStoreAsset>();
+        dataStore.ToTable("data_store_assets");
+        dataStore.HasKey(x => x.Id);
+        dataStore.Property(x => x.StoreName).HasMaxLength(200).IsRequired();
+        dataStore.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        dataStore.Property(x => x.Engine).HasMaxLength(40).IsRequired();
+        dataStore.Property(x => x.Region).HasMaxLength(32).IsRequired();
+        dataStore.Property(x => x.Classification).HasMaxLength(32).IsRequired();
+        dataStore.Property(x => x.SensitiveDataTypes).HasMaxLength(300).IsRequired();
+        dataStore.Property(x => x.ControlCode).HasMaxLength(32).IsRequired();
+        dataStore.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        dataStore.HasIndex(x => new { x.Provider, x.StoreName }).IsUnique();
+
+        var cost = modelBuilder.Entity<CostRecommendation>();
+        cost.ToTable("cost_recommendations");
+        cost.HasKey(x => x.Id);
+        cost.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        cost.Property(x => x.ResourceName).HasMaxLength(200).IsRequired();
+        cost.Property(x => x.ResourceType).HasMaxLength(64).IsRequired();
+        cost.Property(x => x.Region).HasMaxLength(32).IsRequired();
+        cost.Property(x => x.Category).HasMaxLength(32).IsRequired();
+        cost.Property(x => x.MonthlySavingsUsd).HasPrecision(12, 2);
+        cost.Property(x => x.AnnualSavingsUsd).HasPrecision(12, 2);
+        cost.Property(x => x.LinkedControlCode).HasMaxLength(32).IsRequired();
+        cost.Property(x => x.ComplianceImpact).HasMaxLength(500).IsRequired();
+        cost.Property(x => x.RemediationSummary).HasMaxLength(500).IsRequired();
+        cost.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        cost.HasIndex(x => new { x.Provider, x.ResourceName, x.Category });
     }
 }
 

@@ -36,7 +36,7 @@ In progress. The ordered list, priority, and status live in the gap tracker in [
 
 ## M8 — Cloud Security Intelligence (VRINDA parity+)
 
-Public Exposure & Open Ports analyzer with 1-click Terraform/CLI IaC remediation snippets, Container Image CVE / OSS License / Baked-in Secret & SARIF scanner, DSPM sensitive data & PII register, FinOps × Compliance cost-waste correlation, and Unified Blast-Radius Attack Path Graph.
+Done. Public Exposure & Open Ports analyzer (`/exposure`) with 1-click Terraform HCL & CLI IaC remediation snippets, Container Image CVE / OSS License / Baked-in Secret & SARIF 2.1.0 scanner (tabs on `/vulnerabilities` with automatic credential redaction), DSPM sensitive data & PII register (`/dspm`), FinOps × Compliance cost-waste correlation (`/finops`), and Unified Blast-Radius Attack Path Graph (`/attack-paths`), with EF Core migration `20261119180000_CloudSecurity` and full Harborline browser demo parity.
 
 ## M9 — Enterprise Compliance & AI Super-App (Vanta + Drata parity+ & Differentiators)
 

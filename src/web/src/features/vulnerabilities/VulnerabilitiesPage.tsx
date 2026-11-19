@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { ApiError, api, type Workspace } from "../../shared/api/client";
 import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
-type Tab = "asset" | "vulnerability" | "ignored" | "history";
+type Tab = "asset" | "vulnerability" | "containers" | "secrets" | "sarif" | "ignored" | "history";
 
 type Finding = {
   id: string;
@@ -38,6 +38,34 @@ type Board = {
   }[];
 };
 
+type ScanFinding = {
+  id: string;
+  kind: "ContainerCve" | "License" | "Secret";
+  severity: string;
+  assetName: string;
+  location: string;
+  lineNumber: number;
+  ruleId: string;
+  title: string;
+  detail: string;
+  snippet: string;
+  source: string;
+  fixVersion: string;
+  controlCode: string;
+  status: string;
+  detectedAt: string;
+  resolvedAt: string | null;
+};
+
+type ScansBoard = {
+  openContainers: number;
+  openLicenses: number;
+  openSecrets: number;
+  containers: ScanFinding[];
+  licenses: ScanFinding[];
+  secrets: ScanFinding[];
+};
+
 function tone(severity: string) {
   if (severity === "Critical" || severity === "High") return "fail";
   if (severity === "Medium") return "warn";
@@ -49,6 +77,7 @@ export function VulnerabilitiesPage() {
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [tab, setTab] = useState<Tab>("vulnerability");
   const [board, setBoard] = useState<Board | null>(null);
+  const [scans, setScans] = useState<ScansBoard | null>(null);
   const [sla, setSla] = useState<Board["sla"] | null>(null);
   const [reason, setReason] = useState("");
   const [selected, setSelected] = useState("");
@@ -58,6 +87,8 @@ export function VulnerabilitiesPage() {
   >([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [pentest, setPentest] = useState({ title: "", vendor: "", testedOn: "", csv: "" });
+  const [sarifAsset, setSarifAsset] = useState("");
+  const [sarifJson, setSarifJson] = useState("");
 
   function load() {
     if (!tenantId) return;
@@ -70,6 +101,9 @@ export function VulnerabilitiesPage() {
     void api<typeof reports>("/api/v1/vulnerabilities/pentests", { tenantId })
       .then(setReports)
       .catch(() => setReports([]));
+    void api<ScansBoard>("/api/v1/security/scans", { tenantId })
+      .then(setScans)
+      .catch(() => setScans(null));
   }
 
   useEffect(() => {
@@ -97,9 +131,41 @@ export function VulnerabilitiesPage() {
     load();
   }
 
+  async function resolveScan(id: string) {
+    if (!tenantId) return;
+    await api(`/api/v1/security/scans/${id}/resolve`, { method: "POST", tenantId });
+    setNotice(t("vulnPage.scanResolved"));
+    load();
+  }
+
+  async function ingestSarif(event: React.FormEvent) {
+    event.preventDefault();
+    if (!tenantId) return;
+    try {
+      const count = await api<number>("/api/v1/security/scans/sarif", {
+        method: "POST",
+        tenantId,
+        body: { assetName: sarifAsset, sarifJson },
+      });
+      setSarifAsset("");
+      setSarifJson("");
+      setNotice(t("vulnPage.sarifImported", { count }));
+      setError(null);
+      load();
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.code : "save");
+    }
+  }
+
   const tabs: { id: Tab; label: string }[] = [
     { id: "vulnerability", label: t("vulnPage.byVulnerability") },
     { id: "asset", label: t("vulnPage.byAsset") },
+    {
+      id: "containers",
+      label: `${t("vulnPage.containersTab")} (${(scans?.openContainers ?? 0) + (scans?.openLicenses ?? 0)})`,
+    },
+    { id: "secrets", label: `${t("vulnPage.secretsTab")} (${scans?.openSecrets ?? 0})` },
+    { id: "sarif", label: t("vulnPage.sarifTab") },
     { id: "ignored", label: t("vulnPage.ignored") },
     { id: "history", label: t("vulnPage.history") },
   ];
@@ -150,6 +216,87 @@ export function VulnerabilitiesPage() {
                 <td>{row.fixAvailable ? t("vulnPage.fixYes") : t("vulnPage.fixNo")}</td>
               </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function scanTable(rows: ScanFinding[]) {
+    return (
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>{t("vulnPage.finding")}</th>
+              <th>{t("vulnPage.severity")}</th>
+              <th>{t("vulnPage.location")}</th>
+              <th>{t("vulnPage.source")}</th>
+              <th>{t("vulnPage.control")}</th>
+              <th>{t("vulnPage.status")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  <b>{row.ruleId}</b> · {row.title}
+                  <div className="id">{row.detail}</div>
+                  {row.snippet && (
+                    <pre
+                      style={{
+                        marginTop: 6,
+                        padding: 8,
+                        borderRadius: 6,
+                        background: "var(--surface-2, var(--bg))",
+                        fontSize: 12,
+                        overflowX: "auto",
+                      }}
+                    >
+                      <code>{row.snippet}</code>
+                    </pre>
+                  )}
+                </td>
+                <td>
+                  <Pill status={tone(row.severity)}>{row.severity}</Pill>
+                </td>
+                <td>
+                  <b>{row.assetName}</b>
+                  <div className="id">
+                    {row.location}
+                    {row.lineNumber > 0 ? `:${row.lineNumber}` : ""}
+                  </div>
+                  {row.fixVersion && <div className="id">{row.fixVersion}</div>}
+                </td>
+                <td>{row.source}</td>
+                <td>
+                  <Link to={`/controls/${encodeURIComponent(row.controlCode)}`}>
+                    {row.controlCode}
+                  </Link>
+                </td>
+                <td>
+                  <Pill status={row.status === "Resolved" ? "pass" : "fail"}>{row.status}</Pill>
+                  {workspace?.canWrite && row.status === "Open" && (
+                    <div>
+                      <button
+                        type="button"
+                        className="linkish"
+                        onClick={() => void resolveScan(row.id)}
+                      >
+                        {t("vulnPage.resolve")}
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="m">
+                  {t("vulnPage.noScanRows")}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -263,7 +410,50 @@ export function VulnerabilitiesPage() {
         ))}
       </div>
       <div className="card">
-        {!board ? null : tab === "asset" ? (
+        {tab === "containers" ? (
+          <>
+            <h3>{t("vulnPage.containerCves")}</h3>
+            {scanTable(scans?.containers ?? [])}
+            <h3 style={{ marginTop: 20 }}>{t("vulnPage.ossLicenses")}</h3>
+            {scanTable(scans?.licenses ?? [])}
+          </>
+        ) : tab === "secrets" ? (
+          <>
+            <h3>{t("vulnPage.bakedSecrets")}</h3>
+            {scanTable(scans?.secrets ?? [])}
+          </>
+        ) : tab === "sarif" ? (
+          workspace?.canWrite ? (
+            <form onSubmit={(event) => void ingestSarif(event)}>
+              <h3>{t("vulnPage.sarifTitle")}</h3>
+              <p className="m">{t("vulnPage.sarifHelp")}</p>
+              <label className="field">
+                <span>{t("vulnPage.asset")}</span>
+                <input
+                  value={sarifAsset}
+                  onChange={(event) => setSarifAsset(event.target.value)}
+                  placeholder="ecr/service-api:1.0.0"
+                  required
+                />
+              </label>
+              <label className="field">
+                <span>{t("vulnPage.sarifJson")}</span>
+                <textarea
+                  rows={8}
+                  value={sarifJson}
+                  onChange={(event) => setSarifJson(event.target.value)}
+                  placeholder='{"version":"2.1.0","runs":[...]}'
+                  required
+                />
+              </label>
+              <button className="btn primary" type="submit">
+                {t("vulnPage.importSarif")}
+              </button>
+            </form>
+          ) : (
+            <p className="m">{t("vulnPage.sarifHelp")}</p>
+          )
+        ) : !board ? null : tab === "asset" ? (
           board.assets.map((group) => (
             <section key={group.assetName}>
               <h3>

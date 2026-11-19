@@ -32,6 +32,10 @@ import { ChangesPage } from "./features/changes/ChangesPage";
 import { QuestionnairesPage } from "./features/questionnaires/QuestionnairesPage";
 import { SystemDescriptionPage } from "./features/description/SystemDescriptionPage";
 import { ContinuityPage } from "./features/continuity/ContinuityPage";
+import { ExposurePage } from "./features/security/ExposurePage";
+import { DspmPage } from "./features/security/DspmPage";
+import { FinOpsPage } from "./features/security/FinOpsPage";
+import { AttackPathsPage } from "./features/security/AttackPathsPage";
 import { TrustAdminPage } from "./features/trust/TrustAdminPage";
 import { TrustPublicPage } from "./features/trust/TrustPublicPage";
 
@@ -107,6 +111,10 @@ export function App() {
         <Route path="questionnaires" element={<QuestionnairesPage />} />
         <Route path="system-description" element={<SystemDescriptionPage />} />
         <Route path="continuity" element={<ContinuityPage />} />
+        <Route path="exposure" element={<ExposurePage />} />
+        <Route path="dspm" element={<DspmPage />} />
+        <Route path="finops" element={<FinOpsPage />} />
+        <Route path="attack-paths" element={<AttackPathsPage />} />
         <Route path="trust-center" element={<TrustAdminPage />} />
         <Route path="me" element={<MePage />} />
         <Route path="training" element={<TrainingPage />} />

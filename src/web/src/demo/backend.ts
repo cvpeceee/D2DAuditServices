@@ -15,6 +15,7 @@ import { handleChanges } from "./changes";
 import { handleQuestionnaires } from "./questionnaires";
 import { descriptionOf, handleDescription } from "./description";
 import { handleContinuity } from "./continuity";
+import { handleCloudSecurity } from "./security";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -165,6 +166,8 @@ async function route(
   if (description) return description;
   const continuity = handleContinuity(method, path, body, data, actor);
   if (continuity) return continuity;
+  const security = handleCloudSecurity(method, path, body, data, actor);
+  if (security) return security;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));

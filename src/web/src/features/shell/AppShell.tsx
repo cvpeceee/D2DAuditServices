@@ -22,6 +22,13 @@ const links = [
   { to: "/evidence", key: "evidence", end: false },
 ] as const;
 
+const cloudSecurity = [
+  { to: "/exposure", key: "exposure" },
+  { to: "/attack-paths", key: "attackPaths" },
+  { to: "/dspm", key: "dspm" },
+  { to: "/finops", key: "finops" },
+] as const;
+
 const governance = [
   { to: "/me", key: "me" },
   { to: "/training", key: "training" },
@@ -150,6 +157,10 @@ export function AppShell() {
         run: () => navigate("/system-description"),
       },
       { id: "continuity", label: t("nav.continuity"), run: () => navigate("/continuity") },
+      { id: "exposure", label: t("nav.exposure"), run: () => navigate("/exposure") },
+      { id: "attackPaths", label: t("nav.attackPaths"), run: () => navigate("/attack-paths") },
+      { id: "dspm", label: t("nav.dspm"), run: () => navigate("/dspm") },
+      { id: "finops", label: t("nav.finops"), run: () => navigate("/finops") },
       { id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") },
       { id: "me", label: t("nav.me"), run: () => navigate("/me") },
       { id: "training", label: t("nav.training"), run: () => navigate("/training") },
@@ -201,7 +212,9 @@ export function AppShell() {
       ? "computers"
       : parts[0] === "trust-center"
         ? "trust"
-        : parts[0] || "dashboard";
+        : parts[0] === "attack-paths"
+          ? "attackPaths"
+          : parts[0] || "dashboard";
   const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>
@@ -271,6 +284,18 @@ export function AppShell() {
             {link.key === "controls" && (workspace?.failingControls ?? 0) > 0 && (
               <span className="ct">{workspace?.failingControls}</span>
             )}
+          </NavLink>
+        ))}
+        <div className="sec">{t("nav.cloudSecurity")}</div>
+        {cloudSecurity.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name={link.key} />
+            <span>{t(`nav.${link.key}`)}</span>
           </NavLink>
         ))}
         <div className="sec">{t("nav.governance")}</div>

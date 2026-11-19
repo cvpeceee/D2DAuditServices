@@ -17,6 +17,7 @@ flowchart LR
   temporal[Temporal]
   workos[WorkOS]
   clouds[AWS Azure GCP Google Microsoft GitHub]
+  cspm[Cloud Security Engine: Exposure DSPM FinOps Attack Paths]
 
   user --> spa
   auditor --> spa
@@ -28,7 +29,24 @@ flowchart LR
   api --> temporal
   api --> workos
   api --> clouds
+  api --> cspm
 ```
+
+## Cloud Security Intelligence (M8 — VRINDA Parity+)
+
+```mermaid
+flowchart LR
+  snaps[Normalized Resource Snapshots] --> exp[ExposureAnalyzer + 1-Click IaC Patches]
+  sarif[SARIF 2.1.0 / ECR / Trivy] --> scan[SarifParser + Secret Redactor]
+  snaps --> dspm[DspmScorer PII / PHI / PCI]
+  costs[Cloud Cost Recommendations] --> finops[FinOpsAnalyzer x Compliance]
+  exp --> graph[AttackPathAnalyzer Blast-Radius Graph]
+  scan --> graph
+  dspm --> graph
+  people[Identity / MFA / Leavers] --> graph
+```
+
+`ICloudSecurity` (`CloudSecurityPortal`) adds four persistent tenant tables (`exposure_findings`, `security_scan_findings`, `data_store_assets`, `cost_recommendations`) plus real-time blast-radius attack path correlation (`GET /api/v1/security/attack-paths`) over live exposures, vulnerabilities, baked-in secrets, directory MFA/leaver gaps, and sensitive PII/PHI/PCI data stores. Every exposure finding generates copyable Terraform HCL and Cloud CLI remediation snippets. SARIF 2.1.0 ingestion automatically classifies container CVEs, copyleft OSS licenses, and baked-in secrets while redacting credential-like literals before storage.
 
 Customers and auditors use the same web app. WorkOS asserts identity. The API resolves the tenant, then talks only to that tenant's database. Collectors read cloud and directory configuration. Evidence bytes go to object storage. Long collection runs on Temporal when it is configured, and in-process otherwise.
 
@@ -133,7 +151,8 @@ Collectors sit behind a small set of interfaces:
 
 | Interface | What it does in this release |
 | --- | --- |
-| `ICloudProvider` | Read-only AWS account summary (configurable region, accurate S3 error handling) into normalized resources. Azure and GCP fixtures ship with the example client (live collectors planned in M8). |
+| `ICloudProvider` | Read-only AWS (`AwsCloudProvider`), Azure (`AzureCloudProvider`), and GCP (`GcpCloudProvider`) collectors into normalized resources, plus 16 cross-cloud automated checks. |
+| `ICloudSecurity` | Public Exposure & Open Ports analyzer (`ExposureAnalyzer`), SARIF 2.1.0 container/license/secret scanner (`SarifParser`), DSPM data risk register (`DspmScorer`), FinOps × Compliance correlation (`FinOpsAnalyzer`), and Blast-Radius Attack Path Graph (`AttackPathAnalyzer`). |
 | `IWorkspaceDirectory` | Google Workspace and Microsoft 365 users with full pagination. |
 | `ISourceControlProvider` | GitHub repositories and branch protection with `Link` header pagination. |
 | `IIssueTracker` | Configurable Jira REST API v3 and Linear GraphQL adapter (`ConfigurableIssueTracker`), with development/example local fallback. |

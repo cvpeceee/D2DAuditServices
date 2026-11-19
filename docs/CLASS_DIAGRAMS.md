@@ -310,3 +310,86 @@ classDiagram
     INotifier <|.. ConfigurableNotifier
     IAutomationDispatcher <|.. AutomationDispatcher
 ```
+
+## 5. Cloud Security Intelligence & Blast-Radius Graph (`D2DAudit.Domain` — M8)
+
+```mermaid
+classDiagram
+    class ExposureFinding {
+        +Guid Id
+        +string Provider
+        +string ResourceName
+        +string ResourceKind
+        +string Region
+        +string Cidr
+        +int Port
+        +string Service
+        +string Severity
+        +int RiskScore
+        +string ControlCode
+        +string RemediationTerraform
+        +string RemediationCli
+        +string Status
+    }
+    class SecurityScanFinding {
+        +Guid Id
+        +string Kind
+        +string Severity
+        +string AssetName
+        +string Location
+        +int LineNumber
+        +string RuleId
+        +string Snippet
+        +string ControlCode
+        +string Status
+    }
+    class DataStoreAsset {
+        +Guid Id
+        +string StoreName
+        +string Provider
+        +string Engine
+        +string Region
+        +string Classification
+        +string SensitiveDataTypes
+        +long RecordCountEstimate
+        +bool Encrypted
+        +bool PublicAccess
+        +bool RetentionCompliant
+        +int RiskScore
+    }
+    class CostRecommendation {
+        +Guid Id
+        +string Provider
+        +string ResourceName
+        +string Category
+        +decimal MonthlySavingsUsd
+        +decimal AnnualSavingsUsd
+        +string LinkedControlCode
+        +string ComplianceImpact
+        +string Status
+    }
+    class AttackPath {
+        +string Id
+        +string Title
+        +int BlastRadiusScore
+        +string Severity
+        +IReadOnlyList~AttackHop~ Hops
+        +IReadOnlyList~string~ ControlCodes
+        +string ChokepointRemediation
+    }
+    class ICloudSecurity {
+        <<interface>>
+        +ExposureBoardAsync()
+        +ScanExposureAsync()
+        +ScansBoardAsync()
+        +IngestSarifAsync()
+        +DspmBoardAsync()
+        +FinOpsBoardAsync()
+        +AttackPathsAsync()
+    }
+
+    ICloudSecurity <|.. CloudSecurityPortal
+    ExposureFinding --> AttackPath : Entry Hop
+    SecurityScanFinding --> AttackPath : Credential Hop
+    DataStoreAsset --> AttackPath : Crown Jewel Hop
+```

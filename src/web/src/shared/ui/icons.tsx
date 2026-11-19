@@ -20,6 +20,10 @@ export type IconName =
   | "questionnaires"
   | "description"
   | "continuity"
+  | "exposure"
+  | "attackPaths"
+  | "dspm"
+  | "finops"
   | "trust"
   | "assets"
   | "tasks"
@@ -305,6 +309,45 @@ export function Icon({ name, size = 16, className = "", ...rest }: IconProps) {
         <svg {...commonProps}>
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
           <path d="m9 12 2 2 4-4" />
+        </svg>
+      );
+
+    case "exposure":
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3.6 9h16.8" />
+          <path d="M3.6 15h16.8" />
+          <path d="M12 3a14.5 14.5 0 0 0 0 18 14.5 14.5 0 0 0 0-18" />
+        </svg>
+      );
+
+    case "attackPaths":
+      return (
+        <svg {...commonProps}>
+          <circle cx="5" cy="6" r="2.5" />
+          <circle cx="19" cy="6" r="2.5" />
+          <circle cx="12" cy="18" r="2.5" />
+          <path d="M7.5 6h9" />
+          <path d="m6.5 8 4 8" />
+          <path d="m17.5 8-4 8" />
+        </svg>
+      );
+
+    case "dspm":
+      return (
+        <svg {...commonProps}>
+          <ellipse cx="12" cy="5" rx="8" ry="3" />
+          <path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
+          <path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3" />
+        </svg>
+      );
+
+    case "finops":
+      return (
+        <svg {...commonProps}>
+          <path d="M12 2v20" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       );
 

@@ -48,7 +48,11 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/vendors` | Criticality, questionnaire, decision, residual risk. | Save a review. | Write roles |
 | `/people` | Directory, MFA, training, device, background check. | Sync, set status, record a background check. | Write roles |
 | `/people/computers` | Serial, OS, owner, encryption, screen lock, antivirus, password manager, auto-update, check-in, MDM or manual. | Add a computer, upload a screenshot as evidence. | Write roles |
-| `/vulnerabilities` | By asset, by vulnerability, ignored, SLA history. | Ignore with a reason, set SLA days. | Write roles |
+| `/vulnerabilities` | By asset, by vulnerability, container CVEs & OSS licenses, baked-in secrets (file & line), SARIF 2.1.0 import, ignored, SLA history. | Ignore with a reason, set SLA days, upload pentests, import SARIF, resolve scan findings. | Write roles |
+| `/exposure` | Internet-exposed security groups, NSGs, firewalls, public buckets, and databases with 1-click Terraform HCL and CLI remediation. | Scan snapshots, copy IaC/CLI patches, mark resolved with note. | Write roles |
+| `/attack-paths` | Unified multi-hop blast-radius attack graph correlating internet exposure, secrets/CVEs, identity gaps, and PII data stores. | Inspect chokepoint remediation and jump to linked controls/findings. | All workspace roles |
+| `/dspm` | Data Security Posture Management (DSPM): PII/PHI/PCI discovery, encryption, residency, and risk scoring across cloud stores. | Scan cloud data stores, register/update store classification. | Write roles |
+| `/finops` | Cloud cost optimization correlated directly with compliance control failures (`CFG-01`, `CR-02`, `BC-01`). | Track projected/realized savings, apply or dismiss recommendations. | Write roles |
 | `/incidents` | Severity, SLA, timeline, root cause, and a linked control. | Report, update status, record a root cause. | Report: any member. Update: write roles |
 | `/changes` | GitHub pull requests, Jira issues, and manual changes, with approval and the deploy they shipped in. | Record, approve, reject, link a deploy, sync. | Write roles record and update. Anyone in the workspace can read. |
 | `/questionnaires` | Customer security questionnaires. Suggestions cite a policy, control, or evidence item. A person accepts or edits each answer, then exports CSV. | Upload CSV or XLSX, accept, export. | Write roles upload and review. Anyone in the workspace can read and export. |

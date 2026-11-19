@@ -9,9 +9,9 @@ Living architectural and engineering ledger tracking completed milestones, secur
 | Milestone | Theme | Status | Verification |
 | --- | --- | --- | --- |
 | **M1–M6** | Foundation, Integrations/Evidence, Policies/Auditor Portal, Risk/People/SoA/Vendors/Access Reviews, Employee Portal/Training/Assets/Tasks, Computers/Vulns/Trust/Automation | Completed (baseline `ebf29c4`) | 25 unit tests, 5 arch tests, 14 web tests |
-| **M7** | Security Hardening, Production Correctness, Real Automation Adapters & Core UX Polish | **Completed** | 45 unit tests, 7 arch/schema tests, 15 web tests, ESLint, Prettier, Release & Demo builds |
-| **M8** | VRINDA Parity+: Multi-Cloud Azure/GCP Collectors, Deep CSPM, Public Exposure & Open Ports + IaC Remediation, Container/Secret/SARIF Scanner, DSPM PII Discovery & FinOps × Compliance | Planned (Next) | Pending |
-| **M9** | Vanta + Drata Parity+ & Differentiators: PCI DSS 4.0 / NIST CSF 2.0 / DORA / ISO 42001 / NIST AI RMF / EU AI Act / IEC 62443, Trust Center v2 + Cryptographic Trust Receipts & Clickwrap NDA, Unified Blast-Radius Attack Path Graph, Grounded AI Assistant & Security Questionnaire / RFP Autofill, Framework What-If Simulator & Endpoint Agent Check-In | Planned | Pending |
+| **M7** | Security Hardening, Production Correctness, Real Automation Adapters & Core UX Polish | **Completed** (`0e51dc5`) | 53 unit tests, 7 arch/schema tests, 15 web tests, ESLint, Prettier, Release & Demo builds |
+| **M8** | VRINDA Parity+ & Blast-Radius Differentiator: Public Exposure & Open Ports + 1-Click IaC Remediation, Container CVE / OSS License / Baked-in Secret & SARIF 2.1.0 Scanner, DSPM PII Discovery, FinOps × Compliance Correlation & Unified Attack Path Graph | **Completed** | 65 unit tests, 9 arch/schema/cloud tests, 18 web tests, ESLint, Prettier, Release & Demo builds |
+| **M9** | Vanta + Drata Parity+ & Differentiators: PCI DSS 4.0 / NIST CSF 2.0 / DORA / ISO 42001 / NIST AI RMF / EU AI Act / IEC 62443 + Custom Framework Upload & What-If Simulator, Trust Center v2 (File Upload/Download, Clickwrap NDA, Buyer-Verifiable Cryptographic Trust Receipts & Trust AI Chat), Grounded AI Compliance Assistant Side Panel & Public API Keys / Webhooks | Planned (Next) | Pending |
 
 ---
 
@@ -44,3 +44,22 @@ Living architectural and engineering ledger tracking completed milestones, secur
 - **Tests & Docs**:
   - Added `SecurityHardeningTests.cs` (20 test cases), `SchemaParityTests.cs` (2 tests), and `ui.test.tsx` (`safeHref` + expanded framework tags).
   - Created `docs/CLASS_DIAGRAMS.md` and `docs/IMPLEMENTATION_LEDGER.md`, and updated `docs/ARCHITECTURE.md` & `docs/ROADMAP.md`.
+
+---
+
+## Milestone 8 (M8) — Cloud Security Intelligence (VRINDA Parity+ & Unified Attack Path Graph)
+
+### Architectural Decisions
+1. **Pure Domain Analyzers Without I/O Coupling:** Built `ExposureAnalyzer`, `DspmScorer`, `FinOpsAnalyzer`, `SarifParser`, and `AttackPathAnalyzer` inside `D2DAudit.Domain/CloudSecurity.cs` so every risk score, IaC patch generator, secret redaction rule, and multi-hop blast-radius path is deterministic and 100% unit-testable without Postgres.
+2. **Automatic Secret Redaction on SARIF Ingestion:** `SarifParser.RedactSnippet` neutralizes token-like credentials before writing to `security_scan_findings`, preventing a security scanner from becoming a secondary credential leak store.
+3. **FinOps × Compliance Correlation:** Rather than a standalone cost-savings list, `CostRecommendation` links cloud waste directly to `LinkedControlCode` and `ComplianceImpact` so engineers prioritize fixes that simultaneously reduce cloud spend and close compliance failures (`CFG-01`, `CR-02`, `BC-01`).
+4. **Unified Multi-Hop Blast-Radius Graph:** `AttackPathAnalyzer.Build` correlates open internet exposures -> baked-in secrets / critical CVEs -> missing-MFA or offboarding identities -> restricted PII/PHI/PCI data stores into clickable remediation chains with a single chokepoint recommendation.
+5. **Verified EF Core Migration Parity:** Authored migration `20261119180000_CloudSecurity` (4 new tenant tables: `exposure_findings`, `security_scan_findings`, `data_store_assets`, `cost_recommendations`) and verified `HasPendingModelChanges() == false` via `SchemaParityTests`.
+
+### Changes Shipped
+- **Backend (`src/api`)**:
+  - Added `D2DAudit.Domain/CloudSecurity.cs` (4 entities + 5 pure analyzers), `D2DAudit.Application/CloudSecurity.cs` (`ICloudSecurity` + DTOs), `D2DAudit.Infrastructure/CloudSecurity/CloudSecurityPortal.cs` + `CloudSecurityExample.cs`, `D2DAudit.Api/Endpoints/CloudSecurityEndpoints.cs`, and EF Core migration `20261119180000_CloudSecurity`.
+- **Frontend (`src/web`)**:
+  - Added `/exposure` (`ExposurePage.tsx`), `/dspm` (`DspmPage.tsx`), `/finops` (`FinOpsPage.tsx`), `/attack-paths` (`AttackPathsPage.tsx`), upgraded `/vulnerabilities` (`VulnerabilitiesPage.tsx`) with Containers & Licenses, Baked-in Secrets (file:line), and SARIF 2.1.0 import tabs, added Cloud Security sidebar group + icons + command palette actions, and built full Harborline browser demo parity in `src/web/src/demo/security.ts`.
+- **Tests & Docs**:
+  - Added `CloudSecurityTests.cs` (12 unit test cases) and `src/web/src/demo/security.test.ts` (3 Vitest integration suites), and updated `ARCHITECTURE.md`, `CLASS_DIAGRAMS.md`, `FEATURES.md`, `ROADMAP.md`, and `IMPLEMENTATION_LEDGER.md`.
