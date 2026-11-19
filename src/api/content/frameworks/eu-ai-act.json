@@ -1,0 +1,71 @@
+{
+  "key": "eu-ai-act",
+  "name": "EU AI Act",
+  "version": "2024/1689",
+  "description": "European Union Artificial Intelligence Act readiness obligations for AI risk classification, data governance, transparency, logging, and human oversight. Short original summaries.",
+  "requirements": [
+    {
+      "code": "AIA-CLASS",
+      "title": "Risk classification and prohibitions",
+      "summary": "AI inventory screens out prohibited practices and classifies risk tiers.",
+      "children": [
+        {
+          "code": "AIA-5",
+          "title": "Prohibited AI screening",
+          "summary": "Review gates confirm no deployed system uses prohibited manipulation or social scoring.",
+          "children": []
+        },
+        {
+          "code": "AIA-9",
+          "title": "Risk management system",
+          "summary": "Continuous risk register evaluates and treats foreseeable AI harms.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "AIA-DATA",
+      "title": "Data governance and documentation",
+      "summary": "Data lineage, quality controls, technical documentation, and audit logs.",
+      "children": [
+        {
+          "code": "AIA-10",
+          "title": "Training and grounding data governance",
+          "summary": "Datasets are classified, minimized for personal data, and protected against leakage.",
+          "children": []
+        },
+        {
+          "code": "AIA-12",
+          "title": "Automatic event logging",
+          "summary": "AI queries, approvals, and configuration changes produce tamper-evident logs.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "AIA-OVERSIGHT",
+      "title": "Transparency, human oversight, and robustness",
+      "summary": "Disclosure to users, human sign-off, and cybersecurity resilience.",
+      "children": [
+        {
+          "code": "AIA-13",
+          "title": "User transparency and instructions",
+          "summary": "Users know when outputs are AI-assisted and see underlying evidence citations.",
+          "children": []
+        },
+        {
+          "code": "AIA-14",
+          "title": "Human oversight controls",
+          "summary": "Human operators can inspect, edit, or override AI suggestions before external release.",
+          "children": []
+        },
+        {
+          "code": "AIA-15",
+          "title": "Accuracy, robustness, and cybersecurity",
+          "summary": "AI services are hardened against unauthorized access, tampering, and data exfiltration.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

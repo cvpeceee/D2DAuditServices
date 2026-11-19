@@ -5,6 +5,7 @@ using D2DAudit.Infrastructure.Changes;
 using D2DAudit.Infrastructure.CloudSecurity;
 using D2DAudit.Infrastructure.Continuity;
 using D2DAudit.Infrastructure.Descriptions;
+using D2DAudit.Infrastructure.Enterprise;
 using D2DAudit.Infrastructure.Questionnaires;
 using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Catalog;
@@ -120,6 +121,8 @@ public static class DependencyInjection
         services.AddScoped<ISystemDescription, SystemDescriptionPortal>();
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
+        services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+        services.AddScoped<IEnterprisePortal, EnterprisePortal>();
         services.AddSingleton<AwsInspectorFeed>();
         services.AddScoped<IVulnerabilityIngest, VulnerabilityIngest>();
         services.AddHttpClient<MdmImport>(client => client.Timeout = TimeSpan.FromSeconds(30));

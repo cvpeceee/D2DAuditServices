@@ -1,0 +1,78 @@
+{
+  "key": "nist-ai-rmf",
+  "name": "NIST AI RMF 1.0",
+  "version": "1.0",
+  "description": "NIST Artificial Intelligence Risk Management Framework outcomes across Govern, Map, Measure, and Manage. Short original summaries.",
+  "requirements": [
+    {
+      "code": "GOVERN",
+      "title": "Govern AI risk",
+      "summary": "Policies, accountability, and third-party AI risk oversight.",
+      "children": [
+        {
+          "code": "AIRMF-G1",
+          "title": "AI legal and policy governance",
+          "summary": "Written governance policies align AI deployments with privacy and security rules.",
+          "children": []
+        },
+        {
+          "code": "AIRMF-G6",
+          "title": "Third-party AI supply-chain oversight",
+          "summary": "External AI models and datasets are assessed for security and licensing risks.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "MAP",
+      "title": "Map AI context",
+      "summary": "Intended use, boundaries, and potential failure modes are documented.",
+      "children": [
+        {
+          "code": "AIRMF-M1",
+          "title": "Context and boundary documentation",
+          "summary": "Each AI feature records its purpose, scope limits, and data classification.",
+          "children": []
+        },
+        {
+          "code": "AIRMF-M3",
+          "title": "Risks and limitations analysis",
+          "summary": "Hallucination, data leakage, and misuse scenarios are entered in the risk register.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "MEASURE",
+      "title": "Measure trustworthiness",
+      "summary": "Evaluation of accuracy, grounded citations, security, and drift.",
+      "children": [
+        {
+          "code": "AIRMF-ME2",
+          "title": "Model security and accuracy evaluation",
+          "summary": "Automated tests and human reviews evaluate prompt injection, privacy, and groundedness.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "MANAGE",
+      "title": "Manage AI risks",
+      "summary": "Mitigation plans, incident response, and decommissioning.",
+      "children": [
+        {
+          "code": "AIRMF-MG2",
+          "title": "Mitigation and fallback controls",
+          "summary": "AI features provide safe deterministic fallback and human approval gates.",
+          "children": []
+        },
+        {
+          "code": "AIRMF-MG4",
+          "title": "Post-deployment monitoring and incidents",
+          "summary": "AI failures and misuse events flow through the security incident register.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

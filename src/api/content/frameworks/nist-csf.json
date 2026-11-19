@@ -1,0 +1,115 @@
+{
+  "key": "nist-csf",
+  "name": "NIST CSF 2.0",
+  "version": "2.0",
+  "description": "NIST Cybersecurity Framework 2.0 outcomes across Govern, Identify, Protect, Detect, Respond, and Recover. Short original summaries.",
+  "requirements": [
+    {
+      "code": "GV",
+      "title": "Govern",
+      "summary": "Organizational cybersecurity risk strategy, policy, roles, and supply-chain oversight.",
+      "children": [
+        {
+          "code": "GV.PO-01",
+          "title": "Cybersecurity policy established",
+          "summary": "Leadership approves and communicates written cybersecurity policies.",
+          "children": []
+        },
+        {
+          "code": "GV.RR-01",
+          "title": "Roles and accountability",
+          "summary": "Named owners are accountable for cybersecurity controls and risk decisions.",
+          "children": []
+        },
+        {
+          "code": "GV.SC-01",
+          "title": "Supply chain risk management",
+          "summary": "Vendors and subprocessors are reviewed for security criticality and residual risk.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "ID",
+      "title": "Identify",
+      "summary": "Asset visibility, risk assessments, and vulnerability identification.",
+      "children": [
+        {
+          "code": "ID.AM-01",
+          "title": "Hardware and cloud asset inventory",
+          "summary": "Managed computers, cloud stores, and repositories are inventoried with owners.",
+          "children": []
+        },
+        {
+          "code": "ID.RA-01",
+          "title": "Risk and vulnerability assessment",
+          "summary": "Security risks and software vulnerabilities are scored and tracked to treatment.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "PR",
+      "title": "Protect",
+      "summary": "Identity controls, training, data protection, and platform hardening.",
+      "children": [
+        {
+          "code": "PR.AA-01",
+          "title": "Identity and MFA enforcement",
+          "summary": "Identities use MFA and least-privilege entitlements reviewed on schedule.",
+          "children": []
+        },
+        {
+          "code": "PR.AT-01",
+          "title": "Workforce awareness training",
+          "summary": "Personnel complete annual security awareness training with recorded proof.",
+          "children": []
+        },
+        {
+          "code": "PR.DS-01",
+          "title": "Data security at rest and transit",
+          "summary": "Sensitive stores enforce encryption, private access, and retention safeguards.",
+          "children": []
+        },
+        {
+          "code": "PR.PS-01",
+          "title": "Configuration and change control",
+          "summary": "Cloud configurations and production code releases follow reviewed baselines.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "DE",
+      "title": "Detect",
+      "summary": "Continuous logging and adverse event analysis.",
+      "children": [
+        {
+          "code": "DE.CM-01",
+          "title": "Continuous monitoring and audit logs",
+          "summary": "Cloud trails and security alerts monitor infrastructure for anomalous changes.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "RS-RC",
+      "title": "Respond and Recover",
+      "summary": "Incident management, root-cause analysis, and tested continuity recovery.",
+      "children": [
+        {
+          "code": "RS.MA-01",
+          "title": "Incident response execution",
+          "summary": "Security incidents are logged, triaged within SLA, and closed with root cause.",
+          "children": []
+        },
+        {
+          "code": "RC.RP-01",
+          "title": "Recovery plan execution",
+          "summary": "Disaster-recovery plans and failover drills confirm RTO and RPO targets.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

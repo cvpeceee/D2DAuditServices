@@ -16,6 +16,7 @@ import { handleQuestionnaires } from "./questionnaires";
 import { descriptionOf, handleDescription } from "./description";
 import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
+import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -120,7 +121,10 @@ async function route(
   body: Record<string, unknown>,
 ) {
   if (path.startsWith("/api/v1/public/trust/")) {
-    return publicTrust(method, path, body, await world());
+    const data = await world();
+    const extra = await handlePublicTrustEnterprise(method, path, query, body, data);
+    if (extra) return extra;
+    return publicTrust(method, path, body, data);
   }
   if (path === "/api/v1/auth/mode" && method === "GET") {
     return json({
@@ -168,6 +172,8 @@ async function route(
   if (continuity) return continuity;
   const security = handleCloudSecurity(method, path, body, data, actor);
   if (security) return security;
+  const enterprise = handleEnterprise(method, path, body, data, actor);
+  if (enterprise) return enterprise;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));

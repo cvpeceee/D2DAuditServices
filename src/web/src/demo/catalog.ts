@@ -4,6 +4,13 @@ import iso27017 from "../../../api/content/frameworks/iso27017.json";
 import iso27018 from "../../../api/content/frameworks/iso27018.json";
 import hipaa from "../../../api/content/frameworks/hipaa.json";
 import gdpr from "../../../api/content/frameworks/gdpr.json";
+import pciDss from "../../../api/content/frameworks/pci-dss.json";
+import nistCsf from "../../../api/content/frameworks/nist-csf.json";
+import dora from "../../../api/content/frameworks/dora.json";
+import iso42001 from "../../../api/content/frameworks/iso42001.json";
+import nistAiRmf from "../../../api/content/frameworks/nist-ai-rmf.json";
+import euAiAct from "../../../api/content/frameworks/eu-ai-act.json";
+import iec62443 from "../../../api/content/frameworks/iec62443.json";
 import soc2 from "../../../api/content/frameworks/soc2.json";
 import {
   company,
@@ -292,7 +299,21 @@ type RawFramework = {
   requirements: RawNode[];
 };
 
-const frameworks = [soc2, iso27001, iso27017, iso27018, hipaa, gdpr] as RawFramework[];
+const frameworks = [
+  soc2,
+  iso27001,
+  iso27017,
+  iso27018,
+  hipaa,
+  gdpr,
+  pciDss,
+  nistCsf,
+  dora,
+  iso42001,
+  nistAiRmf,
+  euAiAct,
+  iec62443,
+] as RawFramework[];
 
 const automated = [
   {

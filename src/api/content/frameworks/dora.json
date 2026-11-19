@@ -1,0 +1,96 @@
+{
+  "key": "dora",
+  "name": "EU DORA",
+  "version": "2022/2554",
+  "description": "EU Digital Operational Resilience Act controls covering ICT risk, incident reporting, resilience testing, and ICT third-party oversight. Short original summaries.",
+  "requirements": [
+    {
+      "code": "DORA-ICT",
+      "title": "ICT risk management framework",
+      "summary": "Governance, asset classification, protection, and continuity for critical ICT services.",
+      "children": [
+        {
+          "code": "DORA-6",
+          "title": "ICT risk governance and policy",
+          "summary": "Management maintains an approved ICT risk framework tied to business services.",
+          "children": []
+        },
+        {
+          "code": "DORA-8",
+          "title": "Identification of critical ICT assets",
+          "summary": "Critical business functions, dependencies, and data stores are mapped with owners.",
+          "children": []
+        },
+        {
+          "code": "DORA-9",
+          "title": "Protection, encryption, and access control",
+          "summary": "Strong authentication, network hardening, and cryptographic keys protect ICT systems.",
+          "children": []
+        },
+        {
+          "code": "DORA-11",
+          "title": "ICT business continuity and backup",
+          "summary": "Tested continuity plans and immutable backups meet defined recovery objectives.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "DORA-INC",
+      "title": "ICT incident management and reporting",
+      "summary": "Structured detection, classification, root-cause tracking, and regulator timelines.",
+      "children": [
+        {
+          "code": "DORA-17",
+          "title": "Incident detection and timeline logging",
+          "summary": "ICT incidents are classified by severity, tracked with timelines, and resolved within SLA.",
+          "children": []
+        },
+        {
+          "code": "DORA-19",
+          "title": "Post-incident review and lessons",
+          "summary": "Major incidents record root cause and corrective control improvements.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "DORA-TEST",
+      "title": "Digital operational resilience testing",
+      "summary": "Recurring vulnerability scans, penetration testing, and recovery exercises.",
+      "children": [
+        {
+          "code": "DORA-24",
+          "title": "Continuous vulnerability and pentest program",
+          "summary": "Critical ICT systems undergo continuous scanning and independent penetration tests.",
+          "children": []
+        },
+        {
+          "code": "DORA-25",
+          "title": "Failover and recovery testing",
+          "summary": "Periodic recovery exercises validate failover plans and capture evidence.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "DORA-TPRM",
+      "title": "ICT third-party risk management",
+      "summary": "Register of ICT providers, criticality scoring, and exit readiness.",
+      "children": [
+        {
+          "code": "DORA-28",
+          "title": "Third-party ICT register and reviews",
+          "summary": "All ICT suppliers are inventoried, risk-scored, and reviewed annually.",
+          "children": []
+        },
+        {
+          "code": "DORA-30",
+          "title": "Contractual security and audit rights",
+          "summary": "Supplier agreements document data protection, SLA, and termination transitions.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

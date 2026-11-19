@@ -213,6 +213,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<CostRecommendation> CostRecommendations => Set<CostRecommendation>();
 
+    public DbSet<ApiKeyRecord> ApiKeys => Set<ApiKeyRecord>();
+
+    public DbSet<WebhookSubscription> Webhooks => Set<WebhookSubscription>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -612,6 +616,9 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         trustDocument.Property(x => x.Summary).HasMaxLength(1000).IsRequired();
         trustDocument.Property(x => x.Access).HasMaxLength(16).IsRequired();
         trustDocument.Property(x => x.FileName).HasMaxLength(200).IsRequired();
+        trustDocument.Property(x => x.ObjectKey).HasMaxLength(200).HasDefaultValue("");
+        trustDocument.Property(x => x.Sha256).HasMaxLength(64).HasDefaultValue("");
+        trustDocument.Property(x => x.ContentType).HasMaxLength(100).HasDefaultValue("application/pdf");
 
         var trustRequest = modelBuilder.Entity<TrustAccessRequest>();
         trustRequest.ToTable("trust_requests");
@@ -621,6 +628,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         trustRequest.Property(x => x.Company).HasMaxLength(200).IsRequired();
         trustRequest.Property(x => x.Purpose).HasMaxLength(1000).IsRequired();
         trustRequest.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        trustRequest.Property(x => x.NdaAccepted).HasDefaultValue(false);
+        trustRequest.Property(x => x.AccessToken).HasMaxLength(64).HasDefaultValue("");
 
         var rule = modelBuilder.Entity<AutomationRule>();
         rule.ToTable("automation_rules");
@@ -795,6 +804,24 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         cost.Property(x => x.RemediationSummary).HasMaxLength(500).IsRequired();
         cost.Property(x => x.Status).HasMaxLength(16).IsRequired();
         cost.HasIndex(x => new { x.Provider, x.ResourceName, x.Category });
+
+        var apiKey = modelBuilder.Entity<ApiKeyRecord>();
+        apiKey.ToTable("api_keys");
+        apiKey.HasKey(x => x.Id);
+        apiKey.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        apiKey.Property(x => x.Prefix).HasMaxLength(32).IsRequired();
+        apiKey.Property(x => x.KeyHash).HasMaxLength(64).IsRequired();
+        apiKey.Property(x => x.Scopes).HasMaxLength(500).IsRequired();
+        apiKey.Property(x => x.CreatedByEmail).HasMaxLength(320).IsRequired();
+        apiKey.HasIndex(x => x.KeyHash).IsUnique();
+
+        var webhook = modelBuilder.Entity<WebhookSubscription>();
+        webhook.ToTable("webhooks");
+        webhook.HasKey(x => x.Id);
+        webhook.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        webhook.Property(x => x.Url).HasMaxLength(500).IsRequired();
+        webhook.Property(x => x.Events).HasMaxLength(500).IsRequired();
+        webhook.Property(x => x.SigningSecretHash).HasMaxLength(64).IsRequired();
     }
 }
 

@@ -62,6 +62,16 @@ export function AppShell() {
   const [tray, setTray] = useState(false);
   const [account, setAccount] = useState(false);
   const [assist, setAssist] = useState(false);
+  const [assistInput, setAssistInput] = useState("");
+  const [assistBusy, setAssistBusy] = useState(false);
+  const [assistMessages, setAssistMessages] = useState<
+    {
+      role: "user" | "assistant";
+      text: string;
+      mode?: string;
+      citations?: { kind: string; code: string; title: string; href: string }[];
+    }[]
+  >([]);
   const [notes, setNotes] = useState<Notification[]>([]);
   const [notesOpen, setNotesOpen] = useState(false);
   const [deviceCount, setDeviceCount] = useState(0);
@@ -223,6 +233,38 @@ export function AppShell() {
       job.status === "running" ||
       job.status === "queued",
   );
+
+  async function askAssistant(promptText: string) {
+    const clean = promptText.trim();
+    if (!tenantId || !clean) return;
+    setAssistBusy(true);
+    setAssistInput("");
+    setAssistMessages((current) => [...current, { role: "user", text: clean }]);
+    try {
+      const reply = await api<{
+        answer: string;
+        mode: string;
+        citations: { kind: string; code: string; title: string; href: string }[];
+      }>("/api/v1/assistant/ask", {
+        method: "POST",
+        tenantId,
+        body: { question: clean },
+      });
+      setAssistMessages((current) => [
+        ...current,
+        {
+          role: "assistant",
+          text: reply.answer,
+          mode: reply.mode,
+          citations: reply.citations,
+        },
+      ]);
+    } catch {
+      setAssistMessages((current) => [...current, { role: "assistant", text: t("errors.load") }]);
+    } finally {
+      setAssistBusy(false);
+    }
+  }
 
   return (
     <div className="app">
@@ -533,16 +575,72 @@ export function AppShell() {
                 ✕
               </button>
             </div>
-            <div className="msgs">
-              <p>{t("shell.assistantBody")}</p>
+            <div className="msgs" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <p className="m">{t("shell.assistantBody")}</p>
               <div className="chips">
-                <NavLink className="chip" to="/controls">
-                  {t("nav.controls")}
-                </NavLink>
-                <NavLink className="chip" to="/frameworks">
-                  {t("nav.frameworks")}
-                </NavLink>
+                {[
+                  t("shell.promptFailing"),
+                  t("shell.promptAttackPaths"),
+                  t("shell.promptFinOps"),
+                  t("shell.promptDspm"),
+                ].map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    className="chip"
+                    onClick={() => void askAssistant(prompt)}
+                  >
+                    {prompt}
+                  </button>
+                ))}
               </div>
+              {assistMessages.map((msg, idx) => (
+                <div
+                  key={`${msg.role}-${idx}`}
+                  style={{
+                    padding: 10,
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    whiteSpace: "pre-line",
+                    fontSize: 13,
+                  }}
+                >
+                  <b>{msg.role === "user" ? (user?.displayName ?? "You") : t("shell.assistant")}</b>
+                  {msg.mode && <span className="id"> · {msg.mode}</span>}
+                  <div style={{ marginTop: 4 }}>{msg.text}</div>
+                  {msg.citations && msg.citations.length > 0 && (
+                    <div className="chips" style={{ marginTop: 8 }}>
+                      {msg.citations.map((cite) => (
+                        <NavLink
+                          key={`${cite.kind}-${cite.code}-${cite.title}`}
+                          className="chip"
+                          to={cite.href}
+                        >
+                          {cite.code}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <form
+                style={{ display: "flex", gap: 6, marginTop: "auto" }}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void askAssistant(assistInput);
+                }}
+              >
+                <input
+                  style={{ flex: 1 }}
+                  aria-label={t("shell.assistantInput")}
+                  placeholder={t("shell.assistantInput")}
+                  value={assistInput}
+                  onChange={(event) => setAssistInput(event.target.value)}
+                />
+                <button className="btn primary" type="submit" disabled={assistBusy}>
+                  {t("shell.assistantSend")}
+                </button>
+              </form>
             </div>
           </aside>
         </div>

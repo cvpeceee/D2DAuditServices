@@ -145,6 +145,7 @@ app.MapContinuityEndpoints();
 app.MapVulnerabilityIngestEndpoints();
 app.MapDeviceFleetEndpoints();
 app.MapCloudSecurityEndpoints();
+app.MapEnterpriseEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

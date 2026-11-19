@@ -18,6 +18,8 @@ flowchart LR
   workos[WorkOS]
   clouds[AWS Azure GCP Google Microsoft GitHub]
   cspm[Cloud Security Engine: Exposure DSPM FinOps Attack Paths]
+  ai[Grounded AI Assistant & Trust Receipts]
+  jenkins[Self-Hosted Open-Source Jenkins CI/CD]
 
   user --> spa
   auditor --> spa
@@ -30,7 +32,26 @@ flowchart LR
   api --> workos
   api --> clouds
   api --> cspm
+  api --> ai
+  jenkins -.->|build, test, gitleaks, pages artifact| pages
 ```
+
+## Enterprise Super-App & CI/CD (M9 — Vanta + Drata Parity+ & Jenkins)
+
+```mermaid
+flowchart LR
+  fw[13 Embedded Frameworks + Custom CSV Upload] --> sim[FrameworkSimulator + 1-Click Gap Adoption]
+  chain[(EvidenceChain SHA-256)] --> receipt[TrustReceiptBuilder: Buyer-Verifiable JSON Receipt]
+  trust[Trust Center v2: File Upload/Download + Clickwrap NDA] --> receipt
+  scope[Role & Tenant Scoped Context] --> llm[ConfigurableAssistantProvider: LLM or Grounded Retrieval]
+  admin[TenantAdmin] --> dev[Developer Console: SHA-256 API Keys & Signed Webhooks]
+```
+
+- **Expanded Frameworks & Simulator (`IEnterprisePortal`)**: 13 embedded JSON catalogs (`soc2`, `iso27001`, `iso27017`, `iso27018`, `hipaa`, `gdpr`, `pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`) plus custom CSV framework creation (`POST /api/v1/frameworks/custom`) and What-If Gap Simulation + 1-click gap control adoption (`GET /api/v1/frameworks/{key}/simulator`, `POST /api/v1/frameworks/{key}/simulator/adopt`).
+- **Trust Center v2 & Cryptographic Trust Receipts**: Real document byte upload/download via `IStorageProvider`, clickwrap NDA acceptance with constant-time verified download tokens, public Trust Center AI Q&A (`POST /api/v1/public/trust/{slug}/ask`), and live buyer-verifiable **Cryptographic Trust Receipts** (`GET /api/v1/public/trust/{slug}/receipt`) anchored to `EvidenceChain` SHA-256 hashes and verifiable locally in-browser via Web Crypto API.
+- **Grounded AI Assistant (`IAssistantProvider`)**: `ConfigurableAssistantProvider` calls an optional OpenAI-compatible endpoint (`AI:Endpoint` + `AI:ApiKey` + `AI:Model`) grounded strictly in the caller's role-scoped tenant facts (Auditors stay strictly inside granted frameworks) and transparently falls back to deterministic `GroundedAssistant` retrieval (`mode: "grounded-retrieval"`).
+- **Developer Console**: Admin-managed API keys (`api_keys`, SHA-256 hashed at rest, plaintext returned once) and outbound webhook subscriptions (`webhooks`, HTTPS/HTTP validated via `SafeUrl`).
+- **Open-Source Jenkins CI/CD**: Replaced automatic GitHub Actions triggers with root `Jenkinsfile` + self-hosted Docker Compose / JCasC stack under `ci/jenkins/` (`.NET 10`, `Node 22`, `Gitleaks`, review-site packaging, optional `gh-pages` branch publish) so zero GitHub Actions minutes are consumed.
 
 ## Cloud Security Intelligence (M8 — VRINDA Parity+)
 
@@ -172,4 +193,4 @@ The fake keeps the same paths, roles, and error codes as the API so a screen tha
 
 The intended production host is AWS. App containers run on ECS Fargate. Dev, staging, and production are separate accounts. Cloudflare is the CDN and WAF. Tenant databases can be hosted on Neon or moved to a dedicated cluster. Object storage is S3 in production and Cloudflare R2 or MinIO in development. Terraform in `infra/terraform` is the place that definition will live. It is not applied yet.
 
-GitHub Pages deploys `docs/` plus the demo build on every push to `main`. The workflow is `.github/workflows/pages.yml`.
+Self-hosted open-source Jenkins (`Jenkinsfile` + `ci/jenkins/docker-compose.jenkins.yml`) runs build, unit/integration tests, NuGet/npm vulnerability audits, Gitleaks secret scanning, review-site packaging (`docs/` + `VITE_DEMO=true` app), and optional direct `gh-pages` branch publishing with zero GitHub Actions minute usage. Automatic triggers in `.github/workflows/*.yml` are disabled (`workflow_dispatch` manual fallback only).

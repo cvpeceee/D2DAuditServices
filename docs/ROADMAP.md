@@ -40,7 +40,7 @@ Done. Public Exposure & Open Ports analyzer (`/exposure`) with 1-click Terraform
 
 ## M9 — Enterprise Compliance & AI Super-App (Vanta + Drata parity+ & Differentiators)
 
-Expanded frameworks (PCI DSS 4.0, NIST CSF 2.0, EU DORA, ISO/IEC 42001, NIST AI RMF, EU AI Act, IEC 62443 + custom framework upload & Multi-Framework What-If Gap Simulator), Okta/HRIS/GitLab connectors, Trust Center v2 (real file upload/download, clickwrap NDA, buyer-verifiable Cryptographic Trust Receipts, Trust Center AI Q&A), Public REST API with API keys & webhooks, and Grounded AI Assistant over product docs and tenant data.
+Done. Expanded framework catalog to 13 frameworks (PCI DSS 4.0, NIST CSF 2.0, EU DORA, ISO/IEC 42001, NIST AI RMF 1.0, EU AI Act, IEC 62443 + Custom CSV Framework Upload + Multi-Framework What-If Gap Simulator with 1-click gap adoption), Trust Center v2 (real file upload/download, clickwrap NDA acceptance & constant-time approval tokens, buyer-verifiable Cryptographic Trust Receipts with in-browser SHA-256 verification, public Trust Center AI Q&A), live role-scoped Grounded AI Compliance Assistant side panel (`IAssistantProvider`), Developer Console (SHA-256 API Keys & outbound Webhooks), EF Core migration `20261119200000_SuperAppEnterprise`, and open-source Jenkins CI/CD (`Jenkinsfile` + `ci/jenkins/`) replacing automatic GitHub Actions triggers.
 
 ## M4 — Demo polish
 

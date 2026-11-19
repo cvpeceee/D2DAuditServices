@@ -63,7 +63,15 @@ public sealed record VulnerabilityBoard(
 
 public sealed record IgnoreVulnerabilityRequest(string Reason);
 
-public sealed record TrustDocumentDto(Guid Id, string Title, string Summary, string Access, string FileName, DateOnly UpdatedOn);
+public sealed record TrustDocumentDto(
+    Guid Id,
+    string Title,
+    string Summary,
+    string Access,
+    string FileName,
+    DateOnly UpdatedOn,
+    bool HasFile = false,
+    string Sha256 = "");
 
 public sealed record TrustRequestDto(
     Guid Id,
@@ -75,7 +83,10 @@ public sealed record TrustRequestDto(
     string Purpose,
     string Status,
     DateTimeOffset RequestedAt,
-    DateTimeOffset? DecidedAt);
+    DateTimeOffset? DecidedAt,
+    bool NdaAccepted = false,
+    DateTimeOffset? NdaAcceptedAt = null,
+    string AccessToken = "");
 
 public sealed record TrustFrameworkDto(string Key, string Name, int Controls, int Passing);
 
@@ -99,9 +110,22 @@ public sealed record TrustAdminPage(
 
 public sealed record SaveTrustRequest(bool Published, string Headline, string Summary, string ContactEmail);
 
-public sealed record SaveTrustDocumentRequest(Guid? Id, string Title, string Summary, string Access, string FileName);
+public sealed record SaveTrustDocumentRequest(
+    Guid? Id,
+    string Title,
+    string Summary,
+    string Access,
+    string FileName,
+    string? ContentBase64 = null,
+    string? ContentType = null);
 
-public sealed record TrustAccessRequestBody(Guid? DocumentId, string Name, string Email, string Company, string Purpose);
+public sealed record TrustAccessRequestBody(
+    Guid? DocumentId,
+    string Name,
+    string Email,
+    string Company,
+    string Purpose,
+    bool NdaAccepted = false);
 
 public sealed record DecideTrustRequest(string Status);
 

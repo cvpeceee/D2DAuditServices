@@ -1,0 +1,135 @@
+{
+  "key": "pci-dss",
+  "name": "PCI DSS 4.0",
+  "version": "4.0.1",
+  "description": "Payment Card Industry Data Security Standard controls for environments that store, process, or transmit cardholder data. Short original summaries.",
+  "requirements": [
+    {
+      "code": "REQ-1",
+      "title": "Network security controls",
+      "summary": "Firewalls and segmentation isolate cardholder environments from untrusted networks.",
+      "children": [
+        {
+          "code": "PCI-1.2",
+          "title": "Restrict inbound and outbound traffic",
+          "summary": "Network rules deny untrusted traffic by default and block open administrative ports.",
+          "children": []
+        },
+        {
+          "code": "PCI-1.3",
+          "title": "Isolate cardholder data network",
+          "summary": "Public-facing workloads cannot connect directly to cardholder storage subnets.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-2",
+      "title": "Secure configurations",
+      "summary": "All system components run hardened baseline settings with no vendor defaults.",
+      "children": [
+        {
+          "code": "PCI-2.2",
+          "title": "System hardening standards",
+          "summary": "Servers, databases, and cloud buckets follow documented hardening templates.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-3",
+      "title": "Protect stored account data",
+      "summary": "Retention is minimized and stored cardholder data uses strong cryptography.",
+      "children": [
+        {
+          "code": "PCI-3.2",
+          "title": "Data retention and disposal",
+          "summary": "Stored account data is purged automatically once business retention ends.",
+          "children": []
+        },
+        {
+          "code": "PCI-3.5",
+          "title": "Encryption of stored PAN",
+          "summary": "Primary account numbers are unreadable at rest using managed encryption keys.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-4",
+      "title": "Protect data in transit",
+      "summary": "Strong TLS cryptography guards cardholder data across open networks.",
+      "children": [
+        {
+          "code": "PCI-4.2",
+          "title": "Strong transport encryption",
+          "summary": "External endpoints enforce modern TLS with trusted certificates.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-6",
+      "title": "Secure systems and software",
+      "summary": "Vulnerabilities are patched within SLA and production changes are peer-reviewed.",
+      "children": [
+        {
+          "code": "PCI-6.3",
+          "title": "Security vulnerabilities managed",
+          "summary": "Critical and high vulnerabilities are tracked and remediated inside policy windows.",
+          "children": []
+        },
+        {
+          "code": "PCI-6.5",
+          "title": "Change control for software",
+          "summary": "Production code changes undergo independent review and approval before release.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-7-8",
+      "title": "Access and strong authentication",
+      "summary": "Least-privilege access and MFA protect every interactive and administrative session.",
+      "children": [
+        {
+          "code": "PCI-7.2",
+          "title": "Role-based access and reviews",
+          "summary": "Access is granted by job role, reviewed periodically, and revoked upon departure.",
+          "children": []
+        },
+        {
+          "code": "PCI-8.4",
+          "title": "Multi-factor authentication",
+          "summary": "MFA is enforced for all access into the cardholder and cloud control plane.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "REQ-10-12",
+      "title": "Logging, testing, and governance",
+      "summary": "Audit trails, penetration tests, incident response, and security policies remain active.",
+      "children": [
+        {
+          "code": "PCI-10.2",
+          "title": "Audit log capture",
+          "summary": "Cloud and system audit logs capture user actions and administrative changes.",
+          "children": []
+        },
+        {
+          "code": "PCI-11.3",
+          "title": "Vulnerability scanning and pentests",
+          "summary": "Regular vulnerability scans and annual penetration tests verify perimeter defenses.",
+          "children": []
+        },
+        {
+          "code": "PCI-12.1",
+          "title": "Information security policy and training",
+          "summary": "Written security policies, vendor oversight, and annual staff awareness remain current.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

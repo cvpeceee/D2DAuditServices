@@ -22,6 +22,23 @@ type Delivery = {
   externalId: string;
   at: string;
 };
+type ApiKeyItem = {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string;
+  createdByEmail: string;
+  createdAt: string;
+  revokedAt: string | null;
+};
+type WebhookItem = {
+  id: string;
+  name: string;
+  url: string;
+  events: string;
+  enabled: boolean;
+  createdAt: string;
+};
 const triggers = ["TestFailed", "ControlNotReady", "RiskCreated", "ReviewDue"] as const;
 const actions = ["Jira", "Slack", "Teams", "Email"] as const;
 
@@ -50,6 +67,15 @@ export function SettingsPage() {
   const [grantEmail, setGrantEmail] = useState("auditor@northgate.example");
   const [auditName, setAuditName] = useState("SOC 2 Type II");
   const [firmName, setFirmName] = useState("Northgate Assurance LLP");
+  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
+  const [webhooks, setWebhooks] = useState<WebhookItem[]>([]);
+  const [keyForm, setKeyForm] = useState({ name: "", scopes: "read:controls,read:evidence" });
+  const [webhookForm, setWebhookForm] = useState({
+    name: "",
+    url: "",
+    events: "test.failed,exposure.critical",
+  });
+  const [issuedSecret, setIssuedSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function load() {
@@ -60,13 +86,17 @@ export function SettingsPage() {
       api<Grant[]>("/api/v1/settings/grants", { tenantId }),
       api<Rule[]>("/api/v1/settings/automation", { tenantId }),
       api<Delivery[]>("/api/v1/settings/automation/deliveries", { tenantId }),
+      api<ApiKeyItem[]>("/api/v1/developer/keys", { tenantId }).catch(() => []),
+      api<WebhookItem[]>("/api/v1/developer/webhooks", { tenantId }).catch(() => []),
     ])
-      .then(([people, domains, rows, automation, sent]) => {
+      .then(([people, domains, rows, automation, sent, keys, hooks]) => {
         setMembers(people);
         setSso(Array.isArray(domains) ? domains : domains ? [domains] : []);
         setGrants(rows);
         setRules(automation);
         setDeliveries(sent);
+        setApiKeys(keys);
+        setWebhooks(hooks);
       })
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
   }
@@ -359,6 +389,137 @@ export function SettingsPage() {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="card" style={{ marginTop: 14 }}>
+        <h3>{t("settingsPage.developerTitle")}</h3>
+        <p className="m">{t("settingsPage.developerSub")}</p>
+        {issuedSecret && (
+          <div className="notice" role="status">
+            <b>{t("settingsPage.copyOnce")}:</b> <code>{issuedSecret}</code>
+          </div>
+        )}
+        <h4>{t("settingsPage.apiKeys")}</h4>
+        <ul>
+          {apiKeys.map((item) => (
+            <li key={item.id}>
+              <b>{item.name}</b> · <code>{item.prefix}…</code> · {item.scopes}{" "}
+              {item.revokedAt ? (
+                <Pill status="fail">{t("settingsPage.revoked")}</Pill>
+              ) : (
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() => {
+                    if (!tenantId) return;
+                    void api(`/api/v1/developer/keys/${item.id}`, {
+                      method: "DELETE",
+                      tenantId,
+                    }).then(() => load());
+                  }}
+                >
+                  {t("settingsPage.revoke")}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!tenantId) return;
+            void api<{ plaintextKey: string }>("/api/v1/developer/keys", {
+              method: "POST",
+              tenantId,
+              body: keyForm,
+            }).then((created) => {
+              setIssuedSecret(created.plaintextKey);
+              setKeyForm({ ...keyForm, name: "" });
+              load();
+            });
+          }}
+        >
+          <div className="split-fields">
+            <input
+              aria-label={t("settingsPage.keyName")}
+              placeholder={t("settingsPage.keyName")}
+              value={keyForm.name}
+              onChange={(event) => setKeyForm({ ...keyForm, name: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("settingsPage.keyScopes")}
+              placeholder={t("settingsPage.keyScopes")}
+              value={keyForm.scopes}
+              onChange={(event) => setKeyForm({ ...keyForm, scopes: event.target.value })}
+            />
+          </div>
+          <button className="btn" type="submit">
+            {t("settingsPage.createKey")}
+          </button>
+        </form>
+
+        <h4 style={{ marginTop: 18 }}>{t("settingsPage.webhooks")}</h4>
+        <ul>
+          {webhooks.map((item) => (
+            <li key={item.id}>
+              <b>{item.name}</b> · <code>{item.url}</code> · {item.events}{" "}
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => {
+                  if (!tenantId) return;
+                  void api(`/api/v1/developer/webhooks/${item.id}`, {
+                    method: "DELETE",
+                    tenantId,
+                  }).then(() => load());
+                }}
+              >
+                {t("settingsPage.remove")}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!tenantId) return;
+            void api<{ signingSecret: string }>("/api/v1/developer/webhooks", {
+              method: "POST",
+              tenantId,
+              body: webhookForm,
+            }).then((created) => {
+              setIssuedSecret(created.signingSecret);
+              setWebhookForm({ ...webhookForm, name: "", url: "" });
+              load();
+            });
+          }}
+        >
+          <div className="split-fields">
+            <input
+              aria-label={t("settingsPage.webhookName")}
+              placeholder={t("settingsPage.webhookName")}
+              value={webhookForm.name}
+              onChange={(event) => setWebhookForm({ ...webhookForm, name: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("settingsPage.webhookUrl")}
+              placeholder="https://siem.company.example/hooks"
+              value={webhookForm.url}
+              onChange={(event) => setWebhookForm({ ...webhookForm, url: event.target.value })}
+              required
+            />
+            <input
+              aria-label={t("settingsPage.webhookEvents")}
+              placeholder={t("settingsPage.webhookEvents")}
+              value={webhookForm.events}
+              onChange={(event) => setWebhookForm({ ...webhookForm, events: event.target.value })}
+            />
+          </div>
+          <button className="btn" type="submit">
+            {t("settingsPage.createWebhook")}
+          </button>
+        </form>
       </div>
     </>
   );

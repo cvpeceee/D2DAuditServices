@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Evidence;
@@ -12,6 +13,7 @@ public sealed class OperationsPortal(
     TenantDatabases databases,
     ControlPlaneDbContext control,
     EvidenceWriter evidence,
+    IStorageProvider storage,
     IActivityWriter activity,
     IAutomationDispatcher automation,
     TimeProvider time) : IOperations
@@ -292,6 +294,36 @@ public sealed class OperationsPortal(
         row.Access = access;
         row.FileName = file;
         row.UpdatedOn = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        if (!string.IsNullOrWhiteSpace(request.ContentBase64))
+        {
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(request.ContentBase64);
+            }
+            catch (FormatException)
+            {
+                return Result<TrustDocumentDto>.Fail("invalid_trust");
+            }
+
+            if (bytes.Length is 0 or > 750_000)
+            {
+                return Result<TrustDocumentDto>.Fail("invalid_trust");
+            }
+
+            var contentType = string.IsNullOrWhiteSpace(request.ContentType) ? "application/pdf" : request.ContentType.Trim();
+            if (contentType.Length > 100)
+            {
+                contentType = "application/octet-stream";
+            }
+
+            var objectKey = $"{tenant.TenantId:N}/trust/{row.Id:N}.bin";
+            await storage.PutAsync(objectKey, bytes, contentType, null, cancellationToken);
+            row.ObjectKey = objectKey;
+            row.Sha256 = EvidenceChain.ContentHash(bytes);
+            row.ContentType = contentType;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "trust.document", "ok", title, null, cancellationToken);
         return Result<TrustDocumentDto>.Ok(ToDocument(row));
@@ -314,6 +346,7 @@ public sealed class OperationsPortal(
 
         row.Status = status;
         row.DecidedAt = time.GetUtcNow();
+        row.AccessToken = status == "Approved" ? RandomNumberGenerator.GetHexString(32).ToLowerInvariant() : "";
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "trust.request", "ok", status, null, cancellationToken);
         var title = row.DocumentId is Guid documentId
@@ -346,7 +379,15 @@ public sealed class OperationsPortal(
             profile.Summary,
             profile.ContactEmail,
             frameworks,
-            documents.Select(item => new TrustDocumentDto(item.Id, item.Title, item.Summary, item.Access, item.Access == "Public" ? item.FileName : "", item.UpdatedOn)).ToArray());
+            documents.Select(item => new TrustDocumentDto(
+                item.Id,
+                item.Title,
+                item.Summary,
+                item.Access,
+                item.Access == "Public" ? item.FileName : "",
+                item.UpdatedOn,
+                !string.IsNullOrWhiteSpace(item.ObjectKey),
+                item.Access == "Public" ? item.Sha256 : "")).ToArray());
     }
 
     public async Task<Result<TrustRequestDto>> RequestTrustAccessAsync(string slug, TrustAccessRequestBody request, CancellationToken cancellationToken)
@@ -385,6 +426,7 @@ public sealed class OperationsPortal(
             title = document.Title;
         }
 
+        var now = time.GetUtcNow();
         var row = new TrustAccessRequest
         {
             Id = Guid.NewGuid(),
@@ -394,7 +436,10 @@ public sealed class OperationsPortal(
             Company = company,
             Purpose = purpose,
             Status = "Pending",
-            RequestedAt = time.GetUtcNow(),
+            RequestedAt = now,
+            NdaAccepted = request.NdaAccepted,
+            NdaAcceptedAt = request.NdaAccepted ? now : null,
+            AccessToken = "",
         };
         db.TrustRequests.Add(row);
         await db.SaveChangesAsync(cancellationToken);
@@ -703,7 +748,15 @@ public sealed class OperationsPortal(
         row.IgnoreReason,
         !row.Ignored && row.SlaDue < today);
 
-    private static TrustDocumentDto ToDocument(TrustDocument row) => new(row.Id, row.Title, row.Summary, row.Access, row.FileName, row.UpdatedOn);
+    private static TrustDocumentDto ToDocument(TrustDocument row) => new(
+        row.Id,
+        row.Title,
+        row.Summary,
+        row.Access,
+        row.FileName,
+        row.UpdatedOn,
+        !string.IsNullOrWhiteSpace(row.ObjectKey),
+        row.Sha256);
 
     private static TrustRequestDto ToRequest(TrustAccessRequest row, string title) => new(
         row.Id,
@@ -715,7 +768,10 @@ public sealed class OperationsPortal(
         row.Purpose,
         row.Status,
         row.RequestedAt,
-        row.DecidedAt);
+        row.DecidedAt,
+        row.NdaAccepted,
+        row.NdaAcceptedAt,
+        row.AccessToken);
 
     private static AutomationRuleDto ToRule(AutomationRule row) => new(row.Id, row.Name, row.Trigger, row.Action, row.Target, row.Enabled);
 

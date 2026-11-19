@@ -393,3 +393,76 @@ classDiagram
     SecurityScanFinding --> AttackPath : Credential Hop
     DataStoreAsset --> AttackPath : Crown Jewel Hop
 ```
+
+## 6. Enterprise Compliance, Trust Center v2, Grounded AI & Developer API (`D2DAudit.Domain` — M9)
+
+```mermaid
+classDiagram
+    class TrustDocument {
+        +Guid Id
+        +string Title
+        +string Access
+        +string FileName
+        +string ObjectKey
+        +string Sha256
+        +string ContentType
+    }
+    class TrustAccessRequest {
+        +Guid Id
+        +Guid? DocumentId
+        +string RequesterEmail
+        +string Status
+        +bool NdaAccepted
+        +DateTimeOffset? NdaAcceptedAt
+        +string AccessToken
+    }
+    class TrustReceiptDocument {
+        +string Slug
+        +int RetentionYears
+        +int ChainEntryCount
+        +string ChainHeadHash
+        +string CanonicalPayload
+        +string ReceiptSha256
+    }
+    class ApiKeyRecord {
+        +Guid Id
+        +string Name
+        +string Prefix
+        +string KeyHash
+        +string Scopes
+        +DateTimeOffset? RevokedAt
+    }
+    class WebhookSubscription {
+        +Guid Id
+        +string Name
+        +string Url
+        +string Events
+        +string SigningSecretHash
+        +bool Enabled
+    }
+    class IAssistantProvider {
+        <<interface>>
+        +AnswerAsync(question, facts, scopeLabel) AssistantReply
+    }
+    class IEnterprisePortal {
+        <<interface>>
+        +SimulateFrameworkAsync()
+        +AdoptFrameworkGapsAsync()
+        +CreateCustomFrameworkAsync()
+        +TrustReceiptAsync()
+        +DownloadTrustDocumentAsync()
+        +AskTrustPublicAsync()
+        +AskWorkspaceAsync()
+        +ListApiKeysAsync()
+        +CreateApiKeyAsync()
+        +ListWebhooksAsync()
+        +CreateWebhookAsync()
+    }
+
+    IAssistantProvider <|.. ConfigurableAssistantProvider
+    IEnterprisePortal <|.. EnterprisePortal
+    EnterprisePortal --> IAssistantProvider
+    EnterprisePortal --> TrustReceiptDocument : builds via TrustReceiptBuilder
+    EnterprisePortal --> ApiKeyRecord
+    EnterprisePortal --> WebhookSubscription
+```

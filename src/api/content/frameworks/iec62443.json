@@ -1,0 +1,71 @@
+{
+  "key": "iec62443",
+  "name": "IEC 62443 (OT / IoT)",
+  "version": "62443-3-3",
+  "description": "Industrial Automation and Control Systems (IACS / OT / IoT) foundational security requirements across zones, identities, integrity, and continuity. Short original summaries.",
+  "requirements": [
+    {
+      "code": "FR-1-2",
+      "title": "Identification, authentication, and use control",
+      "summary": "Strong authentication and role-based authorization for human operators and OT devices.",
+      "children": [
+        {
+          "code": "IEC-FR1",
+          "title": "Operator and device authentication",
+          "summary": "Every human user and connected field device authenticates with MFA or signed credentials.",
+          "children": []
+        },
+        {
+          "code": "IEC-FR2",
+          "title": "Least-privilege OT use control",
+          "summary": "Access to control-plane and plant networks is restricted and reviewed regularly.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "FR-3-4",
+      "title": "System integrity and data confidentiality",
+      "summary": "Signed firmware/changes, vulnerability remediation, and encrypted telemetry.",
+      "children": [
+        {
+          "code": "IEC-FR3",
+          "title": "System and change integrity",
+          "summary": "Software and firmware releases require peer review and vulnerability checks before deploy.",
+          "children": []
+        },
+        {
+          "code": "IEC-FR4",
+          "title": "Telemetry and stored data confidentiality",
+          "summary": "Sensitive operational and customer data is encrypted at rest and in transit.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "FR-5-7",
+      "title": "Network segmentation, response, and availability",
+      "summary": "Zone/conduit boundary protection, audit trails, incident response, and failover.",
+      "children": [
+        {
+          "code": "IEC-FR5",
+          "title": "Restricted data flow and segmentation",
+          "summary": "Firewalls separate corporate, cloud, and industrial zones with no open admin ports.",
+          "children": []
+        },
+        {
+          "code": "IEC-FR6",
+          "title": "Timely response to security events",
+          "summary": "Continuous audit logs and incident SLA processes detect and contain anomalies.",
+          "children": []
+        },
+        {
+          "code": "IEC-FR7",
+          "title": "Resource availability and recovery",
+          "summary": "Tested backup and continuity procedures restore operations within recovery targets.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

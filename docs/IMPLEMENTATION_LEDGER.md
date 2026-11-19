@@ -10,8 +10,9 @@ Living architectural and engineering ledger tracking completed milestones, secur
 | --- | --- | --- | --- |
 | **M1–M6** | Foundation, Integrations/Evidence, Policies/Auditor Portal, Risk/People/SoA/Vendors/Access Reviews, Employee Portal/Training/Assets/Tasks, Computers/Vulns/Trust/Automation | Completed (baseline `ebf29c4`) | 25 unit tests, 5 arch tests, 14 web tests |
 | **M7** | Security Hardening, Production Correctness, Real Automation Adapters & Core UX Polish | **Completed** (`0e51dc5`) | 53 unit tests, 7 arch/schema tests, 15 web tests, ESLint, Prettier, Release & Demo builds |
-| **M8** | VRINDA Parity+ & Blast-Radius Differentiator: Public Exposure & Open Ports + 1-Click IaC Remediation, Container CVE / OSS License / Baked-in Secret & SARIF 2.1.0 Scanner, DSPM PII Discovery, FinOps × Compliance Correlation & Unified Attack Path Graph | **Completed** | 65 unit tests, 9 arch/schema/cloud tests, 18 web tests, ESLint, Prettier, Release & Demo builds |
-| **M9** | Vanta + Drata Parity+ & Differentiators: PCI DSS 4.0 / NIST CSF 2.0 / DORA / ISO 42001 / NIST AI RMF / EU AI Act / IEC 62443 + Custom Framework Upload & What-If Simulator, Trust Center v2 (File Upload/Download, Clickwrap NDA, Buyer-Verifiable Cryptographic Trust Receipts & Trust AI Chat), Grounded AI Compliance Assistant Side Panel & Public API Keys / Webhooks | Planned (Next) | Pending |
+| **M8** | VRINDA Parity+ & Blast-Radius Differentiator: Public Exposure & Open Ports + 1-Click IaC Remediation, Container CVE / OSS License / Baked-in Secret & SARIF 2.1.0 Scanner, DSPM PII Discovery, FinOps × Compliance Correlation & Unified Attack Path Graph | **Completed** (`e80b131`) | 65 unit tests, 9 arch/schema/cloud tests, 18 web tests, ESLint, Prettier, Release & Demo builds |
+| **CI/CD** | Open-Source Jenkins Cutover (Disabled GitHub Actions auto-triggers, added `Jenkinsfile` + Docker/JCasC stack under `ci/jenkins/`) | **Completed** (`5042dc5`) | Zero GitHub Actions triggers on push/PR |
+| **M9** | Vanta + Drata Parity+ & Differentiators: 13 Frameworks (PCI DSS 4.0, NIST CSF 2.0, EU DORA, ISO 42001, NIST AI RMF, EU AI Act, IEC 62443) + Custom Framework Upload & What-If Simulator, Trust Center v2 (Real File Upload/Download, Clickwrap NDA, Buyer-Verifiable Cryptographic Trust Receipts & Trust AI Q&A), Grounded AI Assistant Side Panel & Developer API Keys / Webhooks | **Completed** | 70 unit tests, 10 arch/schema/cloud/framework tests, 21 web tests, ESLint, Prettier, Release & Demo builds |
 
 ---
 
@@ -63,3 +64,31 @@ Living architectural and engineering ledger tracking completed milestones, secur
   - Added `/exposure` (`ExposurePage.tsx`), `/dspm` (`DspmPage.tsx`), `/finops` (`FinOpsPage.tsx`), `/attack-paths` (`AttackPathsPage.tsx`), upgraded `/vulnerabilities` (`VulnerabilitiesPage.tsx`) with Containers & Licenses, Baked-in Secrets (file:line), and SARIF 2.1.0 import tabs, added Cloud Security sidebar group + icons + command palette actions, and built full Harborline browser demo parity in `src/web/src/demo/security.ts`.
 - **Tests & Docs**:
   - Added `CloudSecurityTests.cs` (12 unit test cases) and `src/web/src/demo/security.test.ts` (3 Vitest integration suites), and updated `ARCHITECTURE.md`, `CLASS_DIAGRAMS.md`, `FEATURES.md`, `ROADMAP.md`, and `IMPLEMENTATION_LEDGER.md`.
+
+---
+
+## CI/CD Cutover — Self-Hosted Open-Source Jenkins (`5042dc5`)
+
+### Architectural Decisions
+1. **Zero GitHub Actions Minute Consumption:** Converted `.github/workflows/ci.yml` and `.github/workflows/pages.yml` to `workflow_dispatch:` (manual fallback only) so pushes and pull requests never consume GitHub Actions hours.
+2. **Turnkey Reproducible Jenkins Stack:** Added root `Jenkinsfile` (parallel `.NET 10` build/test/NuGet vulnerability check + `Node 22` lint/format/test/build/demo/npm audit + `Gitleaks` secret scan + review-site tarball archive + optional direct `gh-pages` branch publish) backed by `ci/jenkins/Dockerfile`, `docker-compose.jenkins.yml`, `plugins.txt`, `casc.yaml` (JCasC auto-seeding the multibranch pipeline), and `ci/jenkins/README.md`.
+
+---
+
+## Milestone 9 (M9) — Enterprise Compliance Super-App (Vanta + Drata Parity+ & Differentiators)
+
+### Architectural Decisions
+1. **13 Embedded Frameworks + Custom Upload + What-If Gap Simulator:** Added 7 original-wording framework JSON catalogs (`pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`), cross-mapped existing Harborline controls without regressing readiness metrics, added `POST /api/v1/frameworks/custom` CSV upload, and built `FrameworkSimulator` with 1-click gap control adoption (`POST /api/v1/frameworks/{key}/simulator/adopt`).
+2. **Buyer-Verifiable Cryptographic Trust Receipts:** `TrustReceiptBuilder` constructs a deterministic canonical payload anchoring live framework pass counts, retention years, and the workspace's `EvidenceChain` SHA-256 head hash, with a client-side Web Crypto SHA-256 verifier right on `/trust/:slug`.
+3. **Trust Center v2 Real File Storage & Clickwrap NDA Tokens:** Extended `TrustDocument` (`ObjectKey`, `Sha256`, `ContentType`) and `TrustAccessRequest` (`NdaAccepted`, `NdaAcceptedAt`, `AccessToken`) in migration `20261119200000_SuperAppEnterprise` (verified zero pending model changes via `SchemaParityTests`). NDA downloads enforce constant-time token comparison (`CryptographicOperations.FixedTimeEquals`).
+4. **Honest Role-Scoped Grounded AI Assistant (`IAssistantProvider`):** `ConfigurableAssistantProvider` invokes an optional OpenAI-compatible model endpoint when configured (`AI:Endpoint` + `AI:ApiKey` + `AI:Model`) and transparently falls back to deterministic `GroundedAssistant` retrieval (`mode: "grounded-retrieval"`). Auditor queries stay strictly isolated to granted frameworks; public Trust Center Q&A reads only published public posture.
+5. **Developer Console (API Keys & Signed Webhooks):** Added `api_keys` (SHA-256 hashed at rest, plaintext shown once) and `webhooks` (`SafeUrl`-validated URLs, hashed signing secret) under `/api/v1/developer/*` restricted to `TenantAdmin`.
+
+### Changes Shipped
+- **Backend (`src/api`)**:
+  - Added 7 framework JSON catalogs + updated `example-controls.json`.
+  - Added `D2DAudit.Domain/EnterpriseFeatures.cs`, `D2DAudit.Application/Enterprise.cs`, `D2DAudit.Infrastructure/Enterprise/AssistantProvider.cs` + `EnterprisePortal.cs`, upgraded `OperationsPortal.cs`, added `D2DAudit.Api/Endpoints/EnterpriseEndpoints.cs`, and created EF Core migration `20261119200000_SuperAppEnterprise`.
+- **Frontend (`src/web`)**:
+  - Imported all 13 frameworks in `src/web/src/demo/catalog.ts`, added `src/web/src/demo/enterprise.ts`, upgraded `FrameworksPage.tsx`, `TrustPublicPage.tsx`, `TrustAdminPage.tsx`, `AppShell.tsx` (live Assistant side panel), `SettingsPage.tsx` (Developer API Keys & Webhooks), and `en.json`.
+- **Tests & Docs**:
+  - Added `EnterpriseSuperAppTests.cs` (5 unit tests) and `src/web/src/demo/enterprise.test.ts` (3 Vitest integration suites), and updated `ARCHITECTURE.md`, `CLASS_DIAGRAMS.md`, `FEATURES.md`, `ROADMAP.md`, `IMPLEMENTATION_LEDGER.md`, and `docs/index.html`.

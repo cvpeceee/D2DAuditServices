@@ -1,0 +1,90 @@
+{
+  "key": "iso42001",
+  "name": "ISO/IEC 42001",
+  "version": "2023",
+  "description": "Artificial Intelligence Management System (AIMS) controls covering AI governance, impact assessments, data lineage, model lifecycle, and human oversight. Short original summaries.",
+  "requirements": [
+    {
+      "code": "A.2-A.3",
+      "title": "AI policy and internal organization",
+      "summary": "Approved AI governance policies and accountable owners across model lifecycles.",
+      "children": [
+        {
+          "code": "AIMS-2.2",
+          "title": "AI acceptable use and governance policy",
+          "summary": "Written policy defines permitted AI use cases, risk tolerances, and review gates.",
+          "children": []
+        },
+        {
+          "code": "AIMS-3.2",
+          "title": "AI roles and oversight responsibilities",
+          "summary": "Named owners oversee AI model approvals, monitoring, and escalation.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.4-A.5",
+      "title": "AI resources and impact assessment",
+      "summary": "Inventory of AI systems, datasets, and documented societal and privacy impact reviews.",
+      "children": [
+        {
+          "code": "AIMS-4.2",
+          "title": "Inventory of AI systems and models",
+          "summary": "Production models, prompts, and third-party AI APIs are cataloged with owners.",
+          "children": []
+        },
+        {
+          "code": "AIMS-5.2",
+          "title": "AI system impact assessment",
+          "summary": "High-impact AI features undergo documented safety, fairness, and privacy assessments.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.6-A.7",
+      "title": "AI lifecycle and training data governance",
+      "summary": "Controlled releases, model testing, data provenance, and privacy controls.",
+      "children": [
+        {
+          "code": "AIMS-6.2",
+          "title": "Controlled AI development and deployment",
+          "summary": "Model updates and prompt changes pass documented peer review and testing before release.",
+          "children": []
+        },
+        {
+          "code": "AIMS-7.2",
+          "title": "Data quality and privacy for AI",
+          "summary": "Datasets exclude unauthorized PII and enforce retention and encryption rules.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "code": "A.8-A.10",
+      "title": "Transparency, human oversight, and third-party AI",
+      "summary": "Clear user disclosure, human-in-the-loop review, and foundation-model vendor due diligence.",
+      "children": [
+        {
+          "code": "AIMS-8.2",
+          "title": "Transparency and citation logging",
+          "summary": "AI-assisted outputs identify their basis and log user-visible citations.",
+          "children": []
+        },
+        {
+          "code": "AIMS-9.3",
+          "title": "Human oversight and override controls",
+          "summary": "Qualified staff review and approve AI-generated compliance or customer outputs.",
+          "children": []
+        },
+        {
+          "code": "AIMS-10.3",
+          "title": "Third-party AI supplier review",
+          "summary": "External LLM and AI vendors undergo security, training-opt-out, and data-residency reviews.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -44,6 +44,10 @@ export type DemoTrustDocument = {
   access: string;
   fileName: string;
   updatedOn: string;
+  hasFile?: boolean;
+  sha256?: string;
+  contentBase64?: string;
+  contentType?: string;
 };
 
 export type DemoTrustRequest = {
@@ -57,6 +61,9 @@ export type DemoTrustRequest = {
   status: string;
   requestedAt: string;
   decidedAt: string | null;
+  ndaAccepted?: boolean;
+  ndaAcceptedAt?: string | null;
+  accessToken?: string;
 };
 
 export type M6State = {
@@ -410,6 +417,9 @@ export async function buildM6(controls: DemoControl[], evidence: DemoEvidence[],
           status: "Approved",
           requestedAt: shift(now, -18).toISOString(),
           decidedAt: shift(now, -16).toISOString(),
+          ndaAccepted: true,
+          ndaAcceptedAt: shift(now, -18).toISOString(),
+          accessToken: "demo-approved-nda-token-harborline",
         },
       ],
     },
@@ -735,6 +745,8 @@ export function publicTrust(
       ? trust.documents.find((item) => item.id === documentId)
       : undefined;
     if (documentId && !document) return fail(404, "not_found");
+    const ndaAccepted = Boolean(body.ndaAccepted);
+    const nowIso = new Date().toISOString();
     const row: DemoTrustRequest = {
       id: crypto.randomUUID(),
       documentId,
@@ -744,8 +756,11 @@ export function publicTrust(
       company: org,
       purpose,
       status: "Pending",
-      requestedAt: new Date().toISOString(),
+      requestedAt: nowIso,
       decidedAt: null,
+      ndaAccepted,
+      ndaAcceptedAt: ndaAccepted ? nowIso : null,
+      accessToken: "",
     };
     trust.requests.unshift(row);
     return json(row);
@@ -949,7 +964,16 @@ function saveDocument(data: DemoWorld, actor: Actor, body: Record<string, unknow
     row = document(title, summary, access, fileName, 0);
     documents.unshift(row);
   }
-  Object.assign(row, { title, summary, access, fileName, updatedOn: day(new Date()) });
+  const contentBase64 = typeof body.contentBase64 === "string" ? body.contentBase64 : undefined;
+  const contentType = typeof body.contentType === "string" ? body.contentType : "application/pdf";
+  Object.assign(row, {
+    title,
+    summary,
+    access,
+    fileName,
+    updatedOn: day(new Date()),
+    ...(contentBase64 ? { hasFile: true, contentBase64, contentType } : {}),
+  });
   return json(row);
 }
 
@@ -960,7 +984,12 @@ function decide(data: DemoWorld, actor: Actor, id: string, body: Record<string, 
   if (!row || !status) return fail(400, "invalid_trust");
   row.status = status;
   row.decidedAt = new Date().toISOString();
+  row.accessToken = status === "Approved" ? crypto.randomUUID().replaceAll("-", "") : "";
   return json(row);
+}
+
+export function trustStateOf(data: DemoWorld) {
+  return stateOf(data).trust;
 }
 
 function rules(data: DemoWorld, actor: Actor) {

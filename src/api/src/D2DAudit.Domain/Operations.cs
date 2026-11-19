@@ -116,6 +116,12 @@ public sealed class TrustDocument
     public string FileName { get; set; } = "";
 
     public DateOnly UpdatedOn { get; set; }
+
+    public string ObjectKey { get; set; } = "";
+
+    public string Sha256 { get; set; } = "";
+
+    public string ContentType { get; set; } = "application/pdf";
 }
 
 public sealed class TrustAccessRequest
@@ -137,6 +143,12 @@ public sealed class TrustAccessRequest
     public DateTimeOffset RequestedAt { get; set; }
 
     public DateTimeOffset? DecidedAt { get; set; }
+
+    public bool NdaAccepted { get; set; }
+
+    public DateTimeOffset? NdaAcceptedAt { get; set; }
+
+    public string AccessToken { get; set; } = "";
 }
 
 public sealed class AutomationRule

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { ApiError, api } from "../../shared/api/client";
-import { formatDate } from "../../shared/ui/ui";
+import { ApiError, api, download } from "../../shared/api/client";
+import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 
 type Document = {
   id: string;
@@ -11,6 +11,8 @@ type Document = {
   access: string;
   fileName: string;
   updatedOn: string;
+  hasFile?: boolean;
+  sha256?: string;
 };
 
 type Page = {
@@ -23,24 +25,65 @@ type Page = {
   documents: Document[];
 };
 
+type TrustReceipt = {
+  slug: string;
+  tenantName: string;
+  region: string;
+  retentionYears: number;
+  issuedAtUtc: string;
+  frameworks: { key: string; name: string; passing: number; total: number; percent: number }[];
+  chainEntryCount: number;
+  latestChainSequence: number;
+  chainHeadHash: string;
+  chainStatus: string;
+  canonicalPayload: string;
+  receiptSha256: string;
+};
+
+type TrustReply = {
+  answer: string;
+  mode: string;
+  citations: { kind: string; code: string; title: string; href: string }[];
+};
+
+async function sha256Hex(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export function TrustPublicPage() {
   const { t } = useTranslation();
   const { slug = "" } = useParams();
   const [page, setPage] = useState<Page | null>(null);
+  const [receipt, setReceipt] = useState<TrustReceipt | null>(null);
+  const [verified, setVerified] = useState<"idle" | "valid" | "invalid">("idle");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [ndaToken, setNdaToken] = useState("");
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [question, setQuestion] = useState("");
+  const [reply, setReply] = useState<TrustReply | null>(null);
+  const [asking, setAsking] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
     company: "",
     purpose: "",
     documentId: "",
+    ndaAccepted: false,
   });
 
   useEffect(() => {
     void api<Page>(`/api/v1/public/trust/${encodeURIComponent(slug)}`)
       .then(setPage)
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
+    void api<TrustReceipt>(`/api/v1/public/trust/${encodeURIComponent(slug)}/receipt`)
+      .then((value) => {
+        setReceipt(value);
+        setVerified("idle");
+      })
+      .catch(() => setReceipt(null));
   }, [slug]);
 
   async function requestAccess(event: React.FormEvent) {
@@ -53,9 +96,62 @@ export function TrustPublicPage() {
         company: form.company,
         purpose: form.purpose,
         documentId: form.documentId || null,
+        ndaAccepted: form.ndaAccepted,
       },
     });
     setSent(true);
+  }
+
+  async function verifyReceiptLocally() {
+    if (!receipt) return;
+    const computed = await sha256Hex(receipt.canonicalPayload);
+    setVerified(computed === receipt.receiptSha256 ? "valid" : "invalid");
+  }
+
+  function downloadReceiptJson() {
+    if (!receipt) return;
+    const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${receipt.slug}-trust-receipt.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function downloadDoc(doc: Document) {
+    setDownloadError(null);
+    const tokenQuery =
+      doc.access === "Nda" && ndaToken.trim()
+        ? `?token=${encodeURIComponent(ndaToken.trim())}`
+        : "";
+    try {
+      await download(
+        `/api/v1/public/trust/${encodeURIComponent(slug)}/documents/${doc.id}/download${tokenQuery}`,
+        doc.fileName || `${doc.title.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+      );
+    } catch (caught) {
+      setDownloadError(
+        caught instanceof ApiError && caught.code === "nda_required"
+          ? t("trustPublic.ndaRequiredError")
+          : t("errors.load"),
+      );
+    }
+  }
+
+  async function askTrustAi(event: React.FormEvent) {
+    event.preventDefault();
+    if (!question.trim()) return;
+    setAsking(true);
+    try {
+      const answer = await api<TrustReply>(`/api/v1/public/trust/${encodeURIComponent(slug)}/ask`, {
+        method: "POST",
+        body: { question },
+      });
+      setReply(answer);
+    } finally {
+      setAsking(false);
+    }
   }
 
   return (
@@ -80,6 +176,60 @@ export function TrustPublicPage() {
             </div>
           </div>
           <p>{page.summary}</p>
+
+          {receipt && (
+            <section className="card">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
+                <div>
+                  <h3>{t("trustPublic.receiptTitle")}</h3>
+                  <div className="m">{t("trustPublic.receiptSub")}</div>
+                </div>
+                <Pill status={receipt.chainStatus === "Verified" ? "pass" : "warn"}>
+                  {t("trustPublic.chainEntries", {
+                    count: receipt.chainEntryCount,
+                    years: receipt.retentionYears,
+                  })}
+                </Pill>
+              </div>
+              <div style={{ marginTop: 10, fontSize: 13 }}>
+                <div>
+                  <b>{t("trustPublic.issuedAt")}:</b> {formatWhen(receipt.issuedAtUtc)} ·{" "}
+                  <b>Region:</b> {receipt.region}
+                </div>
+                <div style={{ wordBreak: "break-all", marginTop: 4 }}>
+                  <b>{t("trustPublic.chainHead")}:</b> <code>{receipt.chainHeadHash || "—"}</code>
+                </div>
+                <div style={{ wordBreak: "break-all", marginTop: 4 }}>
+                  <b>{t("trustPublic.receiptSha256")}:</b> <code>{receipt.receiptSha256}</code>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => void verifyReceiptLocally()}
+                >
+                  {t("trustPublic.verifyLocally")}
+                </button>
+                <button type="button" className="btn" onClick={downloadReceiptJson}>
+                  {t("trustPublic.downloadReceipt")}
+                </button>
+                {verified === "valid" && <Pill status="pass">{t("trustPublic.receiptValid")}</Pill>}
+                {verified === "invalid" && (
+                  <Pill status="fail">{t("trustPublic.receiptInvalid")}</Pill>
+                )}
+              </div>
+            </section>
+          )}
+
           <div className="card">
             <h3>{t("trustPublic.frameworks")}</h3>
             <ul>
@@ -91,10 +241,26 @@ export function TrustPublicPage() {
               ))}
             </ul>
             <h3>{t("trustPublic.documents")}</h3>
+            {downloadError && (
+              <div className="error" role="alert">
+                {downloadError}
+              </div>
+            )}
+            <label className="field" style={{ maxWidth: 420 }}>
+              <span>{t("trustPublic.ndaTokenLabel")}</span>
+              <input
+                value={ndaToken}
+                onChange={(event) => setNdaToken(event.target.value)}
+                placeholder={t("trustPublic.ndaTokenPlaceholder")}
+              />
+            </label>
             <ul>
               {page.documents.map((item) => (
-                <li key={item.id}>
-                  <b>{item.title}</b> · {t(`trustPage.access.${item.access}`)}
+                <li key={item.id} style={{ marginBottom: 8 }}>
+                  <b>{item.title}</b> · {t(`trustPage.access.${item.access}`)}{" "}
+                  <button type="button" className="linkish" onClick={() => void downloadDoc(item)}>
+                    {t("trustPublic.downloadDoc")}
+                  </button>
                   <div className="id">
                     {item.summary}
                     {item.fileName ? ` · ${item.fileName}` : ""} · {formatDate(item.updatedOn)}
@@ -103,6 +269,36 @@ export function TrustPublicPage() {
               ))}
             </ul>
           </div>
+
+          <section className="card">
+            <h3>{t("trustPublic.aiTitle")}</h3>
+            <p className="m">{t("trustPublic.aiSub")}</p>
+            <form
+              style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}
+              onSubmit={(event) => void askTrustAi(event)}
+            >
+              <input
+                style={{ flex: 1, minWidth: 240 }}
+                aria-label={t("trustPublic.aiPlaceholder")}
+                placeholder={t("trustPublic.aiPlaceholder")}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                required
+              />
+              <button className="btn primary" type="submit" disabled={asking}>
+                {t("trustPublic.aiAsk")}
+              </button>
+            </form>
+            {reply && (
+              <div className="notice" style={{ marginTop: 12, whiteSpace: "pre-line" }}>
+                <div>{reply.answer}</div>
+                <div className="id" style={{ marginTop: 6 }}>
+                  {t("trustPublic.aiMode", { mode: reply.mode })}
+                </div>
+              </div>
+            )}
+          </section>
+
           <form className="card" onSubmit={(event) => void requestAccess(event)}>
             <h3>{t("trustPublic.request")}</h3>
             {sent ? (
@@ -155,6 +351,15 @@ export function TrustPublicPage() {
                     onChange={(event) => setForm({ ...form, purpose: event.target.value })}
                     required
                   />
+                </label>
+                <label className="check-row" style={{ marginBottom: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={form.ndaAccepted}
+                    onChange={(event) => setForm({ ...form, ndaAccepted: event.target.checked })}
+                    required
+                  />
+                  {t("trustPublic.ndaClickwrap")}
                 </label>
                 <button className="btn primary" type="submit">
                   {t("trustPublic.send")}

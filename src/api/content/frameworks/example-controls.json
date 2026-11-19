@@ -23,6 +23,31 @@
           "framework": "iso27018",
           "requirement": "A.10.2",
           "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-12.1",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "GV.PO-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-6",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso42001",
+          "requirement": "AIMS-2.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-ai-rmf",
+          "requirement": "AIRMF-G1",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -51,6 +76,16 @@
         {
           "framework": "soc2",
           "requirement": "CC1.3",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "GV.RR-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso42001",
+          "requirement": "AIMS-3.2",
           "coverage": "partial"
         }
       ],
@@ -149,6 +184,26 @@
           "framework": "iso27001",
           "requirement": "A.5.7",
           "coverage": "partial"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "ID.RA-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-8",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-ai-rmf",
+          "requirement": "AIRMF-M3",
+          "coverage": "partial"
+        },
+        {
+          "framework": "eu-ai-act",
+          "requirement": "AIA-9",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -223,6 +278,11 @@
           "framework": "hipaa",
           "requirement": "164.308.a.5",
           "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "PR.AT-01",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -266,6 +326,16 @@
         {
           "framework": "hipaa",
           "requirement": "164.308.a.3",
+          "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-7.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR2",
           "coverage": "partial"
         }
       ],
@@ -355,6 +425,31 @@
           "framework": "gdpr",
           "requirement": "Art.32",
           "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-8.4",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "PR.AA-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-9",
+          "coverage": "partial"
+        },
+        {
+          "framework": "eu-ai-act",
+          "requirement": "AIA-15",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR1",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -468,6 +563,26 @@
           "framework": "gdpr",
           "requirement": "Art.32",
           "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-3.5",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "PR.DS-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso42001",
+          "requirement": "AIMS-7.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR4",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -501,6 +616,11 @@
         {
           "framework": "soc2",
           "requirement": "CC6.7",
+          "coverage": "full"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-4.2",
           "coverage": "full"
         }
       ],
@@ -540,6 +660,26 @@
         {
           "framework": "gdpr",
           "requirement": "Art.25",
+          "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-6.5",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "PR.PS-01",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iso42001",
+          "requirement": "AIMS-6.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR3",
           "coverage": "partial"
         }
       ],
@@ -614,6 +754,11 @@
         {
           "framework": "hipaa",
           "requirement": "164.310.d",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "ID.AM-01",
           "coverage": "partial"
         }
       ],
@@ -693,6 +838,21 @@
           "framework": "hipaa",
           "requirement": "164.308.a.1",
           "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-6.3",
+          "coverage": "full"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-11.3",
+          "coverage": "partial"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-24",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -736,6 +896,26 @@
         {
           "framework": "hipaa",
           "requirement": "164.308.a.7",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "RC.RP-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-11",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-25",
+          "coverage": "full"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR7",
           "coverage": "full"
         }
       ],
@@ -826,6 +1006,31 @@
           "framework": "gdpr",
           "requirement": "Art.33",
           "coverage": "partial"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "RS.MA-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-17",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-19",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-ai-rmf",
+          "requirement": "AIRMF-MG4",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR6",
+          "coverage": "full"
         }
       ],
       "tests": [
@@ -876,6 +1081,21 @@
           "framework": "hipaa",
           "requirement": "164.312.b",
           "coverage": "full"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-10.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "DE.CM-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "eu-ai-act",
+          "requirement": "AIA-12",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -949,6 +1169,26 @@
           "framework": "gdpr",
           "requirement": "Art.28",
           "coverage": "full"
+        },
+        {
+          "framework": "nist-csf",
+          "requirement": "GV.SC-01",
+          "coverage": "full"
+        },
+        {
+          "framework": "dora",
+          "requirement": "DORA-28",
+          "coverage": "full"
+        },
+        {
+          "framework": "iso42001",
+          "requirement": "AIMS-10.3",
+          "coverage": "partial"
+        },
+        {
+          "framework": "nist-ai-rmf",
+          "requirement": "AIRMF-G6",
+          "coverage": "partial"
         }
       ],
       "tests": [
@@ -997,6 +1237,11 @@
         {
           "framework": "gdpr",
           "requirement": "Art.17",
+          "coverage": "partial"
+        },
+        {
+          "framework": "eu-ai-act",
+          "requirement": "AIA-10",
           "coverage": "partial"
         }
       ],
@@ -1071,6 +1316,21 @@
           "framework": "hipaa",
           "requirement": "164.312.a",
           "coverage": "partial"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-1.2",
+          "coverage": "full"
+        },
+        {
+          "framework": "pci-dss",
+          "requirement": "PCI-2.2",
+          "coverage": "partial"
+        },
+        {
+          "framework": "iec62443",
+          "requirement": "IEC-FR5",
+          "coverage": "full"
         }
       ],
       "tests": [

@@ -13,6 +13,8 @@ type Document = {
   access: string;
   fileName: string;
   updatedOn: string;
+  hasFile?: boolean;
+  sha256?: string;
 };
 
 type RequestRow = {
@@ -24,6 +26,9 @@ type RequestRow = {
   purpose: string;
   status: string;
   requestedAt: string;
+  ndaAccepted?: boolean;
+  ndaAcceptedAt?: string | null;
+  accessToken?: string;
 };
 
 type Page = {
@@ -41,7 +46,14 @@ export function TrustAdminPage() {
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [page, setPage] = useState<Page | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [doc, setDoc] = useState({ title: "", summary: "", access: "Public", fileName: "" });
+  const [doc, setDoc] = useState({
+    title: "",
+    summary: "",
+    access: "Public",
+    fileName: "",
+    contentBase64: "",
+    contentType: "application/pdf",
+  });
 
   function load() {
     if (!tenantId) return;
@@ -62,11 +74,46 @@ export function TrustAdminPage() {
     setPage(next);
   }
 
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      setDoc((current) => ({
+        ...current,
+        fileName: current.fileName || file.name,
+        contentBase64: base64,
+        contentType: file.type || "application/pdf",
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function addDocument(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/trust/documents", { method: "POST", tenantId, body: doc });
-    setDoc({ title: "", summary: "", access: "Public", fileName: "" });
+    await api("/api/v1/trust/documents", {
+      method: "POST",
+      tenantId,
+      body: {
+        title: doc.title,
+        summary: doc.summary,
+        access: doc.access,
+        fileName: doc.fileName,
+        contentBase64: doc.contentBase64 || null,
+        contentType: doc.contentType || null,
+      },
+    });
+    setDoc({
+      title: "",
+      summary: "",
+      access: "Public",
+      fileName: "",
+      contentBase64: "",
+      contentType: "application/pdf",
+    });
     load();
   }
 
@@ -139,6 +186,7 @@ export function TrustAdminPage() {
             {page.documents.map((item) => (
               <li key={item.id}>
                 <b>{item.title}</b> · {t(`trustPage.access.${item.access}`)} · {item.fileName}
+                {item.hasFile && <Pill status="pass">{t("trustPage.fileUploaded")}</Pill>}
                 <div className="id">
                   {item.summary} · {formatDate(item.updatedOn)}
                 </div>
@@ -153,6 +201,7 @@ export function TrustAdminPage() {
                 {item.documentTitle || t("trustPage.allDocuments")}
                 <div className="id">
                   {item.purpose} · {formatWhen(item.requestedAt)}
+                  {item.ndaAccepted && ` · ${t("trustPage.ndaSigned")}`}
                 </div>
                 <Pill
                   status={
@@ -161,6 +210,11 @@ export function TrustAdminPage() {
                 >
                   {t(`trustPage.statuses.${item.status}`)}
                 </Pill>
+                {item.status === "Approved" && item.accessToken && (
+                  <div className="id" style={{ marginTop: 4 }}>
+                    {t("trustPage.accessToken")}: <code>{item.accessToken}</code>
+                  </div>
+                )}
                 {workspace?.canWrite && item.status === "Pending" && (
                   <div className="act">
                     <button
@@ -218,6 +272,10 @@ export function TrustAdminPage() {
               onChange={(event) => setDoc({ ...doc, summary: event.target.value })}
               required
             />
+          </label>
+          <label className="field">
+            <span>{t("trustPage.attachFile")}</span>
+            <input type="file" onChange={handleFileChange} />
           </label>
           <button className="btn" type="submit">
             {t("trustPage.addDocument")}

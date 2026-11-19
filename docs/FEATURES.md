@@ -18,12 +18,12 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Done | https://github.com/cvpeceee/D2DAuditServices/pull/20 |
 | 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
-| 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, FedRAMP Moderate, HITRUST, CMMC, and custom framework upload | Not started | |
-| 12 | P1 | Public REST API with API keys, OpenAPI, and webhooks | Not started | |
+| 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, NIST AI RMF, EU AI Act, IEC 62443, custom framework upload & What-If Gap Simulator | Done | M9 |
+| 12 | P1 | Public REST API keys, OpenAPI (`/openapi/v1.json`), and outbound webhooks | Done | M9 |
 | 13 | P1 | Checkr background checks and KnowBe4 training | Not started | |
 | 14 | P2 | Multi-entity workspaces inside one customer | Not started | |
-| 15 | P2 | Trust Center badges, browser extension screenshots, evidence comments, frozen samples, common-control map | Not started | |
-| 16 | P2 | AI assistant over product docs and tenant data | Not started | |
+| 15 | P2 | Trust Center v2 (real file upload/download, clickwrap NDA, buyer-verifiable Cryptographic Trust Receipts, Trust Center AI Q&A) | Done | M9 |
+| 16 | P2 | Grounded AI assistant over product docs and role-scoped tenant data (`IAssistantProvider` + live side panel) | Done | M9 |
 | 17 | P2 | Terraform for ECS Fargate, RDS, and S3 Object Lock, with an EU region option | Not started | |
 | 18 | P3 | RoPA and DPIA, AI governance registry, phishing simulations, attack surface monitoring, auditor network | Not started | |
 
