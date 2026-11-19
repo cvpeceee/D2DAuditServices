@@ -9,7 +9,7 @@ public static class IncidentEndpoints
     {
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
         group.MapGet("/incidents", (IIncidents portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).Produces<IReadOnlyList<IncidentItem>>();
-        group.MapPost("/incidents", Report).Produces<IncidentItem>();
+        group.MapPost("/incidents", Report).RequireAuthorization("WorkspaceMember").Produces<IncidentItem>();
         group.MapPost("/incidents/{id:guid}", Update).RequireAuthorization("TenantWrite").Produces<IncidentItem>();
         return app;
     }

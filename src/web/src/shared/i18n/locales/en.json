@@ -327,6 +327,7 @@
       "invalid_state": "The authorization response did not match this connection.",
       "oauth_exchange_failed": "The authorization code was not accepted.",
       "invalid_installation": "The installation id should be digits.",
+      "already_claimed": "That external account is already linked to another workspace.",
       "forbidden": "Example fixtures are only for example workspaces.",
       "unknown_provider": "That provider is not available."
     }
@@ -366,6 +367,9 @@
     "controlCode": "Control code",
     "file": "File",
     "titleLabel": "Title",
+    "preview": "Preview",
+    "previewTitle": "Evidence preview — {{title}}",
+    "binaryNotice": "Binary or Parquet evidence artifact — use Download evidence to inspect locally.",
     "download": "Download evidence",
     "checked": "{{count}} links checked",
     "verified": "SHA-256 verified",
@@ -823,7 +827,7 @@
     "grants": "Auditor grants",
     "saveGrant": "Save grant",
     "automation": "Automation",
-    "automationHelp": "When a trigger happens, the matching action runs. Jira, Slack, Teams, and email use a fake sender in this workspace and record the delivery here.",
+    "automationHelp": "When a trigger happens, matching actions dispatch via configured Jira, Linear, Slack, Teams, SMTP/Resend, and signed webhooks (falling back to local delivery records in Development/demo mode).",
     "ruleName": "Rule name",
     "trigger": "Trigger",
     "action": "Action",
@@ -838,6 +842,7 @@
     "keyName": "Key label",
     "keyScopes": "Scopes (comma-separated)",
     "createKey": "Create API key",
+    "lastUsed": "Last used {{when}}",
     "revoke": "Revoke",
     "revoked": "Revoked",
     "webhooks": "Outbound webhooks",
@@ -845,6 +850,8 @@
     "webhookUrl": "Endpoint URL (https://)",
     "webhookEvents": "Events",
     "createWebhook": "Add webhook",
+    "testWebhook": "Send test",
+    "urlNotAllowed": "Webhook URL must be a public http(s) endpoint; localhost and private IP ranges are blocked.",
     "remove": "Delete",
     "triggers": {
       "TestFailed": "Test failed",

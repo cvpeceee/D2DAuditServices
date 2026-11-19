@@ -7,7 +7,7 @@ public static class CloudSecurityEndpoints
 {
     public static IEndpointRouteBuilder MapCloudSecurityEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/security").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1/security").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/exposure", (ICloudSecurity security, CancellationToken cancellationToken) => security.ExposureBoardAsync(cancellationToken))
             .Produces<ExposureBoardDto>();
         group.MapPost("/exposure/scan", ScanExposure)

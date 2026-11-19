@@ -4,6 +4,7 @@ import { useOutletContext } from "react-router-dom";
 import {
   ApiError,
   api,
+  download as downloadFile,
   type AuditPortalPage,
   type Job,
   type Workspace,
@@ -77,21 +78,14 @@ export function AuditorPage() {
 
   async function download() {
     if (!tenantId || !job) return;
-    const result = await fetch(`/api/v1/audits/packages/${job.id}`, {
-      credentials: "include",
-      headers: { "X-D2D-Request": "1", "X-Tenant-Id": tenantId },
-    });
-    if (!result.ok) {
-      setError("load");
-      return;
+    setError(null);
+    try {
+      await downloadFile(`/api/v1/audits/packages/${job.id}`, tenantId, {
+        fallbackFileName: "audit-package.zip",
+      });
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
     }
-    const blob = await result.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "audit-package.zip";
-    link.click();
-    URL.revokeObjectURL(url);
   }
 
   async function createRequest(event: FormEvent) {
@@ -204,15 +198,23 @@ export function AuditorPage() {
   async function savePeriod(event: FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/audits/period", {
-      method: "POST",
-      tenantId,
-      body: {
-        periodStart: periodStart || engagement?.periodStart,
-        periodEnd: periodEnd || engagement?.periodEnd,
-      },
-    });
-    load();
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/v1/audits/period", {
+        method: "POST",
+        tenantId,
+        body: {
+          periodStart: periodStart || engagement?.periodStart,
+          periodEnd: periodEnd || engagement?.periodEnd,
+        },
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const engagement = page?.engagement;

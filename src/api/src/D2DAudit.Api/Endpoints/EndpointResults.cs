@@ -16,6 +16,8 @@ internal static class EndpointResults
         {
             "not_found" => Results.NotFound(new { code = "not_found" }),
             "forbidden" => Results.Json(new { code = "forbidden" }, statusCode: StatusCodes.Status403Forbidden),
+            "nda_required" => Results.Json(new { code = "nda_required" }, statusCode: StatusCodes.Status403Forbidden),
+            "already_claimed" => Results.Json(new { code = "already_claimed" }, statusCode: StatusCodes.Status409Conflict),
             _ => Results.BadRequest(new { code = result.Error }),
         };
     }

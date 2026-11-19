@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
   type Workspace,
 } from "../../shared/api/client";
 import { Pager } from "../../shared/ui/Pager";
-import { Pill } from "../../shared/ui/ui";
+import { Pill, safeHref } from "../../shared/ui/ui";
 
 const providers = ["aws", "azure", "gcp", "google", "microsoft", "github"] as const;
 const providerNames: Record<string, string> = {
@@ -44,6 +44,7 @@ export function IntegrationsPage() {
   const [connect, setConnect] = useState<ConnectResult | null>(null);
   const [resourceQuery, setResourceQuery] = useState("");
   const [resourcePage, setResourcePage] = useState(1);
+  const handledCallbackRef = useRef<string | null>(null);
 
   const load = () => {
     if (!tenantId) return;
@@ -61,6 +62,11 @@ export function IntegrationsPage() {
     const provider = sessionStorage.getItem("d2d-connect-provider");
     const state = params.get("state");
     if (!tenantId || !provider || !state) return;
+    const callbackKey = `${tenantId}:${provider}:${state}`;
+    if (handledCallbackRef.current === callbackKey) return;
+    handledCallbackRef.current = callbackKey;
+    sessionStorage.removeItem("d2d-connect-provider");
+    window.history.replaceState({}, "", "/integrations");
     const code = params.get("code") ?? params.get("tenant");
     const installation = params.get("installation_id");
     const body = installation
@@ -79,8 +85,6 @@ export function IntegrationsPage() {
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"))
       .finally(() => {
         setBusy(false);
-        sessionStorage.removeItem("d2d-connect-provider");
-        window.history.replaceState({}, "", "/integrations");
       });
     // The authorization redirect is handled once per tenant load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,9 +108,10 @@ export function IntegrationsPage() {
         tenantId,
       });
       setConnect(result);
-      if (result.authorizationUrl) {
+      const safeAuth = safeHref(result.authorizationUrl);
+      if (safeAuth) {
         sessionStorage.setItem("d2d-connect-provider", provider);
-        window.location.assign(result.authorizationUrl);
+        window.location.assign(safeAuth);
         return;
       }
       load();
@@ -346,7 +351,10 @@ export function IntegrationsPage() {
                   className="stack"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    void send("github", { installationId });
+                    void send("github", {
+                      installationId,
+                      ...(row?.externalId ? { state: row.externalId } : {}),
+                    });
                   }}
                 >
                   <label className="field">

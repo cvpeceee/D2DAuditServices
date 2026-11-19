@@ -282,7 +282,7 @@ public static class ExposureAnalyzer
                     ControlCode = "CFG-01",
                     Summary = $"Database {resource.Name} has public accessibility enabled on port {port}.",
                     RemediationTerraform = $"resource \"aws_db_instance\" \"{SafeId(resource.Name)}\" {{\n  publicly_accessible = false\n  storage_encrypted   = true\n}}",
-                    RemediationCli = $"aws rds modify-db-instance --db-instance-identifier {resource.Name} --no-publicly-accessible --apply-immediately",
+                    RemediationCli = $"aws rds modify-db-instance --db-instance-identifier {ShellArg(resource.Name)} --no-publicly-accessible --apply-immediately",
                     Status = "Open",
                     DetectedAt = now,
                 });
@@ -331,33 +331,71 @@ public static class ExposureAnalyzer
         };
     }
 
-    private static string BucketTerraform(string provider, string name) => provider switch
+    private static string BucketTerraform(string provider, string name)
     {
-        "azure" => $"resource \"azurerm_storage_account\" \"{SafeId(name)}\" {{\n  name                     = \"{name}\"\n  allow_nested_items_to_be_public = false\n}}",
-        "gcp" => $"resource \"google_storage_bucket\" \"{SafeId(name)}\" {{\n  name                     = \"{name}\"\n  public_access_prevention = \"enforced\"\n}}",
-        _ => $"resource \"aws_s3_bucket_public_access_block\" \"{SafeId(name)}\" {{\n  bucket                  = \"{name}\"\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}}",
-    };
+        var safeName = HclString(name);
+        return provider switch
+        {
+            "azure" => $"resource \"azurerm_storage_account\" \"{SafeId(name)}\" {{\n  name                     = \"{safeName}\"\n  allow_nested_items_to_be_public = false\n}}",
+            "gcp" => $"resource \"google_storage_bucket\" \"{SafeId(name)}\" {{\n  name                     = \"{safeName}\"\n  public_access_prevention = \"enforced\"\n}}",
+            _ => $"resource \"aws_s3_bucket_public_access_block\" \"{SafeId(name)}\" {{\n  bucket                  = \"{safeName}\"\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}}",
+        };
+    }
 
-    private static string BucketCli(string provider, string name) => provider switch
+    private static string BucketCli(string provider, string name)
     {
-        "azure" => $"az storage account update --name {name} --allow-blob-public-access false",
-        "gcp" => $"gcloud storage buckets update gs://{name} --pap=enforced",
-        _ => $"aws s3api put-public-access-block --bucket {name} --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
-    };
+        var safeArg = ShellArg(name);
+        return provider switch
+        {
+            "azure" => $"az storage account update --name {safeArg} --allow-blob-public-access false",
+            "gcp" => $"gcloud storage buckets update {ShellArg("gs://" + name)} --pap=enforced",
+            _ => $"aws s3api put-public-access-block --bucket {safeArg} --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        };
+    }
 
-    private static string FirewallTerraform(string provider, string name, int port) => provider switch
+    private static string FirewallTerraform(string provider, string name, int port)
     {
-        "azure" => $"resource \"azurerm_network_security_rule\" \"deny_{SafeId(name)}_{port.ToString(CultureInfo.InvariantCulture)}\" {{\n  name                       = \"restrict-port-{port.ToString(CultureInfo.InvariantCulture)}\"\n  direction                  = \"Inbound\"\n  access                     = \"Allow\"\n  source_address_prefix      = \"10.0.0.0/8\"\n  destination_port_range     = \"{port.ToString(CultureInfo.InvariantCulture)}\"\n  network_security_group_name = \"{name}\"\n}}",
-        "gcp" => $"resource \"google_compute_firewall\" \"{SafeId(name)}\" {{\n  name          = \"{name}\"\n  source_ranges = [\"10.0.0.0/8\"]\n  allow {{ protocol = \"tcp\" ports = [\"{port.ToString(CultureInfo.InvariantCulture)}\"] }}\n}}",
-        _ => $"resource \"aws_vpc_security_group_ingress_rule\" \"{SafeId(name)}\" {{\n  security_group_id = \"{name}\"\n  cidr_ipv4         = \"10.0.0.0/8\"\n  from_port         = {port.ToString(CultureInfo.InvariantCulture)}\n  to_port           = {port.ToString(CultureInfo.InvariantCulture)}\n  ip_protocol       = \"tcp\"\n}}",
-    };
+        var safeName = HclString(name);
+        var portText = port.ToString(CultureInfo.InvariantCulture);
+        return provider switch
+        {
+            "azure" => $"resource \"azurerm_network_security_rule\" \"deny_{SafeId(name)}_{portText}\" {{\n  name                       = \"restrict-port-{portText}\"\n  direction                  = \"Inbound\"\n  access                     = \"Allow\"\n  source_address_prefix      = \"10.0.0.0/8\"\n  destination_port_range     = \"{portText}\"\n  network_security_group_name = \"{safeName}\"\n}}",
+            "gcp" => $"resource \"google_compute_firewall\" \"{SafeId(name)}\" {{\n  name          = \"{safeName}\"\n  source_ranges = [\"10.0.0.0/8\"]\n  allow {{ protocol = \"tcp\" ports = [\"{portText}\"] }}\n}}",
+            _ => $"resource \"aws_vpc_security_group_ingress_rule\" \"{SafeId(name)}\" {{\n  security_group_id = \"{safeName}\"\n  cidr_ipv4         = \"10.0.0.0/8\"\n  from_port         = {portText}\n  to_port           = {portText}\n  ip_protocol       = \"tcp\"\n}}",
+        };
+    }
 
-    private static string FirewallCli(string provider, string name, int port, string cidr) => provider switch
+    private static string FirewallCli(string provider, string name, int port, string cidr)
     {
-        "azure" => $"az network nsg rule update --nsg-name {name} --name AllowInbound{port.ToString(CultureInfo.InvariantCulture)} --source-address-prefixes 10.0.0.0/8",
-        "gcp" => $"gcloud compute firewall-rules update {name} --source-ranges=10.0.0.0/8",
-        _ => $"aws ec2 revoke-security-group-ingress --group-name {name} --protocol tcp --port {port.ToString(CultureInfo.InvariantCulture)} --cidr {cidr}",
-    };
+        var safeName = ShellArg(name);
+        var safeCidr = ShellArg(cidr);
+        var portText = port.ToString(CultureInfo.InvariantCulture);
+        return provider switch
+        {
+            "azure" => $"az network nsg rule update --nsg-name {safeName} --name AllowInbound{portText} --source-address-prefixes 10.0.0.0/8",
+            "gcp" => $"gcloud compute firewall-rules update {safeName} --source-ranges=10.0.0.0/8",
+            _ => $"aws ec2 revoke-security-group-ingress --group-name {safeName} --protocol tcp --port {portText} --cidr {safeCidr}",
+        };
+    }
+
+    private static string HclString(string value)
+    {
+        var clean = (value ?? "").Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .Replace("${", "$${", StringComparison.Ordinal);
+        return new string(clean.Where(ch => !char.IsControl(ch)).ToArray());
+    }
+
+    private static string ShellArg(string value)
+    {
+        var clean = new string((value ?? "").Where(ch => !char.IsControl(ch)).ToArray());
+        if (clean.Length > 0 && clean.All(ch => char.IsAsciiLetterOrDigit(ch) || ch is '-' or '_' or '.' or '/' or ':'))
+        {
+            return clean;
+        }
+
+        return "'" + clean.Replace("'", "'\"'\"'", StringComparison.Ordinal) + "'";
+    }
 
     private static string SafeId(string name)
     {
@@ -498,6 +536,7 @@ public static class SarifParser
                 var (location, line, snippet) = ReadLocation(result);
                 var kind = Classify(ruleId, message, toolName);
                 var severity = MapSeverity(level, kind);
+                var safeMessage = kind == "Secret" ? RedactSnippet(message) : message;
                 findings.Add(new SecurityScanFinding
                 {
                     Id = Guid.NewGuid(),
@@ -507,8 +546,8 @@ public static class SarifParser
                     Location = location.Length > 300 ? location[..300] : location,
                     LineNumber = Math.Max(0, line),
                     RuleId = TrimMax(string.IsNullOrWhiteSpace(ruleId) ? "SARIF-RULE" : ruleId, 80),
-                    Title = TrimMax(string.IsNullOrWhiteSpace(message) ? ruleId : message, 300),
-                    Detail = TrimMax(message, 1000),
+                    Title = TrimMax(string.IsNullOrWhiteSpace(safeMessage) ? ruleId : safeMessage, 300),
+                    Detail = TrimMax(safeMessage, 1000),
                     Snippet = TrimMax(RedactSnippet(snippet), 500),
                     Source = TrimMax(toolName, 40),
                     FixVersion = "",
@@ -534,25 +573,113 @@ public static class SarifParser
             return "";
         }
 
+        if (raw.Contains("-----BEGIN", StringComparison.OrdinalIgnoreCase))
+        {
+            return "[REDACTED-PRIVATE-KEY]";
+        }
+
         var tokens = raw.Split([' ', '\t', '\r', '\n'], StringSplitOptions.None);
+        var redactNextValue = false;
         for (var i = 0; i < tokens.Length; i++)
         {
             var token = tokens[i];
-            if (token.Length >= 16 && token.Any(char.IsDigit) && token.Any(char.IsLetter))
+            if (token.Length == 0)
             {
-                var eq = token.IndexOf('=', StringComparison.Ordinal);
-                if (eq > 0 && eq < token.Length - 6)
+                continue;
+            }
+
+            if (redactNextValue)
+            {
+                tokens[i] = "[REDACTED]";
+                redactNextValue = false;
+                continue;
+            }
+
+            var eq = token.IndexOf('=', StringComparison.Ordinal);
+            var colon = token.IndexOf(':', StringComparison.Ordinal);
+            if (eq > 0)
+            {
+                var keyPart = token[..eq];
+                var valPart = token[(eq + 1)..].Trim('"', '\'', ',', ';');
+                if (IsSensitiveKey(keyPart) || LooksLikeSecretValue(valPart))
                 {
-                    tokens[i] = token[..(eq + 1)] + "[REDACTED]";
+                    tokens[i] = keyPart + "=[REDACTED]";
+                    continue;
                 }
-                else
+            }
+            else if (colon > 0)
+            {
+                var keyPart = token[..colon].Trim('"', '\'');
+                var valPart = token[(colon + 1)..].Trim('"', '\'', ',', ';');
+                if (IsSensitiveKey(keyPart))
                 {
-                    tokens[i] = token[..4] + "***[REDACTED]";
+                    if (valPart.Length > 0)
+                    {
+                        tokens[i] = token[..(colon + 1)] + "[REDACTED]";
+                    }
+                    else
+                    {
+                        redactNextValue = true;
+                    }
+
+                    continue;
                 }
+            }
+
+            var unquoted = token.Trim('"', '\'', ',', ';', '(', ')', '[', ']', '{', '}');
+            if (LooksLikeSecretValue(unquoted))
+            {
+                tokens[i] = unquoted.Length >= 8 ? unquoted[..4] + "***[REDACTED]" : "[REDACTED]";
             }
         }
 
         return string.Join(' ', tokens);
+    }
+
+    private static bool IsSensitiveKey(string key)
+    {
+        var upper = key.ToUpperInvariant();
+        return upper.Contains("SECRET", StringComparison.Ordinal)
+            || upper.Contains("TOKEN", StringComparison.Ordinal)
+            || upper.Contains("PASSWORD", StringComparison.Ordinal)
+            || upper.Contains("PASSWD", StringComparison.Ordinal)
+            || upper.Contains("APIKEY", StringComparison.Ordinal)
+            || upper.Contains("API_KEY", StringComparison.Ordinal)
+            || upper.Contains("PRIVATE", StringComparison.Ordinal)
+            || upper.Contains("CREDENTIAL", StringComparison.Ordinal)
+            || upper.Contains("AUTH", StringComparison.Ordinal);
+    }
+
+    private static bool LooksLikeSecretValue(string value)
+    {
+        if (value.Length < 12)
+        {
+            return false;
+        }
+
+        if (value.StartsWith("AKIA", StringComparison.Ordinal)
+            || value.StartsWith("ASIA", StringComparison.Ordinal)
+            || value.StartsWith("ghp_", StringComparison.Ordinal)
+            || value.StartsWith("gho_", StringComparison.Ordinal)
+            || value.StartsWith("ghs_", StringComparison.Ordinal)
+            || value.StartsWith("sk_live_", StringComparison.Ordinal)
+            || value.StartsWith("sk_test_", StringComparison.Ordinal)
+            || value.StartsWith("xoxb-", StringComparison.Ordinal)
+            || value.StartsWith("xoxp-", StringComparison.Ordinal)
+            || value.StartsWith("whsec_", StringComparison.Ordinal)
+            || value.StartsWith("d2d_api_", StringComparison.Ordinal)
+            || value.StartsWith("eyJ", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (value.Length >= 16 && value.Any(char.IsDigit) && value.Any(char.IsLetter))
+        {
+            return true;
+        }
+
+        // Catch long all-alpha/symbol secrets (e.g. PEM body lines or base64 tokens with no digits)
+        return value.Length >= 24 && !value.Contains('/', StringComparison.Ordinal) && value.All(ch => !char.IsWhiteSpace(ch));
     }
 
     private static string Classify(string ruleId, string message, string tool)

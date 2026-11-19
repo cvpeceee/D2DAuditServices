@@ -303,6 +303,7 @@ public sealed class AutomationDispatcher(
     TenantDatabases databases,
     IIssueTracker issues,
     INotifier notifier,
+    IWebhookDispatcher webhooks,
     TimeProvider time) : IAutomationDispatcher
 {
     public Task DispatchAsync(string trigger, string summary, string detail, CancellationToken cancellationToken) =>
@@ -325,30 +326,31 @@ public sealed class AutomationDispatcher(
 
         await using var db = databases.Create(databaseName);
         var rules = await db.AutomationRules.Where(rule => rule.Enabled && rule.Trigger == trigger).ToListAsync(cancellationToken);
-        if (rules.Count == 0)
+        if (rules.Count > 0)
         {
-            return;
-        }
-
-        var now = time.GetUtcNow();
-        foreach (var rule in rules)
-        {
-            var external = rule.Action == "Jira"
-                ? await issues.CreateIssueAsync(rule.Target, summary, detail, cancellationToken)
-                : await notifier.SendAsync(rule.Action, rule.Target, summary, detail, cancellationToken);
-            db.Set<AutomationDelivery>().Add(new AutomationDelivery
+            var now = time.GetUtcNow();
+            foreach (var rule in rules)
             {
-                Id = Guid.NewGuid(),
-                RuleId = rule.Id,
-                Trigger = trigger,
-                Action = rule.Action,
-                Target = rule.Target,
-                Summary = summary.Length > 300 ? summary[..300] : summary,
-                ExternalId = external.Length > 80 ? external[..80] : external,
-                At = now,
-            });
+                var external = rule.Action == "Jira"
+                    ? await issues.CreateIssueAsync(rule.Target, summary, detail, cancellationToken)
+                    : await notifier.SendAsync(rule.Action, rule.Target, summary, detail, cancellationToken);
+                db.Set<AutomationDelivery>().Add(new AutomationDelivery
+                {
+                    Id = Guid.NewGuid(),
+                    RuleId = rule.Id,
+                    Trigger = trigger,
+                    Action = rule.Action,
+                    Target = rule.Target,
+                    Summary = summary.Length > 300 ? summary[..300] : summary,
+                    ExternalId = external.Length > 80 ? external[..80] : external,
+                    At = now,
+                });
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        var eventName = WebhookSigning.EventNameForTrigger(trigger);
+        await webhooks.DispatchAsync(databaseName, eventName, summary, detail, cancellationToken);
     }
 }

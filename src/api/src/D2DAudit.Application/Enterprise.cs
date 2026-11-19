@@ -24,7 +24,8 @@ public sealed record ApiKeyDto(
     string Scopes,
     string CreatedByEmail,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? RevokedAt);
+    DateTimeOffset? RevokedAt,
+    DateTimeOffset? LastUsedAt = null);
 
 public sealed record CreateApiKeyRequest(string Name, string Scopes);
 
@@ -41,6 +42,46 @@ public sealed record WebhookDto(
 public sealed record CreateWebhookRequest(string Name, string Url, string Events);
 
 public sealed record CreatedWebhookDto(WebhookDto Webhook, string SigningSecret);
+
+public sealed record WebhookTestResultDto(
+    bool Delivered,
+    int StatusCode,
+    string EventName,
+    string SignaturePreview,
+    string Detail);
+
+public sealed record ApiKeyIdentity(
+    Guid KeyId,
+    string KeyName,
+    string CreatedByEmail,
+    string Scopes,
+    Guid TenantId,
+    string TenantName,
+    string Region,
+    bool IsExample,
+    string DatabaseName);
+
+public interface IApiKeyAuthenticator
+{
+    Task<ApiKeyIdentity?> ValidateAsync(string token, CancellationToken cancellationToken);
+}
+
+public interface IWebhookDispatcher
+{
+    Task<IReadOnlyList<string>> DispatchAsync(
+        string databaseName,
+        string eventName,
+        string summary,
+        string detail,
+        CancellationToken cancellationToken);
+
+    Task<WebhookTestResultDto> SendSingleAsync(
+        WebhookSubscription webhook,
+        string eventName,
+        string summary,
+        string detail,
+        CancellationToken cancellationToken);
+}
 
 public interface IAssistantProvider
 {
@@ -76,6 +117,8 @@ public interface IEnterprisePortal
     Task<IReadOnlyList<WebhookDto>> ListWebhooksAsync(CancellationToken cancellationToken);
 
     Task<Result<CreatedWebhookDto>> CreateWebhookAsync(CreateWebhookRequest request, CancellationToken cancellationToken);
+
+    Task<Result<WebhookTestResultDto>> TestWebhookAsync(Guid id, CancellationToken cancellationToken);
 
     Task<Result<bool>> DeleteWebhookAsync(Guid id, CancellationToken cancellationToken);
 }

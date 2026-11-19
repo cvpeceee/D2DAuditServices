@@ -17,9 +17,9 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
 | 9 | P1 | Device agent MVP and MDM import (Jamf, Intune, Kandji) | Done | https://github.com/cvpeceee/D2DAuditServices/pull/20 |
-| 10 | P1 | Okta, HRIS, Jira, and Slack integrations, with real Slack and email delivery when configured | Not started | |
+| 10 | P1 | Real Jira, Linear, Slack, Microsoft Teams, Resend, and SMTP TLS automation delivery when configured (`ConfigurableIssueTracker`, `ConfigurableNotifier`) | Done | M7 |
 | 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, NIST AI RMF, EU AI Act, IEC 62443, custom framework upload & What-If Gap Simulator | Done | M9 |
-| 12 | P1 | Public REST API keys, OpenAPI (`/openapi/v1.json`), and outbound webhooks | Done | M9 |
+| 12 | P1 | Public REST API keys (`Bearer d2d_api_...` with runtime auth & scope enforcement), OpenAPI (`/openapi/v1.json`), and HMAC-SHA256 signed outbound webhooks (`IWebhookDispatcher`) | Done | M9 |
 | 13 | P1 | Checkr background checks and KnowBe4 training | Not started | |
 | 14 | P2 | Multi-entity workspaces inside one customer | Not started | |
 | 15 | P2 | Trust Center v2 (real file upload/download, clickwrap NDA, buyer-verifiable Cryptographic Trust Receipts, Trust Center AI Q&A) | Done | M9 |
@@ -37,12 +37,13 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | --- | --- | --- | --- |
 | `/login` | Email and password, or the start of a WorkOS redirect. | Sign in. | Everyone |
 | `/` | Counts for controls, failing tests, and the signed-in person's work. | Open a failing area. | All workspace roles |
-| `/frameworks` | SOC 2, ISO 27001, ISO 27017, ISO 27018, HIPAA, and GDPR as loaded content. | Open a framework. | Auditor sees granted frameworks |
+| `/frameworks` | 13 embedded frameworks (`soc2`, `iso27001`, `iso27017`, `iso27018`, `hipaa`, `gdpr`, `pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`), custom CSV framework upload, and What-If Gap Simulator with 1-click gap adoption. | Open a framework, run What-If simulation, adopt gap controls, upload custom framework CSV. | Auditor sees granted frameworks; simulator and custom upload are for workspace members/writers |
 | `/frameworks/:key` | Requirement tree with mapped controls. | Jump to a control. | Same as frameworks |
 | `/controls` | Control list, owner, status, mappings, tests. | Assign an owner, create a control, import CSV. | Write: Admin, Control owner, Editor |
+| `/controls/:code` | Deep-linked control drawer view. | Inspect mappings, tests, and evidence for a single control code. | Auditor sees in-scope controls |
 | `/tests` | Automated checks from the connected accounts. | Read the failing detail. | Auditor sees in-scope checks |
-| `/evidence` | Chain items, source, hash, retention. | Upload a file, verify the chain. | Auditor sees evidence collected inside the audit period |
-| `/policies` | Draft, review, approve, acknowledge. | Approve, assign, remind. | Approve is Admin |
+| `/evidence` | Chain items, source, hash, retention. | Upload a file, download evidence bytes, verify the chain. | Auditor sees evidence collected inside the audit period |
+| `/policies` | Draft, review, approve, acknowledge. | Install core library, edit draft, approve, assign, remind. | Approve is Admin; draft edit & library install are Write roles |
 | `/risks` | Register, score, treatment, library, approval. | Save, adopt a library risk, export. | Write roles |
 | `/soa` | ISO 27001 statement of applicability. | Mark applicability and export. | Write roles |
 | `/vendors` | Criticality, questionnaire, decision, residual risk. | Save a review. | Write roles |
@@ -63,10 +64,10 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/assets` | Inventory from connections, owners, scope, CSV. | Import and export. | Write roles |
 | `/tasks` | Work linked to a control, test, risk, vendor, or policy. | Create and complete. | Write roles create. Owners complete |
 | `/access-reviews` | Campaigns, selected apps, decisions, remediation. | Draft, start, decide, close. | Write roles |
-| `/auditor` | Engagement, date range, sample requests, findings, in-period evidence. | Set the range, request, accept, export. | Auditor, Admin, Control owner |
-| `/trust/:slug` | Public frameworks, control counts, public documents, NDA request. | Request access. | Anyone with the link |
-| `/trust-center` | Publish the page, edit documents, approve requests. | Save, approve, deny. | Write roles |
-| `/settings` | Members, SSO status, auditor grants, automation rules. | Invite, deactivate, save a rule, run due reviews. | Admin |
+| `/auditor` | Engagement, date range, sample requests, findings, in-period evidence. | Set the range (Write roles), request, accept, create finding, export isolated package. | Auditor, Admin, Control owner |
+| `/trust/:slug` | Public frameworks, control counts, buyer-verifiable Cryptographic Trust Receipt, public & NDA-gated documents (`X-Trust-Token`), clickwrap NDA request, and public Trust Center AI Q&A. | Verify receipt SHA-256 locally, download public/approved-NDA documents, ask Trust AI, request NDA access. | Anyone with the link |
+| `/trust-center` | Publish the page, upload/edit document files, approve or deny NDA requests (issuing download tokens). | Save, upload document bytes, approve, deny. | Admin |
+| `/settings` | Members, SSO status, auditor grants, automation rules, and Developer Console (SHA-256 API keys & signed outbound webhooks with test delivery). | Invite, deactivate, save a rule, run due reviews, create/revoke API keys, create/test/delete webhooks. | Admin |
 | `/integrations` | Connect AWS, Google, Microsoft, GitHub, or load the example fixture. | Connect, collect. | Write roles |
 | `/activity` | Sign-in and product actions, including auditor access. | Read. | Admin |
 
@@ -84,7 +85,7 @@ Tabs are by vulnerability, by asset, ignored, and SLA history. Each row has a CV
 
 ## Trust center
 
-`/trust/harborline` is public. It shows frameworks, how many mapped controls are passing, public documents, and NDA documents without the file name. A visitor can request access. `/trust-center` is where an admin publishes the page and approves or denies requests.
+`/trust/harborline` is public. It shows frameworks, how many mapped controls are passing, a buyer-verifiable **Cryptographic Trust Receipt** anchored to the workspace `EvidenceChain` SHA-256 head hash (verifiable locally in the browser via Web Crypto), public documents, NDA-gated documents (downloaded via `X-Trust-Token` after approval), a clickwrap NDA access request form, and a public Trust Center security Q&A assistant grounded strictly in published posture. `/trust-center` is where an admin publishes the page, uploads real document files, and approves or denies NDA requests.
 
 ## Changes
 
@@ -110,13 +111,13 @@ A penetration-test upload takes `cve,severity,asset,title` and adds those rows w
 
 `/questionnaires` uploads a CSV or XLSX whose first column, or a column headed `question`, is the question list. The knowledge base is the workspace policies, controls, and recent evidence titles. `IQuestionnaireAssistant` is the boundary. The implementation in this release is deterministic: it scores word overlap and cites the closest item. It does not call a model. That is why the tracker row is Faked-for-demo. A person edits the answer, accepts it, and exports the sheet as CSV. Harborline already has the Northgate questionnaire, with the change-management question still open.
 
-## Automation
+## Automation and outbound webhooks
 
-Settings holds rules. Triggers are test failed, control not ready, risk created, and review due. Actions are create a Jira issue, or a Slack, Teams, or email notification. `IIssueTracker` and `INotifier` are the boundaries. The implementations in this release return a fake id and store a delivery. They do not call Jira, Slack, Teams, or an email provider.
+Settings holds automation rules and Developer Console webhooks. Rule triggers are test failed, control not ready, risk created, review due, and critical exposure discovered. Rule actions create a Jira or Linear issue (`ConfigurableIssueTracker`) or send a Slack, Microsoft Teams, Resend Email, or SMTP TLS notification (`ConfigurableNotifier`) when configured, falling back to deterministic local delivery IDs in Development/Testing/Example mode. Outbound webhooks (`WebhookDispatcher`) send HMAC-SHA256 signed JSON payloads (`X-D2D-Signature: t=<unix>,v1=<hex>`) to subscribed HTTPS/HTTP endpoints validated against SSRF and DNS rebinding (`SafeUrl.IsPublicHttpOrHttps` + public DNS IP resolution), and can be tested live from Settings via `POST /api/v1/developer/webhooks/{id}/test`.
 
-## Frameworks and custom controls
+## Frameworks, What-If simulator, and custom controls
 
-HIPAA and GDPR are JSON catalogs mapped onto the existing controls. Wording in the files is original and short. The controls page can create a control and map it to a requirement, or import a CSV with `code,title,description,frequency,ownerName,ownerEmail,framework,requirement,coverage`.
+All 13 built-in frameworks (`soc2`, `iso27001`, `iso27017`, `iso27018`, `hipaa`, `gdpr`, `pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`) are JSON catalogs mapped onto the control library with original, concise summaries. The frameworks page also provides a What-If Gap Simulator (`FrameworkSimulator`) with 1-click gap control adoption and a custom framework CSV uploader (`CustomFrameworkCsv`). The controls page can create a control and map it to a requirement, or import a CSV with `code,title,description,frequency,ownerName,ownerEmail,framework,requirement,coverage`.
 
 ## Auditor package
 
@@ -158,13 +159,15 @@ The manifest, integrity report, control matrix, and evidence files are unchanged
 | Auditor portal, sampling, findings | Built |
 | Audit date range and in-period evidence | Built |
 | Audit package with the registers above | Built |
-| Trust center, public page and NDA requests | Built |
-| Automation rules with fake Jira, Slack, Teams, email | Built |
+| Trust center v2, real file upload/download, clickwrap NDA (`X-Trust-Token`), buyer-verifiable Cryptographic Trust Receipts, and public AI Q&A | Built |
+| Automation rules with configurable Jira, Linear, Slack, Microsoft Teams, Resend, and SMTP TLS adapters (`ConfigurableIssueTracker`, `ConfigurableNotifier`) | Built |
+| Developer API keys (`Bearer d2d_api_...` runtime authentication & scope enforcement) and HMAC-SHA256 signed outbound webhooks (`WebhookDispatcher`) | Built |
+| Cloud Security Intelligence: Public Exposure & IaC Patches, SARIF 2.1.0 / Container / License / Secret Scanner, DSPM, FinOps × Compliance, and Blast-Radius Attack Path Graph | Built |
+| 13 embedded frameworks (including PCI DSS 4.0, NIST CSF 2.0, DORA, ISO 42001, NIST AI RMF, EU AI Act, and IEC 62443) + Custom CSV upload + What-If Gap Simulator | Built |
+| Device agent check-in (`IDeviceFleet`) and MDM import (`IMdmImport` for Jamf, Intune, Kandji) | Built |
+| Live AWS, Azure (`AzureCloudProvider`), and GCP (`GcpCloudProvider`) collectors + 16 cross-cloud checks | Built |
+| Role-scoped Grounded AI Assistant (`IAssistantProvider` / `ConfigurableAssistantProvider` + live side panel) | Built |
 | WorkOS sign-in | Built behind `IIdentityProvider`. Local identity in dev. |
-| Real Jira, Slack, Teams, and email delivery | Later |
-| Device agent on the laptop | Later. MDM and manual upload cover the screen. |
-| Azure and GCP live collectors | Later. The example client includes their fixtures. |
+| Self-hosted open-source Jenkins CI/CD (`Jenkinsfile` + `ci/jenkins/`) with zero GitHub Actions auto-triggers | Built |
 | SCIM deprovisioning | Later. WorkOS can own it. The app records the membership. |
-| Assistant that calls a model | Later. The panel explains the command palette. |
-| Manufacturing and IoT frameworks | Later |
 | Production AWS deploy | Later. Terraform is a placeholder. |

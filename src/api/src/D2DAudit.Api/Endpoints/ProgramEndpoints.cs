@@ -8,20 +8,20 @@ public static class ProgramEndpoints
     public static IEndpointRouteBuilder MapProgramEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/me/cards", (IProgram portal, CancellationToken cancellationToken) => portal.CardsAsync(cancellationToken)).Produces<IReadOnlyList<MeCard>>();
-        group.MapPost("/me/cards", CompleteCard).Produces<MeCard>();
+        group.MapGet("/me/cards", (IProgram portal, CancellationToken cancellationToken) => portal.CardsAsync(cancellationToken)).RequireAuthorization("WorkspaceMember").Produces<IReadOnlyList<MeCard>>();
+        group.MapPost("/me/cards", CompleteCard).RequireAuthorization("WorkspaceMember").Produces<MeCard>();
         group.MapGet("/training", (IProgram portal, CancellationToken cancellationToken) => portal.ModulesAsync(cancellationToken)).Produces<IReadOnlyList<TrainingModuleItem>>();
         group.MapGet("/training/{id:guid}", GetModule).Produces<TrainingModuleDetail>();
         group.MapGet("/training/{id:guid}/people", (Guid id, int? page, int? pageSize, IProgram portal, CancellationToken cancellationToken) => portal.TrainingPeopleAsync(id, page ?? 1, pageSize ?? 40, cancellationToken)).Produces<TrainingPersonPage>();
-        group.MapPost("/training/{id:guid}/quiz", SubmitQuiz).Produces<QuizResult>();
-        group.MapPost("/training/{id:guid}/certificate", UploadCertificate).Produces<QuizResult>();
+        group.MapPost("/training/{id:guid}/quiz", SubmitQuiz).RequireAuthorization("WorkspaceMember").Produces<QuizResult>();
+        group.MapPost("/training/{id:guid}/certificate", UploadCertificate).RequireAuthorization("WorkspaceMember").Produces<QuizResult>();
         group.MapGet("/assets", (int? page, int? pageSize, string? q, IProgram portal, CancellationToken cancellationToken) => portal.AssetsAsync(page ?? 1, pageSize ?? 40, q, cancellationToken)).Produces<AssetPage>();
         group.MapPost("/assets", SaveAsset).RequireAuthorization("TenantWrite").Produces<AssetItem>();
         group.MapPost("/assets/import", ImportAssets).RequireAuthorization("TenantWrite").Produces<int>();
         group.MapGet("/assets/export", ExportAssets).Produces<FileExport>();
         group.MapGet("/tasks", (bool? mine, IProgram portal, CancellationToken cancellationToken) => portal.TasksAsync(mine ?? false, cancellationToken)).Produces<IReadOnlyList<WorkTaskItem>>();
         group.MapPost("/tasks", SaveTask).RequireAuthorization("TenantWrite").Produces<WorkTaskItem>();
-        group.MapPost("/tasks/{id:guid}/done", FinishTask).Produces<WorkTaskItem>();
+        group.MapPost("/tasks/{id:guid}/done", FinishTask).RequireAuthorization("WorkspaceMember").Produces<WorkTaskItem>();
         group.MapGet("/settings/members", (IProgram portal, CancellationToken cancellationToken) => portal.MembersAsync(cancellationToken)).RequireAuthorization("TenantAdmin").Produces<IReadOnlyList<MemberItem>>();
         group.MapPost("/settings/members", Invite).RequireAuthorization("TenantAdmin").Produces<MemberItem>();
         group.MapPost("/settings/members/{id:guid}/role", SetRole).RequireAuthorization("TenantAdmin").Produces<MemberItem>();

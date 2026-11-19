@@ -11,7 +11,7 @@ public static class EnterpriseEndpoints
         {
             var receipt = await portal.TrustReceiptAsync(slug, cancellationToken);
             return receipt is null ? Results.NotFound(new { code = "not_found" }) : Results.Ok(receipt);
-        });
+        }).RequireRateLimiting("public_trust");
 
         app.MapGet("/api/v1/public/trust/{slug}/documents/{documentId:guid}/download", async (
             string slug,
@@ -21,7 +21,9 @@ public static class EnterpriseEndpoints
             HttpContext http,
             CancellationToken cancellationToken) =>
         {
-            var result = await portal.DownloadTrustDocumentAsync(slug, documentId, token, cancellationToken);
+            var headerToken = http.Request.Headers["X-Trust-Token"].FirstOrDefault();
+            var effectiveToken = !string.IsNullOrWhiteSpace(headerToken) ? headerToken : token;
+            var result = await portal.DownloadTrustDocumentAsync(slug, documentId, effectiveToken, cancellationToken);
             if (!result.IsSuccess || result.Value is null)
             {
                 return result.Error == "nda_required"
@@ -42,7 +44,8 @@ public static class EnterpriseEndpoints
             .RequireRateLimiting("public_trust");
 
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/frameworks/{key}/simulator", SimulateFramework);
+        group.MapGet("/frameworks/{key}/simulator", SimulateFramework)
+            .RequireAuthorization("WorkspaceMember");
         group.MapPost("/frameworks/{key}/simulator/adopt", AdoptFrameworkGaps).RequireAuthorization("TenantWrite");
         group.MapPost("/frameworks/custom", CreateCustomFramework).RequireAuthorization("TenantWrite");
         group.MapPost("/assistant/ask", AskWorkspace);
@@ -62,6 +65,9 @@ public static class EnterpriseEndpoints
         group.MapPost("/developer/webhooks", CreateWebhook)
             .RequireAuthorization("TenantAdmin")
             .Produces<CreatedWebhookDto>();
+        group.MapPost("/developer/webhooks/{id:guid}/test", TestWebhook)
+            .RequireAuthorization("TenantAdmin")
+            .Produces<WebhookTestResultDto>();
         group.MapDelete("/developer/webhooks/{id:guid}", DeleteWebhook)
             .RequireAuthorization("TenantAdmin");
 
@@ -88,6 +94,9 @@ public static class EnterpriseEndpoints
 
     private static async Task<IResult> CreateWebhook(CreateWebhookRequest body, IEnterprisePortal portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.CreateWebhookAsync(body, cancellationToken));
+
+    private static async Task<IResult> TestWebhook(Guid id, IEnterprisePortal portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.TestWebhookAsync(id, cancellationToken));
 
     private static async Task<IResult> DeleteWebhook(Guid id, IEnterprisePortal portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.DeleteWebhookAsync(id, cancellationToken));

@@ -214,6 +214,19 @@ public sealed class TenantDomain
     public string? WorkOsOrganizationId { get; set; }
 }
 
+public sealed class ProviderClaim
+{
+    public Guid Id { get; set; }
+
+    public string Provider { get; set; } = "";
+
+    public string ExternalAccountId { get; set; } = "";
+
+    public Guid TenantId { get; set; }
+
+    public DateTimeOffset ClaimedAt { get; set; }
+}
+
 public sealed class JobRecord
 {
     public Guid Id { get; set; }

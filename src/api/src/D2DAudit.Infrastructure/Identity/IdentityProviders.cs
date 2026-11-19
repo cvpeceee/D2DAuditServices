@@ -50,7 +50,7 @@ public sealed class LocalIdentityProvider(
         CancellationToken cancellationToken)
     {
         var normalized = NormalizeEmail(email);
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalized, cancellationToken);
+        var user = await db.Users.FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, normalized), cancellationToken);
         var hash = user?.PasswordHash ?? dummyHash.Value;
         var verdict = passwords.VerifyHashedPassword(user ?? new UserAccount(), hash, password);
         if (user is null || user.PasswordHash is null || verdict == PasswordVerificationResult.Failed)

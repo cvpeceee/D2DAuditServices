@@ -70,8 +70,13 @@ export function TrustAdminPage() {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId || !page) return;
-    const next = await api<Page>("/api/v1/trust", { method: "POST", tenantId, body: page });
-    setPage(next);
+    setError(null);
+    try {
+      const next = await api<Page>("/api/v1/trust", { method: "POST", tenantId, body: page });
+      setPage(next);
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -94,33 +99,43 @@ export function TrustAdminPage() {
   async function addDocument(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/trust/documents", {
-      method: "POST",
-      tenantId,
-      body: {
-        title: doc.title,
-        summary: doc.summary,
-        access: doc.access,
-        fileName: doc.fileName,
-        contentBase64: doc.contentBase64 || null,
-        contentType: doc.contentType || null,
-      },
-    });
-    setDoc({
-      title: "",
-      summary: "",
-      access: "Public",
-      fileName: "",
-      contentBase64: "",
-      contentType: "application/pdf",
-    });
-    load();
+    setError(null);
+    try {
+      await api("/api/v1/trust/documents", {
+        method: "POST",
+        tenantId,
+        body: {
+          title: doc.title,
+          summary: doc.summary,
+          access: doc.access,
+          fileName: doc.fileName,
+          contentBase64: doc.contentBase64 || null,
+          contentType: doc.contentType || null,
+        },
+      });
+      setDoc({
+        title: "",
+        summary: "",
+        access: "Public",
+        fileName: "",
+        contentBase64: "",
+        contentType: "application/pdf",
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   async function decide(id: string, status: string) {
     if (!tenantId) return;
-    await api(`/api/v1/trust/requests/${id}`, { method: "POST", tenantId, body: { status } });
-    load();
+    setError(null);
+    try {
+      await api(`/api/v1/trust/requests/${id}`, { method: "POST", tenantId, body: { status } });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   return (

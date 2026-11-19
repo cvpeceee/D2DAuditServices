@@ -16,6 +16,8 @@ public sealed class EnterprisePortal(
     ControlPlaneDbContext control,
     IStorageProvider storage,
     IAssistantProvider assistant,
+    WebhookSecretProtector webhookSecrets,
+    IWebhookDispatcher webhookDispatcher,
     IActivityWriter activity,
     TimeProvider time) : IEnterprisePortal
 {
@@ -196,10 +198,11 @@ public sealed class EnterprisePortal(
         }
 
         var frameworks = await LoadTrustFrameworksAsync(db, cancellationToken);
-        var chainCount = await db.Chain.CountAsync(cancellationToken);
-        var latest = await db.Chain.AsNoTracking()
-            .OrderByDescending(item => item.Sequence)
-            .FirstOrDefaultAsync(cancellationToken);
+        var chainEntries = await db.Chain.AsNoTracking()
+            .OrderBy(item => item.Sequence)
+            .ToListAsync(cancellationToken);
+        var chainVerified = VerifyChainContinuity(chainEntries);
+        var latest = chainEntries.Count > 0 ? chainEntries[^1] : null;
 
         return TrustReceiptBuilder.Build(
             match.Value.Tenant.Slug,
@@ -208,9 +211,33 @@ public sealed class EnterprisePortal(
             match.Value.Tenant.RetentionYears,
             time.GetUtcNow(),
             frameworks,
-            chainCount,
+            chainEntries.Count,
             latest?.Sequence ?? 0,
-            latest?.Head ?? "");
+            latest?.Head ?? "",
+            chainVerified);
+    }
+
+    private static bool VerifyChainContinuity(IReadOnlyList<ChainEntry> entries)
+    {
+        if (entries.Count == 0)
+        {
+            return false;
+        }
+
+        string? previous = null;
+        foreach (var entry in entries)
+        {
+            var expectedHead = EvidenceChain.NextHead(previous, entry.ContentHash, entry.Canonical);
+            if (!string.Equals(expectedHead, entry.Head, StringComparison.Ordinal)
+                || !string.Equals(previous, entry.PreviousHead, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            previous = entry.Head;
+        }
+
+        return true;
     }
 
     public async Task<Result<TrustDownloadFile>> DownloadTrustDocumentAsync(string slug, Guid documentId, string? accessToken, CancellationToken cancellationToken)
@@ -243,7 +270,7 @@ public sealed class EnterprisePortal(
             }
 
             var approved = await db.TrustRequests.AsNoTracking()
-                .Where(item => item.Status == "Approved" && item.AccessToken != "" && (item.DocumentId == null || item.DocumentId == documentId))
+                .Where(item => item.Status == "Approved" && item.NdaAccepted && item.AccessToken != "" && (item.DocumentId == null || item.DocumentId == documentId))
                 .Select(item => item.AccessToken)
                 .ToListAsync(cancellationToken);
             var tokenBytes = Encoding.UTF8.GetBytes(token);
@@ -267,7 +294,7 @@ public sealed class EnterprisePortal(
                 var contentType = string.IsNullOrWhiteSpace(document.ContentType) ? "application/octet-stream" : document.ContentType;
                 return Result<TrustDownloadFile>.Ok(new TrustDownloadFile(stored, contentType, document.FileName, document.Sha256));
             }
-            catch (Exception exception) when (exception is IOException or InvalidOperationException)
+            catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
             {
                 // Fall through to generated summary PDF if fixture metadata has no backing blob yet.
             }
@@ -451,8 +478,7 @@ public sealed class EnterprisePortal(
             return Result<CreatedApiKeyDto>.Fail("invalid_api_key");
         }
 
-        var tokenBody = RandomNumberGenerator.GetHexString(32).ToLowerInvariant();
-        var plaintext = "d2d_api_" + tokenBody;
+        var plaintext = ApiKeyTokens.Create(tenant.TenantId);
         var prefix = plaintext[..16];
         var hash = GroundedAssistant.HashToken(plaintext);
 
@@ -501,12 +527,18 @@ public sealed class EnterprisePortal(
         var name = (request.Name ?? "").Trim();
         var url = (request.Url ?? "").Trim();
         var events = string.IsNullOrWhiteSpace(request.Events) ? "test.failed,exposure.critical" : request.Events.Trim();
-        if (name.Length is 0 or > 200 || url.Length is 0 or > 500 || !SafeUrl.IsHttpOrHttps(url) || events.Length > 500)
+        if (name.Length is 0 or > 200 || url.Length is 0 or > 500 || !SafeUrl.IsPublicHttpOrHttps(url) || events.Length > 500)
         {
             return Result<CreatedWebhookDto>.Fail("invalid_webhook");
         }
 
         var secret = "whsec_" + RandomNumberGenerator.GetHexString(32).ToLowerInvariant();
+        var encrypted = webhookSecrets.Protect(secret);
+        if (string.IsNullOrEmpty(encrypted))
+        {
+            return Result<CreatedWebhookDto>.Fail("key_not_configured");
+        }
+
         var row = new WebhookSubscription
         {
             Id = Guid.NewGuid(),
@@ -514,6 +546,7 @@ public sealed class EnterprisePortal(
             Url = url,
             Events = events,
             SigningSecretHash = GroundedAssistant.HashToken(secret),
+            SigningSecretEncrypted = encrypted,
             Enabled = true,
             CreatedAt = time.GetUtcNow(),
         };
@@ -523,6 +556,25 @@ public sealed class EnterprisePortal(
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "developer.webhook.created", "ok", name, null, cancellationToken);
         return Result<CreatedWebhookDto>.Ok(new CreatedWebhookDto(ToWebhookDto(row), secret));
+    }
+
+    public async Task<Result<WebhookTestResultDto>> TestWebhookAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var db = Open();
+        var row = await db.Webhooks.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        if (row is null)
+        {
+            return Result<WebhookTestResultDto>.Fail("not_found");
+        }
+
+        var outcome = await webhookDispatcher.SendSingleAsync(
+            row,
+            "webhook.test",
+            $"Test event from {tenant.TenantName}",
+            "Signed webhook verification triggered from Settings -> Developer Console.",
+            cancellationToken);
+        await activity.WriteAsync(tenant.UserId, tenant.TenantId, "developer.webhook.tested", outcome.Delivered ? "ok" : "error", $"{row.Name}:{outcome.Detail}", null, cancellationToken);
+        return Result<WebhookTestResultDto>.Ok(outcome);
     }
 
     public async Task<Result<bool>> DeleteWebhookAsync(Guid id, CancellationToken cancellationToken)
@@ -586,7 +638,7 @@ public sealed class EnterprisePortal(
     }
 
     private static ApiKeyDto ToApiKeyDto(ApiKeyRecord row) =>
-        new(row.Id, row.Name, row.Prefix, row.Scopes, row.CreatedByEmail, row.CreatedAt, row.RevokedAt);
+        new(row.Id, row.Name, row.Prefix, row.Scopes, row.CreatedByEmail, row.CreatedAt, row.RevokedAt, row.LastUsedAt);
 
     private static WebhookDto ToWebhookDto(WebhookSubscription row) =>
         new(row.Id, row.Name, row.Url, row.Events, row.Enabled, row.CreatedAt);

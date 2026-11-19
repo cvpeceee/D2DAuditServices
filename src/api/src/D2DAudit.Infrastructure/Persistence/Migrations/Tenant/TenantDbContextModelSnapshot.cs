@@ -139,6 +139,9 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -2731,6 +2734,13 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.Tenant
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SigningSecretEncrypted")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasDefaultValue("");
 
                     b.Property<string>("SigningSecretHash")
                         .IsRequired()

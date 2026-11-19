@@ -402,7 +402,7 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
             return false;
         }
 
-        var url = api.TrimEnd('/') + "/repos/" + fullName + "/branches/" + Uri.EscapeDataString(branch) + "/protection";
+        var url = api.TrimEnd('/') + "/repos/" + RepoPath(fullName) + "/branches/" + Uri.EscapeDataString(branch) + "/protection";
         using var request = Authorized(url, token);
         using var response = await http.SendAsync(request, cancellationToken);
         return response.IsSuccessStatusCode;
@@ -499,7 +499,7 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
                     if (start >= 0 && end > start + 1)
                     {
                         var candidate = segment[(start + 1)..end].Trim();
-                        if (SafeUrl.IsHttpOrHttps(candidate))
+                        if (SafeUrl.IsSameOrigin(candidate, url))
                         {
                             nextUrl = candidate;
                         }

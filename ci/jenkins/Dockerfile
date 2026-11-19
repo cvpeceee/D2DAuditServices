@@ -5,6 +5,7 @@ FROM jenkins/jenkins:lts-jdk21
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash \
         ca-certificates \
         curl \
         git \
@@ -26,14 +27,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Gitleaks 8.28.0
-RUN curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz" \
-    | tar -xz -C /usr/local/bin gitleaks \
+# Install Gitleaks 8.28.0 (supports both amd64 and arm64 hosts)
+RUN ARCH=$(dpkg --print-architecture) \
+    && case "$ARCH" in amd64) GL_ARCH=x64 ;; arm64) GL_ARCH=arm64 ;; *) echo "Unsupported arch: $ARCH" && exit 1 ;; esac \
+    && curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_${GL_ARCH}.tar.gz" \
+        | tar -xz -C /usr/local/bin gitleaks \
     && chmod +x /usr/local/bin/gitleaks
 
-# Install Docker CLI (for Testcontainers / Postgres integration tests when Docker socket is mounted)
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
+# Install Docker CLI using the detected Debian codename (optional fallback if using Testcontainers)
+RUN . /etc/os-release \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/debian ${VERSION_CODENAME} stable" \
         > /etc/apt/sources.list.d/docker.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends docker-ce-cli \

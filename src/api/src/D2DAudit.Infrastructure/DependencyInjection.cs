@@ -122,6 +122,10 @@ public static class DependencyInjection
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+        services.AddSingleton<WebhookSecretProtector>();
+        services.AddScoped<IApiKeyAuthenticator, ApiKeyAuthenticator>();
+        services.AddHttpClient<IWebhookDispatcher, WebhookDispatcher>(client => client.Timeout = TimeSpan.FromSeconds(15))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();
         services.AddSingleton<AwsInspectorFeed>();
         services.AddScoped<IVulnerabilityIngest, VulnerabilityIngest>();

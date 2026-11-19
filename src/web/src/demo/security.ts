@@ -815,6 +815,17 @@ function parseSarifDemo(
   return added;
 }
 
+export function securitySummaryOf(world: DemoWorld) {
+  const state = getState(world);
+  return {
+    exposures: exposureBoard(state),
+    scans: scansBoard(state),
+    dspm: dspmBoard(state),
+    finops: finOpsBoard(state),
+    attackPaths: buildAttackPaths(world, state),
+  };
+}
+
 export function handleCloudSecurity(
   method: string,
   path: string,
@@ -823,6 +834,7 @@ export function handleCloudSecurity(
   actor: Actor,
 ): Response | null {
   if (!path.startsWith("/api/v1/security/")) return null;
+  if (actor.role === "Auditor") return json({ code: "forbidden" }, 403);
   const state = getState(world);
 
   if (path === "/api/v1/security/exposure" && method === "GET") {

@@ -18,9 +18,9 @@ public static class WorkspaceEndpoints
         group.MapPut("/controls/{code}/owner", AssignOwner).RequireAuthorization("TenantWrite").Produces<ControlDetail>();
         group.MapGet("/jobs", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.JobsAsync(cancellationToken));
         group.MapGet("/activity", Activity).RequireAuthorization("TenantAdmin").Produces<IReadOnlyList<ActivityDto>>();
-        group.MapGet("/notifications", (IClientRead read, CancellationToken cancellationToken) => read.NotificationsAsync(cancellationToken));
-        group.MapGet("/devices", (IClientRead read, CancellationToken cancellationToken) => read.DevicesAsync(cancellationToken));
-        group.MapGet("/resources", (IClientRead read, CancellationToken cancellationToken) => read.ResourcesAsync(cancellationToken));
+        group.MapGet("/notifications", (IClientRead read, CancellationToken cancellationToken) => read.NotificationsAsync(cancellationToken)).RequireAuthorization("WorkspaceMember");
+        group.MapGet("/devices", (IClientRead read, CancellationToken cancellationToken) => read.DevicesAsync(cancellationToken)).RequireAuthorization("WorkspaceMember");
+        group.MapGet("/resources", (IClientRead read, CancellationToken cancellationToken) => read.ResourcesAsync(cancellationToken)).RequireAuthorization("WorkspaceMember");
         return app;
     }
 

@@ -17,13 +17,13 @@ public static class OperationsEndpoints
             .RequireRateLimiting("public_trust");
 
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/computers", (IOperations portal, CancellationToken cancellationToken) => portal.ComputersAsync(cancellationToken)).Produces<IReadOnlyList<ComputerItem>>();
+        group.MapGet("/computers", (IOperations portal, CancellationToken cancellationToken) => portal.ComputersAsync(cancellationToken)).RequireAuthorization("WorkspaceMember").Produces<IReadOnlyList<ComputerItem>>();
         group.MapPost("/computers", SaveComputer).RequireAuthorization("TenantWrite").Produces<ComputerItem>();
         group.MapPost("/computers/{id:guid}/screenshot", UploadScreenshot).RequireAuthorization("TenantWrite").Produces<ComputerItem>();
-        group.MapGet("/vulnerabilities", (IOperations portal, CancellationToken cancellationToken) => portal.VulnerabilitiesAsync(cancellationToken)).Produces<VulnerabilityBoard>();
+        group.MapGet("/vulnerabilities", (IOperations portal, CancellationToken cancellationToken) => portal.VulnerabilitiesAsync(cancellationToken)).RequireAuthorization("WorkspaceMember").Produces<VulnerabilityBoard>();
         group.MapPost("/vulnerabilities/{id:guid}/ignore", Ignore).RequireAuthorization("TenantWrite").Produces<VulnerabilityItem>();
         group.MapPost("/vulnerabilities/sla", SaveSla).RequireAuthorization("TenantWrite").Produces<VulnerabilitySlaDto>();
-        group.MapGet("/trust", (IOperations portal, CancellationToken cancellationToken) => portal.TrustAdminAsync(cancellationToken)).Produces<TrustAdminPage>();
+        group.MapGet("/trust", (IOperations portal, CancellationToken cancellationToken) => portal.TrustAdminAsync(cancellationToken)).RequireAuthorization("TenantWrite").Produces<TrustAdminPage>();
         group.MapPost("/trust", SaveTrust).RequireAuthorization("TenantWrite").Produces<TrustAdminPage>();
         group.MapPost("/trust/documents", SaveDocument).RequireAuthorization("TenantWrite").Produces<TrustDocumentDto>();
         group.MapPost("/trust/requests/{id:guid}", Decide).RequireAuthorization("TenantWrite").Produces<TrustRequestDto>();

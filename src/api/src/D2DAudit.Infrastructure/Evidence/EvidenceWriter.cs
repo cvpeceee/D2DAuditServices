@@ -63,6 +63,7 @@ public sealed class EvidenceWriter(IStorageProvider storage, TimeProvider time, 
             item.Integrity = EvidenceIntegrity.Verified;
             item.LockedUntil = lockedUntil;
             item.CollectedAt = now;
+            await db.SaveChangesAsync(cancellationToken);
         }
         finally
         {

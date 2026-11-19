@@ -60,10 +60,12 @@ export function TrustPublicPage() {
   const [verified, setVerified] = useState<"idle" | "valid" | "invalid">("idle");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
   const [ndaToken, setNdaToken] = useState("");
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [reply, setReply] = useState<TrustReply | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -88,18 +90,27 @@ export function TrustPublicPage() {
 
   async function requestAccess(event: React.FormEvent) {
     event.preventDefault();
-    await api(`/api/v1/public/trust/${encodeURIComponent(slug)}/requests`, {
-      method: "POST",
-      body: {
-        name: form.name,
-        email: form.email,
-        company: form.company,
-        purpose: form.purpose,
-        documentId: form.documentId || null,
-        ndaAccepted: form.ndaAccepted,
-      },
-    });
-    setSent(true);
+    setRequestError(null);
+    try {
+      await api(`/api/v1/public/trust/${encodeURIComponent(slug)}/requests`, {
+        method: "POST",
+        body: {
+          name: form.name,
+          email: form.email,
+          company: form.company,
+          purpose: form.purpose,
+          documentId: form.documentId || null,
+          ndaAccepted: form.ndaAccepted,
+        },
+      });
+      setSent(true);
+    } catch (caught) {
+      setRequestError(
+        caught instanceof ApiError && caught.code === "nda_required"
+          ? t("trustPublic.ndaRequiredError")
+          : t("errors.load"),
+      );
+    }
   }
 
   async function verifyReceiptLocally() {
@@ -121,14 +132,18 @@ export function TrustPublicPage() {
 
   async function downloadDoc(doc: Document) {
     setDownloadError(null);
-    const tokenQuery =
-      doc.access === "Nda" && ndaToken.trim()
-        ? `?token=${encodeURIComponent(ndaToken.trim())}`
-        : "";
+    const headers: Record<string, string> = {};
+    if (doc.access === "Nda" && ndaToken.trim()) {
+      headers["X-Trust-Token"] = ndaToken.trim();
+    }
     try {
       await download(
-        `/api/v1/public/trust/${encodeURIComponent(slug)}/documents/${doc.id}/download${tokenQuery}`,
-        doc.fileName || `${doc.title.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+        `/api/v1/public/trust/${encodeURIComponent(slug)}/documents/${doc.id}/download`,
+        null,
+        {
+          headers,
+          fallbackFileName: doc.fileName || `${doc.title.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+        },
       );
     } catch (caught) {
       setDownloadError(
@@ -143,12 +158,15 @@ export function TrustPublicPage() {
     event.preventDefault();
     if (!question.trim()) return;
     setAsking(true);
+    setAiError(null);
     try {
       const answer = await api<TrustReply>(`/api/v1/public/trust/${encodeURIComponent(slug)}/ask`, {
         method: "POST",
         body: { question },
       });
       setReply(answer);
+    } catch {
+      setAiError(t("errors.load"));
     } finally {
       setAsking(false);
     }
@@ -289,6 +307,11 @@ export function TrustPublicPage() {
                 {t("trustPublic.aiAsk")}
               </button>
             </form>
+            {aiError && (
+              <div className="error" role="alert" style={{ marginTop: 10 }}>
+                {aiError}
+              </div>
+            )}
             {reply && (
               <div className="notice" style={{ marginTop: 12, whiteSpace: "pre-line" }}>
                 <div>{reply.answer}</div>
@@ -301,6 +324,11 @@ export function TrustPublicPage() {
 
           <form className="card" onSubmit={(event) => void requestAccess(event)}>
             <h3>{t("trustPublic.request")}</h3>
+            {requestError && (
+              <div className="error" role="alert">
+                {requestError}
+              </div>
+            )}
             {sent ? (
               <div className="notice" role="status">
                 {t("trustPublic.sent")}

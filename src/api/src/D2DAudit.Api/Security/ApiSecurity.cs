@@ -60,13 +60,41 @@ public sealed class SessionAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IIdentityProvider identity) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    IIdentityProvider identity,
+    IApiKeyAuthenticator apiKeys) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     public const string SchemeName = "d2d";
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var token = ReadBearer() ?? ReadCookie();
+        var bearer = ReadBearer();
+        if (!string.IsNullOrWhiteSpace(bearer) && ApiKeyTokens.IsApiKey(bearer))
+        {
+            var keyIdentity = await apiKeys.ValidateAsync(bearer, Context.RequestAborted);
+            if (keyIdentity is null)
+            {
+                return AuthenticateResult.Fail("invalid api key");
+            }
+
+            var keyClaims = new List<Claim>
+            {
+                new("sub", $"api_key:{keyIdentity.KeyId:N}"),
+                new("d2d_auth", "api_key"),
+                new("d2d_key_id", keyIdentity.KeyId.ToString("N")),
+                new("d2d_tenant_id", keyIdentity.TenantId.ToString("N")),
+                new("d2d_tenant_name", keyIdentity.TenantName),
+                new("d2d_tenant_region", keyIdentity.Region),
+                new("d2d_tenant_example", keyIdentity.IsExample ? "true" : "false"),
+                new("d2d_tenant_db", keyIdentity.DatabaseName),
+                new("d2d_scopes", keyIdentity.Scopes),
+                new("email", keyIdentity.CreatedByEmail),
+                new("name", keyIdentity.KeyName),
+            };
+            var keyPrincipal = new ClaimsPrincipal(new ClaimsIdentity(keyClaims, SchemeName));
+            return AuthenticateResult.Success(new AuthenticationTicket(keyPrincipal, SchemeName));
+        }
+
+        var token = bearer ?? ReadCookie();
         if (string.IsNullOrWhiteSpace(token))
         {
             return AuthenticateResult.NoResult();
@@ -107,7 +135,8 @@ public sealed class CsrfMiddleware(RequestDelegate next)
         if (HttpMethods.IsGet(context.Request.Method)
             || HttpMethods.IsHead(context.Request.Method)
             || HttpMethods.IsOptions(context.Request.Method)
-            || context.Request.Path.StartsWithSegments("/health"))
+            || context.Request.Path.StartsWithSegments("/health")
+            || string.Equals(context.User.FindFirst("d2d_auth")?.Value, "api_key", StringComparison.Ordinal))
         {
             await next(context);
             return;
@@ -148,6 +177,46 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
         if (context.User.Identity?.IsAuthenticated != true)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        if (string.Equals(context.User.FindFirst("d2d_auth")?.Value, "api_key", StringComparison.Ordinal))
+        {
+            if (!Guid.TryParse(context.User.FindFirst("d2d_tenant_id")?.Value, out var keyTenantId)
+                || !Guid.TryParse(context.User.FindFirst("d2d_key_id")?.Value, out var keyId))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            if (context.Request.Headers.TryGetValue("X-Tenant-Id", out var requestedHeader) && !string.IsNullOrWhiteSpace(requestedHeader)
+                && (!Guid.TryParse(requestedHeader.ToString(), out var requestedTenantId) || requestedTenantId != keyTenantId))
+            {
+                await WriteProblem(context, StatusCodes.Status403Forbidden, "tenant_forbidden");
+                return;
+            }
+
+            var keyDb = context.User.FindFirst("d2d_tenant_db")?.Value;
+            if (keyDb is null || !DatabaseNames.IsSafe(keyDb))
+            {
+                await WriteProblem(context, StatusCodes.Status503ServiceUnavailable, "tenant_unavailable");
+                return;
+            }
+
+            var scopes = context.User.FindFirst("d2d_scopes")?.Value ?? "";
+            var role = ApiKeyTokens.CanWrite(scopes) ? TenantRole.ControlOwner : TenantRole.Employee;
+            tenant.Resolve(
+                keyTenantId,
+                context.User.FindFirst("d2d_tenant_name")?.Value ?? "",
+                context.User.FindFirst("d2d_tenant_region")?.Value ?? "US",
+                string.Equals(context.User.FindFirst("d2d_tenant_example")?.Value, "true", StringComparison.Ordinal),
+                keyId,
+                context.User.FindFirst("email")?.Value ?? "api@d2daudit.local",
+                context.User.FindFirst("name")?.Value ?? "API Key",
+                role,
+                [],
+                keyDb);
+            await next(context);
             return;
         }
 
@@ -241,6 +310,8 @@ public sealed class TenantAdminRequirement : IAuthorizationRequirement;
 
 public sealed class AuditActRequirement : IAuthorizationRequirement;
 
+public sealed class WorkspaceMemberRequirement : IAuthorizationRequirement;
+
 public sealed class TenantWriteHandler(TenantContext tenant, IActivityWriter activity, IHttpContextAccessor http) : AuthorizationHandler<TenantWriteRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TenantWriteRequirement requirement)
@@ -305,6 +376,30 @@ public sealed class AuditActHandler(TenantContext tenant, IActivityWriter activi
                 tenant.UserId,
                 tenant.TenantId,
                 "audit_denied",
+                "denied",
+                tenant.Role.ToString(),
+                http.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                http.HttpContext?.RequestAborted ?? CancellationToken.None);
+        }
+    }
+}
+
+public sealed class WorkspaceMemberHandler(TenantContext tenant, IActivityWriter activity, IHttpContextAccessor http) : AuthorizationHandler<WorkspaceMemberRequirement>
+{
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, WorkspaceMemberRequirement requirement)
+    {
+        if (tenant.IsResolved && !tenant.IsAuditor)
+        {
+            context.Succeed(requirement);
+            return;
+        }
+
+        if (tenant.IsResolved)
+        {
+            await activity.WriteAsync(
+                tenant.UserId,
+                tenant.TenantId,
+                "member_denied",
                 "denied",
                 tenant.Role.ToString(),
                 http.HttpContext?.Connection.RemoteIpAddress?.ToString(),

@@ -1069,7 +1069,7 @@ public sealed class GovernancePortal(
     {
         var acknowledgements = await db.Acknowledgements.AsNoTracking()
             .Include(item => item.Version).ThenInclude(version => version!.Policy)
-            .Where(item => item.PersonEmail == person.Email)
+            .Where(item => EF.Functions.ILike(item.PersonEmail, person.Email))
             .ToListAsync(cancellationToken);
         return new PersonDetail(
             person.Id,

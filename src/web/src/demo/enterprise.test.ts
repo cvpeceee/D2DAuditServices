@@ -59,11 +59,19 @@ describe("M9 Enterprise Super-App demo routes", () => {
         name: "Internal Zero Trust",
         version: "1.0",
         description: "Baseline clauses.",
-        requirementsCsv: "code,title,summary\nZT-1,Hardware MFA,Every admin uses FIDO2.",
+        requirementsCsv:
+          "code,title,summary\nZT-1,Marshall MFA,Marshall handlers shall verify FIDO2 on every admin session.",
       }),
     });
     expect(customRes.status).toBe(200);
     expect(((await customRes.json()) as { requirementCount: number }).requirementCount).toBe(1);
+    const customFw = (await (
+      await demoResponse("/api/v1/frameworks/internal-zero-trust")
+    ).json()) as {
+      requirements: { summary: string }[];
+    };
+    expect(customFw.requirements[0].summary).toContain("Marshall handlers must");
+    expect(customFw.requirements[0].summary).not.toContain("Marmust");
   });
 
   it("issues verifiable cryptographic trust receipts, gates NDA downloads, and answers public Trust Q&A", async () => {
@@ -154,6 +162,32 @@ describe("M9 Enterprise Super-App demo routes", () => {
       })
     ).json()) as { signingSecret: string; webhook: { id: string } };
     expect(hookCreated.signingSecret.startsWith("whsec_")).toBe(true);
+
+    // SSRF webhook targets are blocked.
+    const ssrfRes = await demoResponse("/api/v1/developer/webhooks", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Metadata",
+        url: "http://169.254.169.254/latest/meta-data/",
+        events: "*",
+      }),
+    });
+    expect(ssrfRes.status).toBe(400);
+    expect(((await ssrfRes.json()) as { code: string }).code).toBe("url_not_allowed");
+
+    // Webhook test endpoint signs and reports delivery.
+    const testRes = await demoResponse(
+      `/api/v1/developer/webhooks/${hookCreated.webhook.id}/test`,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+    );
+    expect(testRes.status).toBe(200);
+    const testDto = (await testRes.json()) as { delivered: boolean; signaturePreview: string };
+    expect(testDto.delivered).toBe(true);
+    expect(testDto.signaturePreview).toMatch(/^t=\d+,v1=/);
+
     expect(
       (
         await demoResponse(`/api/v1/developer/webhooks/${hookCreated.webhook.id}`, {
@@ -161,5 +195,19 @@ describe("M9 Enterprise Super-App demo routes", () => {
         })
       ).status,
     ).toBe(200);
+
+    // Public trust access requests require clickwrap NDA acceptance.
+    const unaccepted = await demoResponse("/api/v1/public/trust/harborline/requests", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Buyer",
+        email: "buyer@prospect.example",
+        company: "Prospect Co",
+        purpose: "SOC 2 review",
+        ndaAccepted: false,
+      }),
+    });
+    expect(unaccepted.status).toBe(403);
+    expect(((await unaccepted.json()) as { code: string }).code).toBe("nda_required");
   });
 });

@@ -17,6 +17,11 @@ public sealed class CloudSecurityPortal(
 {
     public async Task<ExposureBoardDto> ExposureBoardAsync(CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor)
+        {
+            return ToExposureBoard([]);
+        }
+
         await using var db = Open();
         var rows = await db.ExposureFindings.AsNoTracking()
             .OrderBy(item => item.Status)
@@ -66,6 +71,11 @@ public sealed class CloudSecurityPortal(
         if (addedCritical > 0)
         {
             await automation.DispatchAsync(
+                "ExposureCritical",
+                $"Exposure scan discovered {addedCritical} critical public exposure finding(s).",
+                "Review /exposure for open ports, public buckets, and 1-click Terraform remediation.",
+                cancellationToken);
+            await automation.DispatchAsync(
                 "TestFailed",
                 $"Exposure scan discovered {addedCritical} critical public exposure finding(s).",
                 "Review /exposure for open ports, public buckets, and 1-click Terraform remediation.",
@@ -104,6 +114,11 @@ public sealed class CloudSecurityPortal(
 
     public async Task<SecurityScansBoardDto> ScansBoardAsync(CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor)
+        {
+            return new SecurityScansBoardDto(0, 0, 0, [], [], []);
+        }
+
         await using var db = Open();
         var rows = await db.SecurityScanFindings.AsNoTracking()
             .OrderBy(item => item.Status)
@@ -170,6 +185,11 @@ public sealed class CloudSecurityPortal(
 
     public async Task<DspmBoardDto> DspmBoardAsync(CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor)
+        {
+            return ToDspmBoard([]);
+        }
+
         await using var db = Open();
         var rows = await db.DataStoreAssets.AsNoTracking()
             .OrderByDescending(item => item.RiskScore)
@@ -304,6 +324,11 @@ public sealed class CloudSecurityPortal(
 
     public async Task<FinOpsBoardDto> FinOpsBoardAsync(CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor)
+        {
+            return new FinOpsBoardDto(FinOpsAnalyzer.Summarize([]), []);
+        }
+
         await using var db = Open();
         var rows = await db.CostRecommendations.AsNoTracking()
             .OrderBy(item => item.Status)
@@ -342,6 +367,11 @@ public sealed class CloudSecurityPortal(
 
     public async Task<AttackPathsBoardDto> AttackPathsAsync(CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor)
+        {
+            return new AttackPathsBoardDto(0, 0, 0, []);
+        }
+
         await using var db = Open();
         var exposures = await db.ExposureFindings.AsNoTracking().ToListAsync(cancellationToken);
         var vulns = await db.Vulnerabilities.AsNoTracking().ToListAsync(cancellationToken);

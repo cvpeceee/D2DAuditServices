@@ -196,6 +196,38 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.ControlPlane
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("D2DAudit.Domain.ProviderClaim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalAccountId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("Provider", "ExternalAccountId")
+                        .IsUnique();
+
+                    b.ToTable("provider_claims", (string)null);
+                });
+
             modelBuilder.Entity("D2DAudit.Domain.Tenant", b =>
                 {
                     b.Property<Guid>("Id")

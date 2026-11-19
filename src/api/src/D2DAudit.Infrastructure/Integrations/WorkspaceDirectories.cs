@@ -300,7 +300,7 @@ public sealed class Microsoft365Directory(HttpClient http, IConfiguration config
                 }
             }
 
-            mfaUrl = NextGraphUrl(mfaDocument.RootElement);
+            mfaUrl = NextGraphUrl(mfaDocument.RootElement, graph);
         }
 
         var users = new List<NormalizedResource>();
@@ -343,16 +343,16 @@ public sealed class Microsoft365Directory(HttpClient http, IConfiguration config
                 }
             }
 
-            usersUrl = NextGraphUrl(usersDocument.RootElement);
+            usersUrl = NextGraphUrl(usersDocument.RootElement, graph);
         }
 
         return Result<ProviderCollect>.Ok(new ProviderCollect(users));
     }
 
-    private static string? NextGraphUrl(JsonElement root)
+    private static string? NextGraphUrl(JsonElement root, string graphOrigin)
     {
         var next = Text(root, "@odata.nextLink");
-        return SafeUrl.IsHttpOrHttps(next) ? next : null;
+        return SafeUrl.IsSameOrigin(next, graphOrigin) ? next : null;
     }
 
     private ProviderConnect Pending(string redirectUri, string state, string? domain)

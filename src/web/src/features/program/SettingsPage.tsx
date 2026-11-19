@@ -30,6 +30,7 @@ type ApiKeyItem = {
   createdByEmail: string;
   createdAt: string;
   revokedAt: string | null;
+  lastUsedAt?: string | null;
 };
 type WebhookItem = {
   id: string;
@@ -38,6 +39,13 @@ type WebhookItem = {
   events: string;
   enabled: boolean;
   createdAt: string;
+};
+type WebhookTestResult = {
+  delivered: boolean;
+  statusCode: number;
+  eventName: string;
+  signaturePreview: string;
+  detail: string;
 };
 const triggers = ["TestFailed", "ControlNotReady", "RiskCreated", "ReviewDue"] as const;
 const actions = ["Jira", "Slack", "Teams", "Email"] as const;
@@ -76,6 +84,7 @@ export function SettingsPage() {
     events: "test.failed,exposure.critical",
   });
   const [issuedSecret, setIssuedSecret] = useState<string | null>(null);
+  const [webhookStatus, setWebhookStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function load() {
@@ -192,7 +201,11 @@ export function SettingsPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {error === "last_admin" ? t("settingsPage.lastAdmin") : t("errors.load")}
+          {error === "last_admin"
+            ? t("settingsPage.lastAdmin")
+            : error === "url_not_allowed"
+              ? t("settingsPage.urlNotAllowed")
+              : t("errors.load")}
         </div>
       )}
       <div className="card">
@@ -317,12 +330,15 @@ export function SettingsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             if (!tenantId) return;
-            void api("/api/v1/settings/automation", { method: "POST", tenantId, body: rule }).then(
-              () => {
+            setError(null);
+            void api("/api/v1/settings/automation", { method: "POST", tenantId, body: rule })
+              .then(() => {
                 setRule({ ...rule, name: "", target: "" });
                 load();
-              },
-            );
+              })
+              .catch((caught: unknown) =>
+                setError(caught instanceof ApiError ? caught.code : "load"),
+              );
           }}
         >
           <div className="split-fields">
@@ -371,11 +387,16 @@ export function SettingsPage() {
             type="button"
             onClick={() => {
               if (!tenantId) return;
+              setError(null);
               void api("/api/v1/settings/automation/run", {
                 method: "POST",
                 tenantId,
                 body: {},
-              }).then(() => load());
+              })
+                .then(() => load())
+                .catch((caught: unknown) =>
+                  setError(caught instanceof ApiError ? caught.code : "load"),
+                );
             }}
           >
             {t("settingsPage.runDue")}
@@ -398,11 +419,18 @@ export function SettingsPage() {
             <b>{t("settingsPage.copyOnce")}:</b> <code>{issuedSecret}</code>
           </div>
         )}
+        {webhookStatus && (
+          <div className="notice" role="status" style={{ marginTop: 8 }}>
+            {webhookStatus}
+          </div>
+        )}
         <h4>{t("settingsPage.apiKeys")}</h4>
         <ul>
           {apiKeys.map((item) => (
             <li key={item.id}>
-              <b>{item.name}</b> · <code>{item.prefix}…</code> · {item.scopes}{" "}
+              <b>{item.name}</b> · <code>{item.prefix}…</code> · {item.scopes}
+              {item.lastUsedAt &&
+                ` · ${t("settingsPage.lastUsed", { when: formatWhen(item.lastUsedAt) })}`}{" "}
               {item.revokedAt ? (
                 <Pill status="fail">{t("settingsPage.revoked")}</Pill>
               ) : (
@@ -411,10 +439,15 @@ export function SettingsPage() {
                   className="linkish"
                   onClick={() => {
                     if (!tenantId) return;
+                    setError(null);
                     void api(`/api/v1/developer/keys/${item.id}`, {
                       method: "DELETE",
                       tenantId,
-                    }).then(() => load());
+                    })
+                      .then(() => load())
+                      .catch((caught: unknown) =>
+                        setError(caught instanceof ApiError ? caught.code : "load"),
+                      );
                   }}
                 >
                   {t("settingsPage.revoke")}
@@ -427,15 +460,20 @@ export function SettingsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             if (!tenantId) return;
+            setError(null);
             void api<{ plaintextKey: string }>("/api/v1/developer/keys", {
               method: "POST",
               tenantId,
               body: keyForm,
-            }).then((created) => {
-              setIssuedSecret(created.plaintextKey);
-              setKeyForm({ ...keyForm, name: "" });
-              load();
-            });
+            })
+              .then((created) => {
+                setIssuedSecret(created.plaintextKey);
+                setKeyForm({ ...keyForm, name: "" });
+                load();
+              })
+              .catch((caught: unknown) =>
+                setError(caught instanceof ApiError ? caught.code : "load"),
+              );
           }}
         >
           <div className="split-fields">
@@ -468,10 +506,40 @@ export function SettingsPage() {
                 className="linkish"
                 onClick={() => {
                   if (!tenantId) return;
+                  setError(null);
+                  setWebhookStatus(null);
+                  void api<WebhookTestResult>(`/api/v1/developer/webhooks/${item.id}/test`, {
+                    method: "POST",
+                    tenantId,
+                    body: {},
+                  })
+                    .then((res) => {
+                      setWebhookStatus(
+                        `${item.name}: ${res.delivered ? "OK" : "Failed"} (${res.detail}${res.signaturePreview ? ` · ${res.signaturePreview}` : ""})`,
+                      );
+                      load();
+                    })
+                    .catch((caught: unknown) =>
+                      setError(caught instanceof ApiError ? caught.code : "load"),
+                    );
+                }}
+              >
+                {t("settingsPage.testWebhook")}
+              </button>{" "}
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => {
+                  if (!tenantId) return;
+                  setError(null);
                   void api(`/api/v1/developer/webhooks/${item.id}`, {
                     method: "DELETE",
                     tenantId,
-                  }).then(() => load());
+                  })
+                    .then(() => load())
+                    .catch((caught: unknown) =>
+                      setError(caught instanceof ApiError ? caught.code : "load"),
+                    );
                 }}
               >
                 {t("settingsPage.remove")}
@@ -483,15 +551,20 @@ export function SettingsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             if (!tenantId) return;
+            setError(null);
             void api<{ signingSecret: string }>("/api/v1/developer/webhooks", {
               method: "POST",
               tenantId,
               body: webhookForm,
-            }).then((created) => {
-              setIssuedSecret(created.signingSecret);
-              setWebhookForm({ ...webhookForm, name: "", url: "" });
-              load();
-            });
+            })
+              .then((created) => {
+                setIssuedSecret(created.signingSecret);
+                setWebhookForm({ ...webhookForm, name: "", url: "" });
+                load();
+              })
+              .catch((caught: unknown) =>
+                setError(caught instanceof ApiError ? caught.code : "load"),
+              );
           }}
         >
           <div className="split-fields">

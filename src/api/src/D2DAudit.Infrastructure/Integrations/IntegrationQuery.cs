@@ -35,17 +35,21 @@ public sealed class IntegrationQuery(
         CancellationToken cancellationToken)
     {
         var key = provider.Trim().ToLowerInvariant();
-        if (key is not ("aws" or "google" or "microsoft" or "github"))
+        if (key is not ("aws" or "azure" or "gcp" or "google" or "microsoft" or "github"))
         {
             return Result<ConnectResponse>.Fail("unknown_provider");
         }
 
-        var allowedRedirects = (configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
-            .Concat(configuration.GetSection("WorkOS:RedirectUris").Get<string[]>() ?? [])
-            .ToArray();
-        if (!RedirectPolicy.IsAllowed(redirectUri, allowedRedirects))
+        var isOAuth = key is "google" or "microsoft" or "github";
+        if (isOAuth || !string.IsNullOrWhiteSpace(redirectUri))
         {
-            return Result<ConnectResponse>.Fail("redirect_not_allowed");
+            var allowedRedirects = (configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
+                .Concat(configuration.GetSection("WorkOS:RedirectUris").Get<string[]>() ?? [])
+                .ToArray();
+            if (!RedirectPolicy.IsAllowed(redirectUri, allowedRedirects))
+            {
+                return Result<ConnectResponse>.Fail("redirect_not_allowed");
+            }
         }
 
         await using var db = databases.Create(Database());
@@ -63,7 +67,7 @@ public sealed class IntegrationQuery(
             db.Integrations.Add(row);
         }
 
-        var isCallback = !string.IsNullOrWhiteSpace(request.Code) || !string.IsNullOrWhiteSpace(request.InstallationId);
+        var isCallback = isOAuth && (!string.IsNullOrWhiteSpace(request.Code) || !string.IsNullOrWhiteSpace(request.InstallationId));
         if (isCallback
             && (string.IsNullOrWhiteSpace(row.ExternalId)
                 || string.IsNullOrWhiteSpace(request.State)
@@ -79,7 +83,7 @@ public sealed class IntegrationQuery(
         {
             state = row.ExternalId!;
         }
-        else if (key == "aws" && !string.IsNullOrWhiteSpace(row.ExternalId))
+        else if (!isOAuth && !string.IsNullOrWhiteSpace(row.ExternalId))
         {
             state = row.ExternalId;
         }
@@ -87,7 +91,7 @@ public sealed class IntegrationQuery(
         {
             state = RandomNumberGenerator.GetHexString(32, lowercase: true);
         }
-        if (key != "aws" && !isCallback)
+        if (isOAuth && !isCallback)
         {
             row.ExternalId = state;
         }
@@ -99,13 +103,26 @@ public sealed class IntegrationQuery(
             return Result<ConnectResponse>.Fail(connected.Error ?? "connect_failed");
         }
 
+        if (!row.Example && string.Equals(connected.Value.Status, "connected", StringComparison.Ordinal))
+        {
+            var accountId = ClaimAccountId(key, connected.Value, row);
+            if (!string.IsNullOrWhiteSpace(accountId))
+            {
+                var claimError = await ClaimProviderAccountAsync(key, accountId, cancellationToken);
+                if (claimError is not null)
+                {
+                    return Result<ConnectResponse>.Fail(claimError);
+                }
+            }
+        }
+
         var error = providers.Apply(row, connected.Value);
         if (error is not null)
         {
             return Result<ConnectResponse>.Fail(error);
         }
 
-        if (isCallback && key != "aws")
+        if (isCallback)
         {
             // Rotate the OAuth state token after successful completion so it cannot be replayed.
             row.ExternalId = RandomNumberGenerator.GetHexString(32, lowercase: true);
@@ -124,6 +141,61 @@ public sealed class IntegrationQuery(
             connected.Value.TrustPolicy,
             connected.Value.PermissionPolicy));
     }
+
+    private async Task<string?> ClaimProviderAccountAsync(string provider, string rawAccountId, CancellationToken cancellationToken)
+    {
+        var normalized = rawAccountId.Trim().ToLowerInvariant();
+        if (normalized.Length is 0 or > 200)
+        {
+            return null;
+        }
+
+        var existing = await control.ProviderClaims.FirstOrDefaultAsync(
+            item => item.Provider == provider && item.ExternalAccountId == normalized,
+            cancellationToken);
+        if (existing is not null)
+        {
+            return existing.TenantId == tenant.TenantId ? null : "already_claimed";
+        }
+
+        var previous = await control.ProviderClaims
+            .Where(item => item.Provider == provider && item.TenantId == tenant.TenantId)
+            .ToListAsync(cancellationToken);
+        if (previous.Count > 0)
+        {
+            control.ProviderClaims.RemoveRange(previous);
+        }
+
+        control.ProviderClaims.Add(new ProviderClaim
+        {
+            Id = Guid.NewGuid(),
+            Provider = provider,
+            ExternalAccountId = normalized,
+            TenantId = tenant.TenantId,
+            ClaimedAt = time.GetUtcNow(),
+        });
+        try
+        {
+            await control.SaveChangesAsync(cancellationToken);
+            return null;
+        }
+        catch (DbUpdateException)
+        {
+            return "already_claimed";
+        }
+    }
+
+    private static string? ClaimAccountId(string provider, ProviderConnect connected, IntegrationConnection row) => provider switch
+    {
+        "github" => FirstNonEmpty(connected.InstallationId, row.InstallationId),
+        "microsoft" => FirstNonEmpty(connected.Domain, row.Domain),
+        "azure" => FirstNonEmpty(connected.AccountLabel, row.AccountLabel),
+        "gcp" => FirstNonEmpty(connected.AccountLabel, row.AccountLabel),
+        _ => null,
+    };
+
+    private static string? FirstNonEmpty(string? first, string? second) =>
+        !string.IsNullOrWhiteSpace(first) ? first : second;
 
     public Task<Result<Guid>> CollectAsync(CancellationToken cancellationToken) =>
         schedule.StartAsync(tenant.TenantId, cancellationToken);

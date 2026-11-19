@@ -41,7 +41,7 @@ pipeline {
             parallel {
                 stage('API Build, Test & NuGet Audit') {
                     steps {
-                        sh '''
+                        sh '''#!/usr/bin/env bash
                             set -euo pipefail
                             dotnet --info
                             dotnet build src/api/D2DAudit.slnx --configuration Release
@@ -50,22 +50,22 @@ pipeline {
                         '''
                         script {
                             if (params.RUN_INTEGRATION_TESTS) {
-                                sh '''
+                                sh '''#!/usr/bin/env bash
                                     set -euo pipefail
                                     dotnet test src/api/tests/D2DAudit.Tests/D2DAudit.Tests.csproj \
                                         --configuration Release --no-build --logger "trx;LogFileName=integration-tests.trx"
                                 '''
                             } else {
-                                sh '''
+                                sh '''#!/usr/bin/env bash
                                     set -euo pipefail
                                     dotnet test src/api/tests/D2DAudit.Tests/D2DAudit.Tests.csproj \
                                         --configuration Release --no-build \
-                                        --filter "FullyQualifiedName~ArchitectureTests|FullyQualifiedName~SchemaParityTests|FullyQualifiedName~CloudInventoryTests|FullyQualifiedName~Framework_content_matches_the_public_structure" \
+                                        --filter "FullyQualifiedName~ArchitectureTests|FullyQualifiedName~SchemaParityTests|FullyQualifiedName~CloudInventoryTests|FullyQualifiedName~Framework_content_matches_the_public_structure|FullyQualifiedName~ApiPipelineSecurityTests" \
                                         --logger "trx;LogFileName=arch-schema-tests.trx"
                                 '''
                             }
                         }
-                        sh '''
+                        sh '''#!/usr/bin/env bash
                             set -euo pipefail
                             dotnet list src/api/D2DAudit.slnx package --vulnerable --include-transitive | tee vuln.txt
                             if grep -q "has the following vulnerable packages" vuln.txt; then
@@ -79,7 +79,7 @@ pipeline {
                 stage('Web Lint, Format, Test, Build & Audit') {
                     steps {
                         dir('src/web') {
-                            sh '''
+                            sh '''#!/usr/bin/env bash
                                 set -euo pipefail
                                 node --version
                                 npm ci
@@ -101,10 +101,16 @@ pipeline {
 
                 stage('Secrets Scan (Gitleaks)') {
                     steps {
-                        sh '''
+                        sh '''#!/usr/bin/env bash
                             set -euo pipefail
                             if ! command -v gitleaks >/dev/null 2>&1; then
-                                curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz" | tar -xz -C /tmp gitleaks
+                                ARCH=$(uname -m)
+                                case "$ARCH" in
+                                    x86_64|amd64) GL_ARCH=x64 ;;
+                                    aarch64|arm64) GL_ARCH=arm64 ;;
+                                    *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+                                esac
+                                curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_${GL_ARCH}.tar.gz" | tar -xz -C /tmp gitleaks
                                 GITLEAKS_BIN=/tmp/gitleaks
                             else
                                 GITLEAKS_BIN=$(command -v gitleaks)
@@ -118,7 +124,7 @@ pipeline {
 
         stage('Package Review Site & Live Demo') {
             steps {
-                sh '''
+                sh '''#!/usr/bin/env bash
                     set -euo pipefail
                     rm -rf build/pages
                     mkdir -p build/pages
@@ -142,10 +148,20 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-pages-token', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-                    sh '''
+                    sh '''#!/usr/bin/env bash
                         set -euo pipefail
-                        REPO_URL=$(git config --get remote.origin.url | sed -E 's#https://([^/]+)/(.*)#https://'"${GH_USER}:${GH_TOKEN}"'@\\1/\\2#')
+                        RAW_URL=$(git config --get remote.origin.url)
+                        if [[ "$RAW_URL" =~ ^git@([^:]+):(.+)$ ]]; then
+                            HTTPS_URL="https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+                        elif [[ "$RAW_URL" =~ ^https://([^@]+@)?(.+)$ ]]; then
+                            HTTPS_URL="https://${BASH_REMATCH[2]}"
+                        else
+                            echo "Unsupported origin URL format."
+                            exit 1
+                        fi
+                        AUTH_B64=$(printf '%s:%s' "$GH_USER" "$GH_TOKEN" | base64 | tr -d '\n')
                         TMP_DIR=$(mktemp -d)
+                        trap 'rm -rf "$TMP_DIR"' EXIT
                         cp -a build/pages/. "$TMP_DIR/"
                         touch "$TMP_DIR/.nojekyll"
                         cd "$TMP_DIR"
@@ -154,8 +170,7 @@ pipeline {
                         git config user.email "jenkins@d2daudit.local"
                         git add -A
                         git commit -m "Deploy review site & live demo from ${GIT_COMMIT:-main}"
-                        git push --force "$REPO_URL" gh-pages
-                        rm -rf "$TMP_DIR"
+                        git -c "http.extraHeader=Authorization: Basic ${AUTH_B64}" push --force "$HTTPS_URL" gh-pages
                     '''
                 }
             }

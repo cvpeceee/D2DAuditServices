@@ -39,13 +39,23 @@ public sealed class ProgramPortal(
         var openAcks = acknowledgements.Where(item => item.AcknowledgedAt is null).ToArray();
         var annual = await CompletionAsync(db, TrainingContent.AnnualCode, person.Email, cancellationToken);
         var deviceReady = person.DeviceStatus is "Reporting" or "Screenshot";
+        var backgroundAction = "none";
+        if (person.BackgroundStatus == "Clear")
+        {
+            backgroundAction = "done";
+        }
+        else if (tenant.CanWrite)
+        {
+            backgroundAction = "record";
+        }
+
         var cards = new List<MeCard>
         {
             Card("Policy", AckStatus(openAcks, Today()), openAcks.Length == 0 ? null : openAcks.Min(item => item.DueOn), openAcks.Length == 0 ? "done" : "acknowledge", null),
             Card("Training", TrainingStatus(person), person.TrainingDueOn, person.Training == TrainingState.Complete ? "done" : "open", annual.Evidence),
             Card("Mfa", person.MfaEnrolled ? "Complete" : "Due", person.HireOn?.AddDays(14), person.MfaEnrolled ? "done" : "attest", null),
             Card("Device", deviceReady ? "Complete" : "Due", Today().AddDays(7), deviceReady ? "done" : "upload", null),
-            Card("BackgroundCheck", BackgroundLabel(person.BackgroundStatus), person.BackgroundOn, person.BackgroundStatus == "Clear" ? "done" : "record", null),
+            Card("BackgroundCheck", BackgroundLabel(person.BackgroundStatus), person.BackgroundOn, backgroundAction, null),
         };
         return await WithHashesAsync(db, cards, cancellationToken);
     }
@@ -73,7 +83,7 @@ public sealed class ProgramPortal(
         Guid? evidenceId = null;
         if (request.Kind == "Policy")
         {
-            var rows = await db.Acknowledgements.Include(item => item.Version).Where(item => item.PersonEmail == person.Email && item.AcknowledgedAt == null).ToListAsync(cancellationToken);
+            var rows = await db.Acknowledgements.Include(item => item.Version).Where(item => EF.Functions.ILike(item.PersonEmail, person.Email) && item.AcknowledgedAt == null).ToListAsync(cancellationToken);
             foreach (var row in rows)
             {
                 row.AcknowledgedAt = time.GetUtcNow();
@@ -91,6 +101,7 @@ public sealed class ProgramPortal(
             person.MfaEnrolled = true;
             Mark(person, "mfa");
             evidenceId = await StoreAsync(db, "HR-06", "MFA attestation " + person.Name, "Employee portal", person.Name + " confirmed a second factor is enrolled.", cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
             await RefreshMfaTestAsync(db, cancellationToken);
         }
         else if (request.Kind == "Device")
@@ -152,7 +163,8 @@ public sealed class ProgramPortal(
             return Result<TrainingModuleDetail>.Fail("not_found");
         }
 
-        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail == tenant.Email, cancellationToken);
+        var normalizedEmail = tenant.Email.Trim();
+        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
         var hash = await HashAsync(db, completion?.EvidenceId, cancellationToken);
         var slides = module.ModuleType == "BuiltIn"
             ? TrainingContent.Slides.Select(item => new TrainingSlideDto(item.Title, item.Body)).ToArray()
@@ -184,13 +196,12 @@ public sealed class ProgramPortal(
         var module = await db.TrainingModules.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
         var total = await db.People.CountAsync(cancellationToken);
         var people = await db.People.AsNoTracking().OrderBy(item => item.Name).Skip((index - 1) * size).Take(size).ToListAsync(cancellationToken);
-        var emails = people.Select(item => item.Email).ToArray();
         var completions = module is null
             ? []
-            : await db.TrainingCompletions.AsNoTracking().Where(item => item.ModuleId == id && emails.Contains(item.PersonEmail)).ToListAsync(cancellationToken);
+            : await db.TrainingCompletions.AsNoTracking().Where(item => item.ModuleId == id).ToListAsync(cancellationToken);
         var items = people.Select(person =>
         {
-            var completion = completions.FirstOrDefault(item => item.PersonEmail == person.Email);
+            var completion = completions.FirstOrDefault(item => string.Equals(item.PersonEmail, person.Email, StringComparison.OrdinalIgnoreCase));
             var status = completion is not null ? "Complete" : person.Training.ToString();
             return new TrainingPersonItem(person.Name, person.Email, person.Department, status, completion is null ? null : DateOnly.FromDateTime(completion.CompletedAt.UtcDateTime), person.TrainingDueOn);
         }).ToArray();
@@ -206,7 +217,8 @@ public sealed class ProgramPortal(
             return Result<QuizResult>.Fail("not_found");
         }
 
-        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail == tenant.Email, cancellationToken);
+        var normalizedEmail = tenant.Email.Trim();
+        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
         if (existing is not null)
         {
             return Result<QuizResult>.Ok(new QuizResult(true, existing.Score, TrainingContent.Questions.Count, existing.EvidenceId, await HashAsync(db, existing.EvidenceId, cancellationToken)));
@@ -236,7 +248,8 @@ public sealed class ProgramPortal(
             return Result<QuizResult>.Fail("not_found");
         }
 
-        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail == tenant.Email, cancellationToken);
+        var normalizedEmail = tenant.Email.Trim();
+        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
         if (existing is not null)
         {
             return Result<QuizResult>.Ok(new QuizResult(true, existing.Score, 1, existing.EvidenceId, await HashAsync(db, existing.EvidenceId, cancellationToken)));
@@ -658,6 +671,7 @@ public sealed class ProgramPortal(
             Mark(person, "training");
         }
 
+        await db.SaveChangesAsync(cancellationToken);
         await RefreshTrainingTestAsync(db, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "training.completed", "ok", module.Code, null, cancellationToken);

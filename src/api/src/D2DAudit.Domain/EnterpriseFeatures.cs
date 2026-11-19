@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace D2DAudit.Domain;
 
@@ -20,6 +21,8 @@ public sealed class ApiKeyRecord
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    public DateTimeOffset? LastUsedAt { get; set; }
+
     public DateTimeOffset? RevokedAt { get; set; }
 }
 
@@ -34,6 +37,8 @@ public sealed class WebhookSubscription
     public string Events { get; set; } = "test.failed,exposure.critical";
 
     public string SigningSecretHash { get; set; } = "";
+
+    public string SigningSecretEncrypted { get; set; } = "";
 
     public bool Enabled { get; set; } = true;
 
@@ -93,24 +98,33 @@ public static class TrustReceiptBuilder
         IReadOnlyList<TrustReceiptFramework> frameworks,
         int chainEntryCount,
         long latestSequence,
-        string chainHeadHash)
+        string chainHeadHash,
+        bool chainVerified = true)
     {
         var ordered = frameworks.OrderBy(item => item.Key, StringComparer.Ordinal).ToArray();
-        var status = chainEntryCount > 0 && !string.IsNullOrWhiteSpace(chainHeadHash) ? "Verified" : "Empty";
+        var status = "Broken";
+        if (chainEntryCount <= 0 || string.IsNullOrWhiteSpace(chainHeadHash))
+        {
+            status = "Empty";
+        }
+        else if (chainVerified)
+        {
+            status = "Verified";
+        }
         var fwSummary = string.Join(';', ordered.Select(item =>
-            $"{item.Key}:{item.Passing.ToString(CultureInfo.InvariantCulture)}/{item.Total.ToString(CultureInfo.InvariantCulture)}"));
+            $"{CleanField(item.Key)}:{item.Passing.ToString(CultureInfo.InvariantCulture)}/{item.Total.ToString(CultureInfo.InvariantCulture)}"));
         var canonical = string.Join(
             '|',
             "d2d-trust-receipt-v1",
-            slug,
-            tenantName,
-            region,
+            CleanField(slug),
+            CleanField(tenantName),
+            CleanField(region),
             retentionYears.ToString(CultureInfo.InvariantCulture),
             issuedAtUtc.UtcDateTime.ToString("O", CultureInfo.InvariantCulture),
             fwSummary,
             chainEntryCount.ToString(CultureInfo.InvariantCulture),
             latestSequence.ToString(CultureInfo.InvariantCulture),
-            chainHeadHash ?? "",
+            CleanField(chainHeadHash ?? ""),
             status);
         var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
         return new TrustReceiptDocument(
@@ -127,6 +141,11 @@ public static class TrustReceiptBuilder
             canonical,
             digest);
     }
+
+    private static string CleanField(string value) =>
+        (value ?? "").Replace("|", "/", StringComparison.Ordinal)
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal);
 
     public static bool Verify(string canonicalPayload, string receiptSha256)
     {
@@ -186,7 +205,7 @@ public static class FrameworkSimulator
     }
 }
 
-public static class CustomFrameworkCsv
+public static partial class CustomFrameworkCsv
 {
     public static IReadOnlyList<CustomRequirementRow> Parse(string? csv)
     {
@@ -224,10 +243,7 @@ public static class CustomFrameworkCsv
                 continue;
             }
 
-            if (summary.Contains("shall", StringComparison.OrdinalIgnoreCase))
-            {
-                summary = summary.Replace("shall", "must", StringComparison.OrdinalIgnoreCase);
-            }
+            summary = ShallWord().Replace(summary, "must");
 
             if (seen.Add(code))
             {
@@ -237,6 +253,9 @@ public static class CustomFrameworkCsv
 
         return rows;
     }
+
+    [GeneratedRegex("\\bshall\\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ShallWord();
 
     private static List<string> SplitLine(string line)
     {
@@ -395,5 +414,113 @@ public static class GroundedAssistant
         }
 
         return words;
+    }
+}
+
+public static class ApiKeyTokens
+{
+    public const string Prefix = "d2d_api_";
+
+    public static string Create(Guid tenantId)
+    {
+        var secret = RandomNumberGenerator.GetHexString(32, lowercase: true);
+        return $"{Prefix}{tenantId:N}_{secret}";
+    }
+
+    public static bool IsApiKey(string? token) =>
+        !string.IsNullOrWhiteSpace(token) && token.Trim().StartsWith(Prefix, StringComparison.Ordinal);
+
+    public static bool TryParseTenantId(string? token, out Guid tenantId)
+    {
+        tenantId = Guid.Empty;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        var trimmed = token.Trim();
+        if (!trimmed.StartsWith(Prefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var body = trimmed[Prefix.Length..];
+        var sep = body.IndexOf('_', StringComparison.Ordinal);
+        if (sep != 32 || body.Length < 48)
+        {
+            return false;
+        }
+
+        return Guid.TryParseExact(body[..32], "N", out tenantId);
+    }
+
+    public static bool CanWrite(string? scopes)
+    {
+        if (string.IsNullOrWhiteSpace(scopes))
+        {
+            return false;
+        }
+
+        return scopes.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Any(scope => scope.StartsWith("write:", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(scope, "write", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(scope, "*", StringComparison.Ordinal));
+    }
+}
+
+public static class WebhookSigning
+{
+    public static string Sign(string secret, long unixTimestamp, string payload)
+    {
+        var key = Encoding.UTF8.GetBytes(secret);
+        var message = Encoding.UTF8.GetBytes($"{unixTimestamp.ToString(CultureInfo.InvariantCulture)}.{payload}");
+        var mac = HMACSHA256.HashData(key, message);
+        var hex = Convert.ToHexString(mac).ToLowerInvariant();
+        return $"t={unixTimestamp.ToString(CultureInfo.InvariantCulture)},v1={hex}";
+    }
+
+    public static bool Verify(string secret, long unixTimestamp, string payload, string headerValue)
+    {
+        if (string.IsNullOrWhiteSpace(secret) || string.IsNullOrWhiteSpace(headerValue))
+        {
+            return false;
+        }
+
+        var expected = Sign(secret, unixTimestamp, payload);
+        var a = Encoding.ASCII.GetBytes(expected);
+        var b = Encoding.ASCII.GetBytes(headerValue.Trim());
+        return a.Length == b.Length && CryptographicOperations.FixedTimeEquals(a, b);
+    }
+
+    public static string EventNameForTrigger(string trigger) => trigger switch
+    {
+        "TestFailed" => "test.failed",
+        "ControlNotReady" => "control.not_ready",
+        "RiskCreated" => "risk.created",
+        "ReviewDue" => "review.due",
+        "ExposureCritical" => "exposure.critical",
+        _ => trigger.Trim().ToLowerInvariant(),
+    };
+
+    public static bool MatchesEvent(string? subscribedEvents, string eventName)
+    {
+        if (string.IsNullOrWhiteSpace(subscribedEvents))
+        {
+            return false;
+        }
+
+        var tokens = subscribedEvents.Split([',', ' ', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var token in tokens)
+        {
+            if (token == "*"
+                || string.Equals(token, eventName, StringComparison.OrdinalIgnoreCase)
+                || (token.EndsWith(".*", StringComparison.Ordinal)
+                    && eventName.StartsWith(token[..^1], StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -95,9 +95,10 @@ export async function demoResponse(path: string, init?: RequestInit) {
   restore();
   const url = new URL(path, "http://demo.local");
   const method = (init?.method ?? "GET").toUpperCase();
+  const headers = new Headers(init?.headers);
   const body = await readBody(init?.body);
   try {
-    return await route(method, url.pathname, url.searchParams, body);
+    return await route(method, url.pathname, url.searchParams, headers, body);
   } catch (error) {
     const code = error instanceof DemoError ? error.code : "request_failed";
     const status = error instanceof DemoError ? error.status : 500;
@@ -118,11 +119,12 @@ async function route(
   method: string,
   path: string,
   query: URLSearchParams,
+  headers: Headers,
   body: Record<string, unknown>,
 ) {
   if (path.startsWith("/api/v1/public/trust/")) {
     const data = await world();
-    const extra = await handlePublicTrustEnterprise(method, path, query, body, data);
+    const extra = await handlePublicTrustEnterprise(method, path, query, headers, body, data);
     if (extra) return extra;
     return publicTrust(method, path, body, data);
   }
@@ -1354,7 +1356,8 @@ function soaDocument(data: DemoWorld): ExportDocument {
 }
 
 function quoted(value: string) {
-  return `"${value.replaceAll('"', '""')}"`;
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replaceAll('"', '""')}"`;
 }
 
 function onScale(value: number) {
@@ -1882,7 +1885,8 @@ function slug(value: string) {
 }
 
 function csvCell(value: string) {
-  return /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return /[",\n\r]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
 async function sha256(text: string) {

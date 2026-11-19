@@ -110,4 +110,26 @@ describe("M8 Cloud Security Intelligence demo routes", () => {
     expect(paths.highestBlastRadius).toBeGreaterThanOrEqual(80);
     expect(paths.paths[0].hops.map((hop) => hop.stage)).toContain("Crown Jewel");
   });
+
+  it("forbids external auditors from internal cloud security, computers, vulnerabilities, and trust admin endpoints", async () => {
+    const login = await demoResponse("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email: "auditor@northgate.example", password: examplePassword }),
+    });
+    expect(login.status).toBe(200);
+
+    for (const path of [
+      "/api/v1/security/exposure",
+      "/api/v1/security/scans",
+      "/api/v1/security/dspm",
+      "/api/v1/security/finops",
+      "/api/v1/security/attack-paths",
+      "/api/v1/computers",
+      "/api/v1/vulnerabilities",
+      "/api/v1/trust",
+    ]) {
+      const response = await demoResponse(path);
+      expect(response.status, path).toBe(403);
+    }
+  });
 });

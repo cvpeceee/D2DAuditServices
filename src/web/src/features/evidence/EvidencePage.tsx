@@ -5,6 +5,7 @@ import {
   ApiError,
   api,
   download,
+  fetchBlob,
   type EvidenceItem,
   type EvidencePage as EvidencePayload,
   type Job,
@@ -15,12 +16,22 @@ import { Pill } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
+type PreviewState = {
+  item: EvidenceItem;
+  fileName: string;
+  contentType: string;
+  sha256: string | null;
+  text: string | null;
+  sizeBytes: number;
+};
+
 export function EvidencePage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [page, setPage] = useState<EvidencePayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<VerifyReport | null>(null);
+  const [preview, setPreview] = useState<PreviewState | null>(null);
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
   const [controlCode, setControlCode] = useState("");
@@ -38,6 +49,37 @@ export function EvidencePage() {
     // Reload when the workspace changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId]);
+
+  async function openPreview(item: EvidenceItem) {
+    if (!tenantId) return;
+    setError(null);
+    try {
+      const fetched = await fetchBlob(
+        `/api/v1/evidence/${encodeURIComponent(item.id)}/download`,
+        tenantId,
+      );
+      const isText =
+        fetched.contentType.startsWith("text/") ||
+        fetched.contentType.includes("json") ||
+        fetched.contentType.includes("xml") ||
+        /\.(txt|csv|json|log|md)$/i.test(fetched.fileName);
+      let text: string | null = null;
+      if (isText) {
+        const full = await fetched.blob.text();
+        text = full.length > 16_384 ? `${full.slice(0, 16_384)}\n…` : full;
+      }
+      setPreview({
+        item,
+        fileName: fetched.fileName,
+        contentType: fetched.contentType,
+        sha256: fetched.sha256 ?? item.sha256 ?? null,
+        text,
+        sizeBytes: fetched.blob.size,
+      });
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
+  }
 
   async function verify() {
     if (!tenantId) return;
@@ -194,7 +236,14 @@ export function EvidencePage() {
                           })
                         : t("evidencePage.pending")}
                       {item.integrity === "verified" && (
-                        <div>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button
+                            className="linkish"
+                            type="button"
+                            onClick={() => void openPreview(item)}
+                          >
+                            {t("evidencePage.preview")}
+                          </button>
                           <button
                             className="linkish"
                             type="button"
@@ -217,6 +266,55 @@ export function EvidencePage() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+      {preview && (
+        <div
+          className="card"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("evidencePage.previewTitle", { title: preview.item.title })}
+          style={{ marginTop: 14 }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <div>
+              <h3>{preview.item.title}</h3>
+              <div className="m">
+                {preview.fileName} · {preview.contentType} · {preview.sizeBytes} B
+              </div>
+              {preview.sha256 && (
+                <div className="id" style={{ wordBreak: "break-all" }}>
+                  SHA-256: <code>{preview.sha256}</code>
+                </div>
+              )}
+            </div>
+            <div className="act">
+              <button
+                className="btn"
+                type="button"
+                onClick={() =>
+                  void download(
+                    `/api/v1/evidence/${encodeURIComponent(preview.item.id)}/download`,
+                    tenantId,
+                  ).catch((caught: unknown) =>
+                    setError(caught instanceof ApiError ? caught.code : "load"),
+                  )
+                }
+              >
+                {t("evidencePage.download")}
+              </button>
+              <button className="btn" type="button" onClick={() => setPreview(null)}>
+                {t("shell.close")}
+              </button>
+            </div>
+          </div>
+          {preview.text !== null ? (
+            <pre style={{ marginTop: 10, maxHeight: 320, overflow: "auto" }}>{preview.text}</pre>
+          ) : (
+            <div className="notice" style={{ marginTop: 10 }}>
+              {t("evidencePage.binaryNotice")}
+            </div>
+          )}
         </div>
       )}
       {workspace?.canWrite && (

@@ -1,6 +1,34 @@
 import { company, type DemoNode, type DemoWorld } from "./catalog";
 import { trustStateOf } from "./m6";
 import { plainPdf } from "./pdf";
+import { securitySummaryOf } from "./security";
+
+function isPublicHttpUrl(raw: string): boolean {
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    if (parsed.username || parsed.password) return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host.endsWith(".localhost") ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host === "::1" ||
+      host === "0.0.0.0" ||
+      /^127\./.test(host) ||
+      /^10\./.test(host) ||
+      /^192\.168\./.test(host) ||
+      /^169\.254\./.test(host) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 type Actor = { email: string; name: string; role: string };
 
@@ -214,6 +242,7 @@ export async function handlePublicTrustEnterprise(
   method: string,
   path: string,
   query: URLSearchParams,
+  headers: Headers,
   body: Record<string, unknown>,
   world: DemoWorld,
 ): Promise<Response | null> {
@@ -282,12 +311,13 @@ export async function handlePublicTrustEnterprise(
     const doc = trust.documents.find((item) => item.id === docId);
     if (!doc) return json({ code: "not_found" }, 404);
     if (doc.access === "Nda") {
-      const token = (query.get("token") ?? "").trim();
+      const token = (headers.get("X-Trust-Token") ?? query.get("token") ?? "").trim();
       const ok =
         token.length > 0 &&
         trust.requests.some(
           (req) =>
             req.status === "Approved" &&
+            req.ndaAccepted &&
             req.accessToken === token &&
             (!req.documentId || req.documentId === doc.id),
         );
@@ -404,7 +434,7 @@ export function handleEnterprise(
       reqs.push({
         code: code.trim(),
         title: title.trim(),
-        summary: (rest.join(",").trim() || title.trim()).replace(/shall/gi, "must"),
+        summary: (rest.join(",").trim() || title.trim()).replace(/\bshall\b/gi, "must"),
         controls: [],
         children: [],
       });
@@ -421,8 +451,8 @@ export function handleEnterprise(
   }
 
   if (path.startsWith("/api/v1/frameworks/") && path.endsWith("/simulator") && method === "GET") {
+    if (actor.role === "Auditor") return json({ code: "forbidden" }, 403);
     const key = decodeURIComponent(path.slice("/api/v1/frameworks/".length, -"/simulator".length));
-    if (actor.role === "Auditor" && key !== "soc2") return json({ code: "forbidden" }, 403);
     const sim = simulateFramework(world, key);
     return sim ? json(sim) : json({ code: "not_found" }, 404);
   }
@@ -499,6 +529,9 @@ export function handleEnterprise(
       }));
       return json(answerFromFacts(question, facts, "auditor scope (soc2)"));
     }
+    const sec = securitySummaryOf(world);
+    const openExposures = sec.exposures.findings.filter((item) => item.status === "Open");
+    const openCosts = sec.finops.recommendations.filter((item) => item.status === "Open");
     const facts: Fact[] = [
       ...world.controls.map((c) => ({
         kind: "Control",
@@ -516,32 +549,34 @@ export function handleEnterprise(
           detail: `Failing check: ${ch.detail} Remediation: ${ch.remediation}`,
           href: "/tests",
         })),
-      {
+      ...openExposures.map((exp) => ({
         kind: "Exposure",
-        code: "CFG-01",
-        title: "AWS sg-staging-analytics-mongo (MongoDB:27017)",
-        detail: "Open Critical exposure from 0.0.0.0/0 (risk 98/100). 1-click Terraform available.",
+        code: exp.controlCode,
+        title: `${exp.provider.toUpperCase()} ${exp.resourceName} (${exp.service}:${exp.port})`,
+        detail: `Open ${exp.severity} exposure from ${exp.cidr} (risk ${exp.riskScore}/100). ${exp.summary}`,
         href: "/exposure",
-      },
-      {
+      })),
+      ...sec.attackPaths.paths.map((ap) => ({
         kind: "AttackPath",
-        code: "AP-01",
-        title: "Internet MongoDB (sg-staging-analytics-mongo) to harborline-staging-exports",
-        detail: "Blast radius 98/100 (Critical). Close 0.0.0.0/0 port 27017 first.",
+        code: ap.id,
+        title: ap.title,
+        detail: `Blast radius ${ap.blastRadiusScore}/100 (${ap.severity}). ${ap.chokepointRemediation}`,
         href: "/attack-paths",
-      },
-      {
-        kind: "DSPM",
-        code: "CFG-01",
-        title: "harborline-staging-exports (Restricted PII/SSN)",
-        detail: "AWS S3 unencrypted & public with 480,000 records (DSPM risk 100).",
-        href: "/dspm",
-      },
+      })),
+      ...sec.dspm.stores
+        .filter((store) => store.riskScore >= 50 || store.publicAccess || !store.encrypted)
+        .map((store) => ({
+          kind: "DSPM",
+          code: store.controlCode,
+          title: `${store.storeName} (${store.classification} ${store.sensitiveDataTypes})`,
+          detail: `${store.engine} (${store.encrypted ? "encrypted" : "unencrypted"}, ${store.publicAccess ? "public" : "private"}) with ~${store.recordCountEstimate.toLocaleString()} records (DSPM risk ${store.riskScore}).`,
+          href: "/dspm",
+        })),
       {
         kind: "FinOps",
-        code: "CR-02",
-        title: "$2,075/mo ($24,900/yr) open cloud savings across 5 compliance-linked findings",
-        detail: "Includes staging S3 lifecycle ($640/mo) and overprovisioned Azure PG ($890/mo).",
+        code: "FINOPS",
+        title: `$${sec.finops.summary.openMonthlyUsd.toLocaleString()}/mo ($${sec.finops.summary.openAnnualUsd.toLocaleString()}/yr) open cloud savings across ${openCosts.length} finding(s)`,
+        detail: `${sec.finops.summary.complianceLinkedCount} compliance-linked savings findings totaling $${sec.finops.summary.complianceLinkedMonthlyUsd.toLocaleString()}/mo.`,
         href: "/finops",
       },
       ...world.policies.map((p) => ({
@@ -563,7 +598,7 @@ export function handleEnterprise(
       const name = String(body.name ?? "").trim();
       const scopes = String(body.scopes ?? "read:controls,read:evidence").trim();
       if (!name) return json({ code: "invalid_api_key" }, 400);
-      const plaintextKey = `d2d_api_${crypto.randomUUID().replaceAll("-", "")}`;
+      const plaintextKey = `d2d_api_a360c8ce09884dfc9722bce45697b553_${crypto.randomUUID().replaceAll("-", "")}`;
       const key: DemoApiKey = {
         id: crypto.randomUUID(),
         name,
@@ -589,6 +624,7 @@ export function handleEnterprise(
       const url = String(body.url ?? "").trim();
       const events = String(body.events ?? "test.failed,exposure.critical").trim();
       if (!name || !/^https?:\/\//i.test(url)) return json({ code: "invalid_webhook" }, 400);
+      if (!isPublicHttpUrl(url)) return json({ code: "url_not_allowed" }, 400);
       const webhook: DemoWebhook = {
         id: crypto.randomUUID(),
         name,
@@ -599,6 +635,23 @@ export function handleEnterprise(
       };
       state.webhooks.unshift(webhook);
       return json({ webhook, signingSecret: `whsec_${crypto.randomUUID().replaceAll("-", "")}` });
+    }
+    if (
+      path.startsWith("/api/v1/developer/webhooks/") &&
+      path.endsWith("/test") &&
+      method === "POST"
+    ) {
+      const id = path.slice("/api/v1/developer/webhooks/".length, -"/test".length);
+      const hook = state.webhooks.find((item) => item.id === id);
+      if (!hook) return json({ code: "not_found" }, 404);
+      const ts = Math.floor(Date.now() / 1000);
+      return json({
+        delivered: true,
+        statusCode: 200,
+        eventName: "webhook.test",
+        signaturePreview: `t=${ts},v1=demo9f4c2a1b8e7d`,
+        detail: "demo:signed",
+      });
     }
     if (path.startsWith("/api/v1/developer/webhooks/") && method === "DELETE") {
       const id = path.slice("/api/v1/developer/webhooks/".length);

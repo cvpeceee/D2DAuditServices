@@ -18,6 +18,8 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
 
     public DbSet<TenantDomain> TenantDomains => Set<TenantDomain>();
 
+    public DbSet<ProviderClaim> ProviderClaims => Set<ProviderClaim>();
+
     public DbSet<JobRecord> Jobs => Set<JobRecord>();
 
     public DbSet<ActivityEvent> Activity => Set<ActivityEvent>();
@@ -72,6 +74,14 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         domain.Property(x => x.Domain).HasMaxLength(253).IsRequired();
         domain.Property(x => x.WorkOsOrganizationId).HasMaxLength(64);
         domain.HasIndex(x => x.Domain).IsUnique();
+
+        var claim = modelBuilder.Entity<ProviderClaim>();
+        claim.ToTable("provider_claims");
+        claim.HasKey(x => x.Id);
+        claim.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        claim.Property(x => x.ExternalAccountId).HasMaxLength(200).IsRequired();
+        claim.HasIndex(x => new { x.Provider, x.ExternalAccountId }).IsUnique();
+        claim.HasIndex(x => x.TenantId);
 
         var job = modelBuilder.Entity<JobRecord>();
         job.ToTable("jobs");
@@ -822,6 +832,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         webhook.Property(x => x.Url).HasMaxLength(500).IsRequired();
         webhook.Property(x => x.Events).HasMaxLength(500).IsRequired();
         webhook.Property(x => x.SigningSecretHash).HasMaxLength(64).IsRequired();
+        webhook.Property(x => x.SigningSecretEncrypted).HasMaxLength(2000).HasDefaultValue("").IsRequired();
     }
 }
 

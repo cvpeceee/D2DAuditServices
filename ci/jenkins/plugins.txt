@@ -8,4 +8,4 @@ timestamper
 ws-cleanup
 junit
 credentials-binding
-blueocean
+pipeline-graph-view

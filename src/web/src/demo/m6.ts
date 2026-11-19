@@ -746,6 +746,8 @@ export function publicTrust(
       : undefined;
     if (documentId && !document) return fail(404, "not_found");
     const ndaAccepted = Boolean(body.ndaAccepted);
+    const requiresNda = !document || document.access !== "Public";
+    if (requiresNda && !ndaAccepted) return fail(403, "nda_required");
     const nowIso = new Date().toISOString();
     const row: DemoTrustRequest = {
       id: crypto.randomUUID(),
@@ -775,7 +777,10 @@ export function handleM6(
   data: DemoWorld,
   actor: Actor,
 ) {
-  if (path === "/api/v1/computers" && method === "GET") return json(stateOf(data).computers);
+  if (path === "/api/v1/computers" && method === "GET") {
+    if (actor.role === "Auditor") return fail(403, "forbidden");
+    return json(stateOf(data).computers);
+  }
   if (path === "/api/v1/computers" && method === "POST") return saveComputer(data, actor, body);
   if (path === "/api/v1/computers/check-in" && method === "POST") {
     return saveComputer(data, actor, { ...body, source: "Agent" });
@@ -787,12 +792,18 @@ export function handleM6(
   if (path.startsWith("/api/v1/computers/") && path.endsWith("/screenshot") && method === "POST") {
     return screenshot(data, actor, path.split("/")[4], body);
   }
-  if (path === "/api/v1/vulnerabilities" && method === "GET") return json(board(data));
+  if (path === "/api/v1/vulnerabilities" && method === "GET") {
+    if (actor.role === "Auditor") return fail(403, "forbidden");
+    return json(board(data));
+  }
   if (path === "/api/v1/vulnerabilities/sync" && method === "POST") {
     if (!canWrite(actor)) return fail(403, "forbidden");
     return json({ imported: 0 });
   }
-  if (path === "/api/v1/vulnerabilities/pentests" && method === "GET") return json(reportsOf(data));
+  if (path === "/api/v1/vulnerabilities/pentests" && method === "GET") {
+    if (actor.role === "Auditor") return fail(403, "forbidden");
+    return json(reportsOf(data));
+  }
   if (path === "/api/v1/vulnerabilities/pentests" && method === "POST") {
     return uploadPentest(data, actor, body);
   }
@@ -805,7 +816,10 @@ export function handleM6(
   ) {
     return ignoreFinding(data, actor, path.split("/")[4], body);
   }
-  if (path === "/api/v1/trust" && method === "GET") return json(trustAdmin(data));
+  if (path === "/api/v1/trust" && method === "GET") {
+    if (!canWrite(actor)) return fail(403, "forbidden");
+    return json(trustAdmin(data));
+  }
   if (path === "/api/v1/trust" && method === "POST") return saveTrust(data, actor, body);
   if (path === "/api/v1/trust/documents" && method === "POST")
     return saveDocument(data, actor, body);

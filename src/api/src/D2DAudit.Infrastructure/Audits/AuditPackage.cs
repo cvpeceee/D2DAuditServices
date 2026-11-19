@@ -90,54 +90,64 @@ public sealed class AuditPackageRunner(
         var report = await evidence.VerifyAsync(db, work.TenantId, cancellationToken);
 
         await jobs.AdvanceAsync(work.JobId, 3, Steps, "Packing evidence files", cancellationToken);
-        var packed = new List<PackedFile>();
-        foreach (var controlItem in inScope)
+        var manifestFiles = new List<PackageManifestFile>();
+        using var zipBuffer = new MemoryStream();
+        using (var zip = new ZipArchive(zipBuffer, ZipArchiveMode.Create, leaveOpen: true))
         {
-            foreach (var item in controlItem.Evidence.Where(entry => !string.IsNullOrWhiteSpace(entry.ObjectKey) && InPeriod(work, entry.CollectedAt)))
+            foreach (var controlItem in inScope)
             {
-                var parts = item.ObjectKey!.Split('/');
-                var name = parts[^1];
-                try
+                foreach (var item in controlItem.Evidence.Where(entry => !string.IsNullOrWhiteSpace(entry.ObjectKey) && InPeriod(work, entry.CollectedAt)))
                 {
-                    var body = await storage.GetAsync(item.ObjectKey, cancellationToken);
-                    packed.Add(new PackedFile($"evidence/{controlItem.Code}/{name}", body, EvidenceChain.ContentHash(body), item.Sha256 ?? "", controlItem.Code, item.Title));
-                }
-                catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
-                {
-                    logger.LogWarning(exception, "Evidence object {ObjectKey} missing while packing audit package {JobId}.", item.ObjectKey, work.JobId);
-                    var notice = Encoding.UTF8.GetBytes($"Evidence object '{item.ObjectKey}' could not be read from storage. Chain integrity report records the break.\n");
-                    packed.Add(new PackedFile($"evidence/{controlItem.Code}/{name}.missing.txt", notice, "missing_object", item.Sha256 ?? "", controlItem.Code, item.Title));
+                    var parts = item.ObjectKey!.Split('/');
+                    var name = parts[^1];
+                    try
+                    {
+                        var body = await storage.GetAsync(item.ObjectKey, cancellationToken);
+                        var path = $"evidence/{controlItem.Code}/{name}";
+                        Write(zip, path, body);
+                        manifestFiles.Add(new PackageManifestFile(path, EvidenceChain.ContentHash(body), item.Sha256 ?? "", controlItem.Code, item.Title));
+                    }
+                    catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
+                    {
+                        logger.LogWarning(exception, "Evidence object {ObjectKey} missing while packing audit package {JobId}.", item.ObjectKey, work.JobId);
+                        var notice = Encoding.UTF8.GetBytes($"Evidence object '{item.ObjectKey}' could not be read from storage. Chain integrity report records the break.\n");
+                        var path = $"evidence/{controlItem.Code}/{name}.missing.txt";
+                        Write(zip, path, notice);
+                        manifestFiles.Add(new PackageManifestFile(path, "missing_object", item.Sha256 ?? "", controlItem.Code, item.Title));
+                    }
                 }
             }
+
+            await jobs.AdvanceAsync(work.JobId, 4, Steps, "Writing the manifest and control matrix", cancellationToken);
+            var generatedAt = time.GetUtcNow();
+            var manifest = new PackageManifest(
+                work.TenantId.ToString("N"),
+                generatedAt,
+                report.Intact,
+                report.Checked,
+                report.Reason,
+                manifestFiles);
+            var matrix = MatrixRows(inScope, work);
+            await jobs.AdvanceAsync(work.JobId, 5, Steps, "Writing connections, vendors, and access", cancellationToken);
+            var assets = await db.Assets.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
+            var connections = await db.Integrations.AsNoTracking().OrderBy(item => item.Provider).ToListAsync(cancellationToken);
+            var vendors = await db.Vendors.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
+            var accounts = await db.PersonAccounts.AsNoTracking().Include(item => item.Person).OrderBy(item => item.Provider).ToListAsync(cancellationToken);
+            var repositories = await db.Resources.AsNoTracking().Where(item => item.Kind == "repository").OrderBy(item => item.Name).ToListAsync(cancellationToken);
+            var manual = inScope.SelectMany(controlItem => controlItem.Evidence
+                    .Where(item => InPeriod(work, item.CollectedAt) && !item.Source.StartsWith("Automated", StringComparison.Ordinal))
+                    .Select(item => (controlItem.Code, item)))
+                .ToArray();
+            await jobs.AdvanceAsync(work.JobId, 6, Steps, "Writing the asset inventory", cancellationToken);
+            var description = await SystemDescriptionText.CurrentAsync(db, tenant.Name, tenant.Region, SystemDescriptionText.Product(tenant.IsExample), cancellationToken);
+            WriteSummaryEntries(zip, manifest, matrix, assets, connections, vendors, accounts, repositories, manual, inScope, work.FrameworkKeys, description);
         }
 
-        await jobs.AdvanceAsync(work.JobId, 4, Steps, "Writing the manifest and control matrix", cancellationToken);
-        var generatedAt = time.GetUtcNow();
-        var manifest = new PackageManifest(
-            work.TenantId.ToString("N"),
-            generatedAt,
-            report.Intact,
-            report.Checked,
-            report.Reason,
-            packed.Select(file => new PackageManifestFile(file.Path, file.Sha256, file.RecordedSha256, file.ControlCode, file.Title)).ToArray());
-        var matrix = MatrixRows(inScope);
-        await jobs.AdvanceAsync(work.JobId, 5, Steps, "Writing connections, vendors, and access", cancellationToken);
-        var assets = await db.Assets.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
-        var connections = await db.Integrations.AsNoTracking().OrderBy(item => item.Provider).ToListAsync(cancellationToken);
-        var vendors = await db.Vendors.AsNoTracking().OrderBy(item => item.Name).ToListAsync(cancellationToken);
-        var accounts = await db.PersonAccounts.AsNoTracking().Include(item => item.Person).OrderBy(item => item.Provider).ToListAsync(cancellationToken);
-        var repositories = await db.Resources.AsNoTracking().Where(item => item.Kind == "repository").OrderBy(item => item.Name).ToListAsync(cancellationToken);
-        var manual = inScope.SelectMany(controlItem => controlItem.Evidence
-                .Where(item => InPeriod(work, item.CollectedAt) && !item.Source.StartsWith("Automated", StringComparison.Ordinal))
-                .Select(item => (controlItem.Code, item)))
-            .ToArray();
-        await jobs.AdvanceAsync(work.JobId, 6, Steps, "Writing the asset inventory", cancellationToken);
-        var description = await SystemDescriptionText.CurrentAsync(db, tenant.Name, tenant.Region, SystemDescriptionText.Product(tenant.IsExample), cancellationToken);
-        var zip = BuildZip(manifest, matrix, packed, assets, connections, vendors, accounts, repositories, manual, inScope, description);
+        var zipBytes = zipBuffer.ToArray();
         var key = string.IsNullOrWhiteSpace(work.StorageKey) ? $"{work.TenantId:N}/exports/{work.JobId:N}.zip" : work.StorageKey;
 
         await jobs.AdvanceAsync(work.JobId, 7, Steps, "Storing the package", cancellationToken);
-        await storage.PutAsync(key, zip, "application/zip", null, cancellationToken);
+        await storage.PutAsync(key, zipBytes, "application/zip", null, cancellationToken);
         await jobs.FinishAsync(work.JobId, true, null, "Package ready", cancellationToken);
     }
 
@@ -153,22 +163,29 @@ public sealed class AuditPackageRunner(
             && frameworkKeys.Contains(key, StringComparer.Ordinal));
     }
 
-    private static IReadOnlyList<MatrixRow> MatrixRows(IReadOnlyList<Control> controls) =>
-        controls.OrderBy(item => item.Code, StringComparer.Ordinal).Select(item => new MatrixRow(
-            item.Code,
-            item.Title,
-            item.Status.ToString(),
-            string.Join(" ", item.Mappings.Select(mapping => mapping.Requirement?.Code).Where(code => code is not null).Distinct().Order(StringComparer.Ordinal)),
-            item.Evidence.Count,
-            string.Join(" ", item.Evidence.Select(entry => entry.Sha256).Where(hash => !string.IsNullOrWhiteSpace(hash))))).ToArray();
+    private static IReadOnlyList<MatrixRow> MatrixRows(IReadOnlyList<Control> controls, ExportWork work) =>
+        controls.OrderBy(item => item.Code, StringComparer.Ordinal).Select(item =>
+        {
+            var scopedMappings = item.Mappings.Where(mapping =>
+                work.FrameworkKeys is null
+                || (mapping.Requirement?.Framework?.Key is string fk && work.FrameworkKeys.Contains(fk, StringComparer.Ordinal)));
+            var scopedEvidence = item.Evidence.Where(entry => InPeriod(work, entry.CollectedAt)).ToArray();
+            return new MatrixRow(
+                item.Code,
+                item.Title,
+                item.Status.ToString(),
+                string.Join(" ", scopedMappings.Select(mapping => mapping.Requirement?.Code).Where(code => code is not null).Distinct().Order(StringComparer.Ordinal)),
+                scopedEvidence.Length,
+                string.Join(" ", scopedEvidence.Select(entry => entry.Sha256).Where(hash => !string.IsNullOrWhiteSpace(hash))));
+        }).ToArray();
 
     private static bool InPeriod(ExportWork work, DateTimeOffset? collected) =>
         work.PeriodStart is not DateOnly start || work.PeriodEnd is not DateOnly end || AuditWindow.Contains(start, end, collected);
 
-    private static byte[] BuildZip(
+    private static void WriteSummaryEntries(
+        ZipArchive zip,
         PackageManifest manifest,
         IReadOnlyList<MatrixRow> matrix,
-        IReadOnlyList<PackedFile> files,
         IReadOnlyList<TrackedAsset> assets,
         IReadOnlyList<IntegrationConnection> connections,
         IReadOnlyList<VendorRecord> vendors,
@@ -176,35 +193,26 @@ public sealed class AuditPackageRunner(
         IReadOnlyList<ResourceSnapshot> repositories,
         IReadOnlyList<(string Code, EvidenceItem Item)> manual,
         IReadOnlyList<Control> controls,
+        string[]? frameworkKeys,
         string systemDescription)
     {
-        using var buffer = new MemoryStream();
-        using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
+        Write(zip, "manifest.json", JsonSerializer.SerializeToUtf8Bytes(manifest, Json));
+        Write(zip, "integrity-report.json", JsonSerializer.SerializeToUtf8Bytes(new
         {
-            Write(zip, "manifest.json", JsonSerializer.SerializeToUtf8Bytes(manifest, Json));
-            Write(zip, "integrity-report.json", JsonSerializer.SerializeToUtf8Bytes(new
-            {
-                manifest.Intact,
-                manifest.Checked,
-                manifest.Reason,
-            }, Json));
-            Write(zip, "control-matrix.csv", Encoding.UTF8.GetBytes(Csv(matrix)));
-            Write(zip, "control-matrix.pdf", PlainPdf.Document(PdfLines(matrix)));
-            Write(zip, "control-mapping.csv", Encoding.UTF8.GetBytes(MappingCsv(controls)));
-            Write(zip, "connections.csv", Encoding.UTF8.GetBytes(ConnectionCsv(connections)));
-            Write(zip, "vendors.csv", Encoding.UTF8.GetBytes(VendorCsv(vendors)));
-            Write(zip, "assets.csv", Encoding.UTF8.GetBytes(AssetCsv(assets)));
-            Write(zip, "infrastructure-access.csv", Encoding.UTF8.GetBytes(AccessCsv(accounts)));
-            Write(zip, "version-control.csv", Encoding.UTF8.GetBytes(RepositoryCsv(repositories)));
-            Write(zip, "manual-evidence.csv", Encoding.UTF8.GetBytes(ManualCsv(manual)));
-            Write(zip, "system-description.txt", Encoding.UTF8.GetBytes(systemDescription));
-            foreach (var file in files)
-            {
-                Write(zip, file.Path, file.Body);
-            }
-        }
-
-        return buffer.ToArray();
+            manifest.Intact,
+            manifest.Checked,
+            manifest.Reason,
+        }, Json));
+        Write(zip, "control-matrix.csv", Encoding.UTF8.GetBytes(Csv(matrix)));
+        Write(zip, "control-matrix.pdf", PlainPdf.Document(PdfLines(matrix)));
+        Write(zip, "control-mapping.csv", Encoding.UTF8.GetBytes(MappingCsv(controls, frameworkKeys)));
+        Write(zip, "connections.csv", Encoding.UTF8.GetBytes(ConnectionCsv(connections)));
+        Write(zip, "vendors.csv", Encoding.UTF8.GetBytes(VendorCsv(vendors)));
+        Write(zip, "assets.csv", Encoding.UTF8.GetBytes(AssetCsv(assets)));
+        Write(zip, "infrastructure-access.csv", Encoding.UTF8.GetBytes(AccessCsv(accounts)));
+        Write(zip, "version-control.csv", Encoding.UTF8.GetBytes(RepositoryCsv(repositories)));
+        Write(zip, "manual-evidence.csv", Encoding.UTF8.GetBytes(ManualCsv(manual)));
+        Write(zip, "system-description.txt", Encoding.UTF8.GetBytes(systemDescription));
     }
 
     private static void Write(ZipArchive zip, string name, byte[] body)
@@ -252,13 +260,17 @@ public sealed class AuditPackageRunner(
         return builder.ToString();
     }
 
-    private static string MappingCsv(IReadOnlyList<Control> controls)
+    private static string MappingCsv(IReadOnlyList<Control> controls, string[]? frameworkKeys)
     {
         var builder = new StringBuilder();
         builder.AppendLine("control,requirement,framework,coverage");
         foreach (var control in controls.OrderBy(item => item.Code, StringComparer.Ordinal))
         {
-            foreach (var mapping in control.Mappings.OrderBy(item => item.Requirement?.Code, StringComparer.Ordinal))
+            var scopedMappings = control.Mappings
+                .Where(item => frameworkKeys is null
+                    || (item.Requirement?.Framework?.Key is string fk && frameworkKeys.Contains(fk, StringComparer.Ordinal)))
+                .OrderBy(item => item.Requirement?.Code, StringComparer.Ordinal);
+            foreach (var mapping in scopedMappings)
             {
                 builder.Append(Cell(control.Code)).Append(',')
                     .Append(Cell(mapping.Requirement?.Code ?? "")).Append(',')
@@ -364,8 +376,6 @@ public sealed class AuditPackageRunner(
         return lines;
     }
 
-    private sealed record PackedFile(string Path, byte[] Body, string Sha256, string RecordedSha256, string ControlCode, string Title);
-
     private sealed record MatrixRow(string Code, string Title, string Status, string Requirements, int EvidenceCount, string Hashes);
 }
 
@@ -381,58 +391,14 @@ public sealed record PackageManifestFile(string Path, string Sha256, string Reco
 
 internal static class PlainPdf
 {
-    public static byte[] FromLines(IReadOnlyList<string> lines)
-    {
-        var commands = new StringBuilder();
-        commands.Append("BT\n/F1 9 Tf\n40 780 Td\n11 TL\n");
-        var first = true;
-        foreach (var line in lines.Take(60))
-        {
-            if (!first)
-            {
-                commands.Append("T*\n");
-            }
-
-            commands.Append('(').Append(Ascii(line)).Append(") Tj\n");
-            first = false;
-        }
-
-        commands.Append("ET\n");
-        var stream = Encoding.ASCII.GetBytes(commands.ToString());
-        var objects = new[]
-        {
-            "<< /Type /Catalog /Pages 2 0 R >>",
-            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
-            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-            $"<< /Length {stream.Length} >>\nstream\n{Encoding.ASCII.GetString(stream)}endstream",
-            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        };
-        var builder = new StringBuilder();
-        builder.Append("%PDF-1.4\n");
-        var offsets = new int[objects.Length];
-        for (var index = 0; index < objects.Length; index++)
-        {
-            offsets[index] = Encoding.ASCII.GetByteCount(builder.ToString());
-            builder.Append(index + 1).Append(" 0 obj\n").Append(objects[index]).Append("\nendobj\n");
-        }
-
-        var xref = Encoding.ASCII.GetByteCount(builder.ToString());
-        builder.Append("xref\n0 ").Append(objects.Length + 1).Append("\n0000000000 65535 f \n");
-        foreach (var offset in offsets)
-        {
-            builder.Append(offset.ToString("D10", CultureInfo.InvariantCulture)).Append(" 00000 n \n");
-        }
-
-        builder.Append("trailer << /Size ").Append(objects.Length + 1).Append(" /Root 1 0 R >>\nstartxref\n")
-            .Append(xref.ToString(CultureInfo.InvariantCulture)).Append("\n%%EOF");
-        return Encoding.ASCII.GetBytes(builder.ToString());
-    }
+    public static byte[] FromLines(IReadOnlyList<string> lines) => Document(lines);
 
     public static byte[] Document(IReadOnlyList<string> lines)
     {
         const int perPage = 45;
+        var wrapped = WrapLines(lines, maxChars: 95);
         var chunks = new List<IReadOnlyList<string>>();
-        var source = lines.Count == 0 ? [""] : lines;
+        var source = wrapped.Count == 0 ? [""] : wrapped;
         for (var offset = 0; offset < source.Count; offset += perPage)
         {
             chunks.Add(source.Skip(offset).Take(perPage).ToArray());
@@ -464,6 +430,40 @@ internal static class PlainPdf
         return Assemble(objects);
     }
 
+    private static IReadOnlyList<string> WrapLines(IReadOnlyList<string> lines, int maxChars)
+    {
+        var output = new List<string>();
+        foreach (var raw in lines)
+        {
+            var sanitized = SanitizeAscii(raw);
+            if (sanitized.Length <= maxChars)
+            {
+                output.Add(sanitized);
+                continue;
+            }
+
+            var remaining = sanitized;
+            while (remaining.Length > maxChars)
+            {
+                var split = remaining.LastIndexOf(' ', maxChars);
+                if (split <= 20)
+                {
+                    split = maxChars;
+                }
+
+                output.Add(remaining[..split].TrimEnd());
+                remaining = remaining[split..].TrimStart();
+            }
+
+            if (remaining.Length > 0)
+            {
+                output.Add(remaining);
+            }
+        }
+
+        return output;
+    }
+
     private static string Content(IReadOnlyList<string> lines)
     {
         var commands = new StringBuilder();
@@ -476,7 +476,7 @@ internal static class PlainPdf
                 commands.Append("T*\n");
             }
 
-            commands.Append('(').Append(Ascii(line)).Append(") Tj\n");
+            commands.Append('(').Append(SanitizeAscii(line)).Append(") Tj\n");
             first = false;
         }
 
@@ -508,10 +508,9 @@ internal static class PlainPdf
         return Encoding.ASCII.GetBytes(builder.ToString());
     }
 
-    private static string Ascii(string value)
+    private static string SanitizeAscii(string value)
     {
-        var chars = value.Select(character => character is >= (char)32 and <= (char)126 && character is not '(' and not ')' and not '\\' ? character : ' ').ToArray();
-        var text = new string(chars);
-        return text.Length <= 100 ? text : text[..100];
+        var chars = (value ?? "").Select(character => character is >= (char)32 and <= (char)126 && character is not '(' and not ')' and not '\\' ? character : ' ').ToArray();
+        return new string(chars);
     }
 }

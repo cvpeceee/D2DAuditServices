@@ -205,16 +205,7 @@ public sealed class QuestionnairePortal(
         return text.Length <= 400 ? text : text[..400];
     }
 
-    private static string Cell(string value)
-    {
-        var text = (value ?? "").Replace("\"", "\"\"", StringComparison.Ordinal);
-        if (text.Contains(',') || text.Contains('"') || text.Contains('\n'))
-        {
-            return "\"" + text + "\"";
-        }
-
-        return text;
-    }
+    private static string Cell(string value) => CsvSafety.EscapeCell(value);
 
     private static QuestionnaireSummary ToSummary(SecurityQuestionnaire row) => new(
         row.Id,

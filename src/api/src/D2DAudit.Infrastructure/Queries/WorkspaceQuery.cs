@@ -98,7 +98,7 @@ public sealed class WorkspaceQuery(
             dashboard.Frameworks.Select(item => (item.Name, item.Percent, item.Passing, item.Total)),
             dashboard.Health.Failing,
             dashboard.Health.DueSoon);
-        return new FileExport("executive-report.pdf", "application/pdf", PlainPdf.FromLines(lines));
+        return new FileExport("executive-report.pdf", "application/pdf", PlainPdf.Document(lines));
     }
 
     public async Task<IReadOnlyList<FrameworkListItem>> FrameworksAsync(CancellationToken cancellationToken)
@@ -193,8 +193,8 @@ public sealed class WorkspaceQuery(
 
         if (!string.IsNullOrWhiteSpace(ownerEmail))
         {
-            var owner = ownerEmail.Trim().ToLowerInvariant();
-            controls = controls.Where(controlItem => string.Equals(controlItem.OwnerEmail, owner, StringComparison.Ordinal)).ToList();
+            var owner = ownerEmail.Trim();
+            controls = controls.Where(controlItem => string.Equals(controlItem.OwnerEmail, owner, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         if (!string.IsNullOrWhiteSpace(query))
@@ -224,7 +224,24 @@ public sealed class WorkspaceQuery(
     {
         var controls = await LoadControlsAsync(cancellationToken);
         var controlItem = controls.FirstOrDefault(item => item.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
-        return controlItem is null ? null : ToDetail(controlItem);
+        if (controlItem is null)
+        {
+            return null;
+        }
+
+        (DateOnly Start, DateOnly End)? window = null;
+        if (tenant.IsAuditor)
+        {
+            await using var db = databases.Create(RequiredDatabase());
+            var audit = (await db.Audits.AsNoTracking().OrderByDescending(item => item.PeriodEnd).ToListAsync(cancellationToken))
+                .FirstOrDefault(item => tenant.AuditorFrameworkKeys.Contains(item.FrameworkKey, StringComparer.Ordinal));
+            if (audit is not null)
+            {
+                window = (audit.PeriodStart, audit.PeriodEnd);
+            }
+        }
+
+        return ToDetail(controlItem, window);
     }
 
     public async Task<Result<ControlDetail>> AssignOwnerAsync(string code, AssignOwnerRequest request, CancellationToken cancellationToken)
@@ -366,7 +383,7 @@ public sealed class WorkspaceQuery(
         }).OrderBy(item => item.Name, StringComparer.Ordinal).ToArray();
     }
 
-    private ControlDetail ToDetail(Control controlItem)
+    private ControlDetail ToDetail(Control controlItem, (DateOnly Start, DateOnly End)? window = null)
     {
         var mappings = controlItem.Mappings
             .Where(mapping => mapping.Requirement?.Framework is not null)
@@ -384,6 +401,7 @@ public sealed class WorkspaceQuery(
             .Select(test => new ControlTestDto(test.Id, test.Name, ApiName(test.Kind), ApiName(test.Outcome), test.Detail, test.Remediation))
             .ToArray();
         var evidence = controlItem.Evidence
+            .Where(item => window is null || AuditWindow.Contains(window.Value.Start, window.Value.End, item.CollectedAt))
             .OrderByDescending(item => item.CollectedAt)
             .Select(item => new EvidenceDto(item.Id, item.Title, item.Source, item.CollectedAt, ApiName(item.Integrity), item.Sha256, item.LockedUntil))
             .ToArray();

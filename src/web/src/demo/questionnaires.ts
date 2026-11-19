@@ -138,10 +138,11 @@ function questionsFrom(text: string) {
 }
 
 function csvCell(value: string) {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replaceAll('"', '""')}"`;
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  if (safe.includes(",") || safe.includes('"') || safe.includes("\n") || safe.includes("\r")) {
+    return `"${safe.replaceAll('"', '""')}"`;
   }
-  return value;
+  return safe;
 }
 
 export function handleQuestionnaires(

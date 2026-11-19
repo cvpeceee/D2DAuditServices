@@ -120,21 +120,70 @@ export async function api<T>(
   return (await response.json()) as T;
 }
 
-export async function download(path: string, tenantId: string | null, skipRefresh = false) {
-  const headers: Record<string, string> = { "X-D2D-Request": "1" };
+export type DownloadOptions = {
+  headers?: Record<string, string>;
+  fallbackFileName?: string;
+  skipRefresh?: boolean;
+};
+
+export type FetchedBlob = {
+  blob: Blob;
+  fileName: string;
+  contentType: string;
+  sha256: string | null;
+};
+
+export async function fetchBlob(
+  path: string,
+  tenantId: string | null,
+  options: DownloadOptions = {},
+): Promise<FetchedBlob> {
+  const headers: Record<string, string> = {
+    "X-D2D-Request": "1",
+    ...(options.headers ?? {}),
+  };
   if (tenantId) headers["X-Tenant-Id"] = tenantId;
   const response = await fetch(path, { headers, credentials: "include" });
-  if (response.status === 401 && !skipRefresh) {
+  if (response.status === 401 && !options.skipRefresh) {
     const refreshed = await refreshSession();
-    if (refreshed) return download(path, tenantId, true);
+    if (refreshed) return fetchBlob(path, tenantId, { ...options, skipRefresh: true });
   }
-  if (!response.ok) throw new ApiError(response.status, "request_failed");
+  if (!response.ok) {
+    let code = response.status === 401 ? "unauthorized" : "request_failed";
+    try {
+      const problem = (await response.json()) as {
+        code?: string;
+        errorCode?: string;
+        title?: string;
+      };
+      code = problem.code || problem.errorCode || problem.title || code;
+    } catch {
+      // The body was not JSON.
+    }
+    throw new ApiError(response.status, code);
+  }
   const blob = await response.blob();
   const match = /filename="?([^";]+)"?/.exec(response.headers.get("Content-Disposition") ?? "");
-  const url = URL.createObjectURL(blob);
+  return {
+    blob,
+    fileName: match?.[1] ?? options.fallbackFileName ?? "download",
+    contentType: response.headers.get("Content-Type") ?? blob.type ?? "application/octet-stream",
+    sha256: response.headers.get("X-Evidence-Sha256") ?? response.headers.get("X-Document-Sha256"),
+  };
+}
+
+export async function download(
+  path: string,
+  tenantId: string | null,
+  options: boolean | DownloadOptions = {},
+) {
+  const normalized: DownloadOptions =
+    typeof options === "boolean" ? { skipRefresh: options } : options;
+  const fetched = await fetchBlob(path, tenantId, normalized);
+  const url = URL.createObjectURL(fetched.blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = match?.[1] ?? "download";
+  link.download = fetched.fileName;
   link.click();
   URL.revokeObjectURL(url);
 }

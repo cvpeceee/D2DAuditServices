@@ -53,6 +53,13 @@ classDiagram
         +string Domain
         +string? WorkOsOrganizationId
     }
+    class ProviderClaim {
+        +Guid Id
+        +string Provider
+        +string ExternalAccountId
+        +Guid TenantId
+        +DateTimeOffset ClaimedAt
+    }
     class JobRecord {
         +Guid Id
         +Guid? TenantId
@@ -78,6 +85,7 @@ classDiagram
     Tenant "1" --> "*" Membership
     UserAccount "1" --> "*" Membership
     Tenant "1" --> "*" TenantDomain
+    Tenant "1" --> "*" ProviderClaim
     AuditorGrant "1" --> "*" AuditorGrantFramework
 ```
 
@@ -241,6 +249,9 @@ classDiagram
     class SecurityRules {
         <<static>>
         +SafeUrl.IsHttpOrHttps(string?) bool
+        +SafeUrl.IsPublicHttpOrHttps(string?) bool
+        +SafeUrl.IsPublicIpAddress(IPAddress) bool
+        +SafeUrl.IsSameOrigin(string?, string?) bool
         +CsvSafety.EscapeCell(string?) string
         +TaskRecurrence.NextDue(DateOnly, string?) DateOnly?
         +RedirectPolicy.IsAllowed(string?, IReadOnlyCollection) bool
@@ -297,10 +308,21 @@ classDiagram
         +DispatchAsync()
         +DispatchForTenantAsync()
     }
+    class IApiKeyAuthenticator {
+        <<interface>>
+        +ValidateAsync(token, cancellationToken) ApiKeyIdentity?
+    }
+    class IWebhookDispatcher {
+        <<interface>>
+        +DispatchAsync(databaseName, eventName, summary, detail, cancellationToken)
+        +SendSingleAsync(webhook, eventName, summary, detail, cancellationToken) WebhookTestResultDto
+    }
 
     IIdentityProvider <|.. WorkOsIdentityProvider
     IIdentityProvider <|.. LocalIdentityProvider
     ICloudProvider <|.. AwsCloudProvider
+    ICloudProvider <|.. AzureCloudProvider
+    ICloudProvider <|.. GcpCloudProvider
     IWorkspaceDirectory <|.. GoogleWorkspaceDirectory
     IWorkspaceDirectory <|.. Microsoft365Directory
     ISourceControlProvider <|.. GitHubSourceControl
@@ -309,6 +331,8 @@ classDiagram
     IIssueTracker <|.. ConfigurableIssueTracker
     INotifier <|.. ConfigurableNotifier
     IAutomationDispatcher <|.. AutomationDispatcher
+    IApiKeyAuthenticator <|.. ApiKeyAuthenticator
+    IWebhookDispatcher <|.. WebhookDispatcher
 ```
 
 ## 5. Cloud Security Intelligence & Blast-Radius Graph (`D2DAudit.Domain` — M8)
@@ -418,9 +442,13 @@ classDiagram
     }
     class TrustReceiptDocument {
         +string Slug
+        +string TenantName
+        +string Region
         +int RetentionYears
         +int ChainEntryCount
+        +long LatestChainSequence
         +string ChainHeadHash
+        +string ChainStatus
         +string CanonicalPayload
         +string ReceiptSha256
     }
@@ -430,6 +458,9 @@ classDiagram
         +string Prefix
         +string KeyHash
         +string Scopes
+        +string CreatedByEmail
+        +DateTimeOffset CreatedAt
+        +DateTimeOffset? LastUsedAt
         +DateTimeOffset? RevokedAt
     }
     class WebhookSubscription {
@@ -438,7 +469,27 @@ classDiagram
         +string Url
         +string Events
         +string SigningSecretHash
+        +string SigningSecretEncrypted
         +bool Enabled
+        +DateTimeOffset CreatedAt
+    }
+    class ApiKeyTokens {
+        <<static>>
+        +Create(Guid tenantId) string
+        +IsApiKey(string? token) bool
+        +TryParseTenantId(string? token, out Guid tenantId) bool
+        +CanWrite(string? scopes) bool
+    }
+    class WebhookSigning {
+        <<static>>
+        +Sign(string secret, long unixTimestamp, string payload) string
+        +Verify(string secret, long unixTimestamp, string payload, string headerValue) bool
+        +EventNameForTrigger(string trigger) string
+        +MatchesEvent(string? subscribedEvents, string eventName) bool
+    }
+    class WebhookSecretProtector {
+        +Protect(string plaintext) string?
+        +Unprotect(string? stored) string?
     }
     class IAssistantProvider {
         <<interface>>
@@ -455,13 +506,18 @@ classDiagram
         +AskWorkspaceAsync()
         +ListApiKeysAsync()
         +CreateApiKeyAsync()
+        +RevokeApiKeyAsync()
         +ListWebhooksAsync()
         +CreateWebhookAsync()
+        +TestWebhookAsync()
+        +DeleteWebhookAsync()
     }
 
     IAssistantProvider <|.. ConfigurableAssistantProvider
     IEnterprisePortal <|.. EnterprisePortal
     EnterprisePortal --> IAssistantProvider
+    EnterprisePortal --> WebhookSecretProtector
+    EnterprisePortal --> IWebhookDispatcher
     EnterprisePortal --> TrustReceiptDocument : builds via TrustReceiptBuilder
     EnterprisePortal --> ApiKeyRecord
     EnterprisePortal --> WebhookSubscription

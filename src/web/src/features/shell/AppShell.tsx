@@ -138,46 +138,53 @@ export function AppShell() {
   }, [tenantId]);
 
   const actions = useMemo(() => {
+    const isAuditor = workspace?.role === "Auditor";
     const items: { id: string; label: string; run: () => void }[] = [
       { id: "dashboard", label: t("nav.dashboard"), run: () => navigate("/") },
       { id: "frameworks", label: t("nav.frameworks"), run: () => navigate("/frameworks") },
       { id: "controls", label: t("nav.controls"), run: () => navigate("/controls") },
       { id: "evidence", label: t("nav.evidence"), run: () => navigate("/evidence") },
-      { id: "integrations", label: t("nav.integrations"), run: () => navigate("/integrations") },
       { id: "risks", label: t("nav.risks"), run: () => navigate("/risks") },
       { id: "soa", label: t("nav.soa"), run: () => navigate("/soa") },
       { id: "vendors", label: t("nav.vendors"), run: () => navigate("/vendors") },
       { id: "people", label: t("nav.people"), run: () => navigate("/people") },
-      { id: "computers", label: t("nav.computers"), run: () => navigate("/people/computers") },
-      {
-        id: "vulnerabilities",
-        label: t("nav.vulnerabilities"),
-        run: () => navigate("/vulnerabilities"),
-      },
       { id: "incidents", label: t("nav.incidents"), run: () => navigate("/incidents") },
       { id: "changes", label: t("nav.changes"), run: () => navigate("/changes") },
-      {
-        id: "questionnaires",
-        label: t("nav.questionnaires"),
-        run: () => navigate("/questionnaires"),
-      },
       {
         id: "description",
         label: t("nav.description"),
         run: () => navigate("/system-description"),
       },
       { id: "continuity", label: t("nav.continuity"), run: () => navigate("/continuity") },
-      { id: "exposure", label: t("nav.exposure"), run: () => navigate("/exposure") },
-      { id: "attackPaths", label: t("nav.attackPaths"), run: () => navigate("/attack-paths") },
-      { id: "dspm", label: t("nav.dspm"), run: () => navigate("/dspm") },
-      { id: "finops", label: t("nav.finops"), run: () => navigate("/finops") },
-      { id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") },
-      { id: "me", label: t("nav.me"), run: () => navigate("/me") },
       { id: "training", label: t("nav.training"), run: () => navigate("/training") },
       { id: "assets", label: t("nav.assets"), run: () => navigate("/assets") },
       { id: "tasks", label: t("nav.tasks"), run: () => navigate("/tasks") },
       { id: "access", label: t("nav.accessReviews"), run: () => navigate("/access-reviews") },
     ];
+    if (!isAuditor) {
+      items.push(
+        { id: "integrations", label: t("nav.integrations"), run: () => navigate("/integrations") },
+        { id: "computers", label: t("nav.computers"), run: () => navigate("/people/computers") },
+        {
+          id: "vulnerabilities",
+          label: t("nav.vulnerabilities"),
+          run: () => navigate("/vulnerabilities"),
+        },
+        {
+          id: "questionnaires",
+          label: t("nav.questionnaires"),
+          run: () => navigate("/questionnaires"),
+        },
+        { id: "exposure", label: t("nav.exposure"), run: () => navigate("/exposure") },
+        { id: "attackPaths", label: t("nav.attackPaths"), run: () => navigate("/attack-paths") },
+        { id: "dspm", label: t("nav.dspm"), run: () => navigate("/dspm") },
+        { id: "finops", label: t("nav.finops"), run: () => navigate("/finops") },
+        { id: "me", label: t("nav.me"), run: () => navigate("/me") },
+      );
+    }
+    if (workspace?.canWrite) {
+      items.push({ id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") });
+    }
     if (workspace?.role === "Admin")
       items.push({ id: "activity", label: t("nav.activity"), run: () => navigate("/activity") });
     (["light", "dark", "system", "high-contrast"] as ThemeChoice[]).forEach((theme) => {
@@ -188,7 +195,7 @@ export function AppShell() {
       });
     });
     return items;
-  }, [navigate, setChoice, t, workspace?.role]);
+  }, [navigate, setChoice, t, workspace?.canWrite, workspace?.role]);
 
   const filtered = actions.filter((action) =>
     action.label.toLowerCase().includes(query.trim().toLowerCase()),
@@ -328,31 +335,41 @@ export function AppShell() {
             )}
           </NavLink>
         ))}
-        <div className="sec">{t("nav.cloudSecurity")}</div>
-        {cloudSecurity.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <Icon name={link.key} />
-            <span>{t(`nav.${link.key}`)}</span>
-          </NavLink>
-        ))}
+        {workspace?.role !== "Auditor" && (
+          <>
+            <div className="sec">{t("nav.cloudSecurity")}</div>
+            {cloudSecurity.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <Icon name={link.key} />
+                <span>{t(`nav.${link.key}`)}</span>
+              </NavLink>
+            ))}
+          </>
+        )}
         <div className="sec">{t("nav.governance")}</div>
-        {governance.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={"end" in link ? link.end : false}
-            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <Icon name={link.key} />
-            <span>{t(`nav.${link.key}`)}</span>
-          </NavLink>
-        ))}
+        {governance
+          .filter(
+            (link) =>
+              workspace?.role !== "Auditor" ||
+              !["me", "computers", "vulnerabilities", "questionnaires"].includes(link.key),
+          )
+          .map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={"end" in link ? link.end : false}
+              className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <Icon name={link.key} />
+              <span>{t(`nav.${link.key}`)}</span>
+            </NavLink>
+          ))}
         <div className="sec">{t("nav.audit")}</div>
         <NavLink
           to="/auditor"
@@ -362,22 +379,26 @@ export function AppShell() {
           <Icon name="auditor" />
           <span>{t("nav.auditor")}</span>
         </NavLink>
-        <NavLink
-          to="/trust-center"
-          className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
-          onClick={() => setMenuOpen(false)}
-        >
-          <Icon name="trust" />
-          <span>{t("nav.trust")}</span>
-        </NavLink>
-        <NavLink
-          to="/integrations"
-          className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
-          onClick={() => setMenuOpen(false)}
-        >
-          <Icon name="integrations" />
-          <span>{t("nav.integrations")}</span>
-        </NavLink>
+        {workspace?.canWrite && (
+          <NavLink
+            to="/trust-center"
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name="trust" />
+            <span>{t("nav.trust")}</span>
+          </NavLink>
+        )}
+        {workspace?.role !== "Auditor" && (
+          <NavLink
+            to="/integrations"
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name="integrations" />
+            <span>{t("nav.integrations")}</span>
+          </NavLink>
+        )}
         {workspace?.role === "Admin" && (
           <NavLink
             to="/settings"

@@ -415,6 +415,7 @@ public sealed class OperationsPortal(
         }
 
         string title = "";
+        var requiresNda = true;
         if (request.DocumentId is Guid documentId)
         {
             var document = await db.TrustDocuments.FirstOrDefaultAsync(item => item.Id == documentId, cancellationToken);
@@ -424,6 +425,12 @@ public sealed class OperationsPortal(
             }
 
             title = document.Title;
+            requiresNda = !string.Equals(document.Access, "Public", StringComparison.Ordinal);
+        }
+
+        if (requiresNda && !request.NdaAccepted)
+        {
+            return Result<TrustRequestDto>.Fail("nda_required");
         }
 
         var now = time.GetUtcNow();
