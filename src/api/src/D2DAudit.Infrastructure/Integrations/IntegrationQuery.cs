@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Evidence;
@@ -5,6 +6,7 @@ using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Seed;
 using D2DAudit.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace D2DAudit.Infrastructure.Integrations;
 
@@ -15,6 +17,8 @@ public sealed class IntegrationQuery(
     ProviderSet providers,
     ICollectionSchedule schedule,
     EvidenceWriter evidence,
+    IStorageProvider storage,
+    IConfiguration configuration,
     TimeProvider time) : IIntegrationQuery
 {
     public async Task<IReadOnlyList<IntegrationDto>> ListAsync(CancellationToken cancellationToken)
@@ -36,6 +40,14 @@ public sealed class IntegrationQuery(
             return Result<ConnectResponse>.Fail("unknown_provider");
         }
 
+        var allowedRedirects = (configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
+            .Concat(configuration.GetSection("WorkOS:RedirectUris").Get<string[]>() ?? [])
+            .ToArray();
+        if (!RedirectPolicy.IsAllowed(redirectUri, allowedRedirects))
+        {
+            return Result<ConnectResponse>.Fail("redirect_not_allowed");
+        }
+
         await using var db = databases.Create(Database());
         var row = await db.Integrations.FirstOrDefaultAsync(item => item.Provider == key, cancellationToken);
         if (row is null)
@@ -51,21 +63,36 @@ public sealed class IntegrationQuery(
             db.Integrations.Add(row);
         }
 
-        var state = row.Id.ToString("N");
-        if (!string.IsNullOrWhiteSpace(request.Code) && !string.Equals(request.State, state, StringComparison.Ordinal))
+        var isCallback = !string.IsNullOrWhiteSpace(request.Code) || !string.IsNullOrWhiteSpace(request.InstallationId);
+        if (isCallback
+            && (string.IsNullOrWhiteSpace(row.ExternalId)
+                || string.IsNullOrWhiteSpace(request.State)
+                || !CryptographicOperations.FixedTimeEquals(
+                    System.Text.Encoding.UTF8.GetBytes(request.State.Trim()),
+                    System.Text.Encoding.UTF8.GetBytes(row.ExternalId))))
         {
             return Result<ConnectResponse>.Fail("invalid_state");
         }
 
-        if (!string.IsNullOrWhiteSpace(request.InstallationId) && !string.Equals(request.State, state, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(request.State))
+        string state;
+        if (isCallback)
         {
-            return Result<ConnectResponse>.Fail("invalid_state");
+            state = row.ExternalId!;
+        }
+        else if (key == "aws" && !string.IsNullOrWhiteSpace(row.ExternalId))
+        {
+            state = row.ExternalId;
+        }
+        else
+        {
+            state = RandomNumberGenerator.GetHexString(32, lowercase: true);
+        }
+        if (key != "aws" && !isCallback)
+        {
+            row.ExternalId = state;
         }
 
-        var stateValue = string.IsNullOrWhiteSpace(request.State) ? state : request.State;
-        var stamped = string.IsNullOrWhiteSpace(request.Code) && string.IsNullOrWhiteSpace(request.InstallationId)
-            ? request with { State = state }
-            : request with { State = stateValue };
+        var stamped = request with { State = state };
         var connected = await providers.ConnectAsync(key, providers.ToConnection(row), stamped, redirectUri, cancellationToken);
         if (!connected.IsSuccess || connected.Value is null)
         {
@@ -76,6 +103,12 @@ public sealed class IntegrationQuery(
         if (error is not null)
         {
             return Result<ConnectResponse>.Fail(error);
+        }
+
+        if (isCallback && key != "aws")
+        {
+            // Rotate the OAuth state token after successful completion so it cannot be replayed.
+            row.ExternalId = RandomNumberGenerator.GetHexString(32, lowercase: true);
         }
 
         if (row.Example)
@@ -174,7 +207,8 @@ public sealed class IntegrationQuery(
             .Select(item => item.RetentionYears)
             .FirstAsync(cancellationToken);
         var window = tenant.IsAuditor
-            ? await db.Audits.AsNoTracking().OrderByDescending(item => item.PeriodEnd).FirstOrDefaultAsync(cancellationToken)
+            ? (await db.Audits.AsNoTracking().OrderByDescending(item => item.PeriodEnd).ToListAsync(cancellationToken))
+                .FirstOrDefault(item => tenant.AuditorFrameworkKeys.Contains(item.FrameworkKey, StringComparer.Ordinal))
             : null;
         var items = controls
             .Where(InScope)
@@ -260,6 +294,74 @@ public sealed class IntegrationQuery(
             item.Sha256,
             item.LockedUntil,
             item.ObjectKey));
+    }
+
+    public async Task<Result<EvidenceDownload>> DownloadAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using var db = databases.Create(Database());
+        var controls = await db.Controls.AsNoTracking()
+            .Include(item => item.Evidence)
+            .Include(item => item.Mappings).ThenInclude(mapping => mapping.Requirement!).ThenInclude(requirement => requirement.Framework)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+        var match = controls
+            .Where(InScope)
+            .SelectMany(controlItem => controlItem.Evidence.Select(item => (Control: controlItem, Item: item)))
+            .FirstOrDefault(pair => pair.Item.Id == id);
+        if (match.Item is null || string.IsNullOrWhiteSpace(match.Item.ObjectKey))
+        {
+            return Result<EvidenceDownload>.Fail("not_found");
+        }
+
+        if (tenant.IsAuditor)
+        {
+            var window = (await db.Audits.AsNoTracking().OrderByDescending(item => item.PeriodEnd).ToListAsync(cancellationToken))
+                .FirstOrDefault(item => tenant.AuditorFrameworkKeys.Contains(item.FrameworkKey, StringComparer.Ordinal));
+            if (window is not null && !AuditWindow.Contains(window.PeriodStart, window.PeriodEnd, match.Item.CollectedAt))
+            {
+                return Result<EvidenceDownload>.Fail("not_found");
+            }
+        }
+
+        if (!match.Item.ObjectKey.StartsWith(tenant.TenantId.ToString("N") + "/", StringComparison.Ordinal))
+        {
+            return Result<EvidenceDownload>.Fail("not_found");
+        }
+
+        byte[] body;
+        try
+        {
+            body = await storage.GetAsync(match.Item.ObjectKey, cancellationToken);
+        }
+        catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
+        {
+            return Result<EvidenceDownload>.Fail("not_found");
+        }
+
+        var parts = match.Item.ObjectKey.Split('/');
+        var fileName = $"{match.Control.Code}-{parts[^1]}";
+        var contentType = ContentTypeFor(fileName);
+        return Result<EvidenceDownload>.Ok(new EvidenceDownload(body, fileName, contentType, match.Item.Sha256));
+    }
+
+    private static string ContentTypeFor(string fileName)
+    {
+        if (fileName.EndsWith(".parquet", StringComparison.OrdinalIgnoreCase))
+        {
+            return "application/vnd.apache.parquet";
+        }
+
+        if (fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            return "text/csv";
+        }
+
+        if (fileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            return "text/plain";
+        }
+
+        return "application/octet-stream";
     }
 
     private bool InScope(Control controlItem)

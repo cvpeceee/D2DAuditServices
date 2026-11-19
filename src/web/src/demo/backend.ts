@@ -205,6 +205,19 @@ async function route(
   }
   if (path === "/api/v1/tests") return json(scoped.checks);
   if (path === "/api/v1/evidence" && method === "GET") return json(evidencePage(scoped));
+  if (path.startsWith("/api/v1/evidence/") && path.endsWith("/download") && method === "GET") {
+    const id = path.slice("/api/v1/evidence/".length, -"/download".length);
+    const match = scoped.evidence.find((item) => item.id === id);
+    if (!match) throw new DemoError(404, "not_found");
+    return new Response(match.body, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${match.controlCode}-${match.id.slice(0, 8)}.txt"`,
+        ...(match.sha256 ? { "X-Evidence-Sha256": match.sha256 } : {}),
+      },
+    });
+  }
   if (path === "/api/v1/evidence/verify" && method === "POST") return json(await verify(data));
   if (path === "/api/v1/evidence" && method === "POST")
     return json(await upload(data, actor, body));
@@ -234,6 +247,10 @@ async function route(
     throw new DemoError(400, "provider_not_configured");
   }
   if (path === "/api/v1/policies" && method === "GET") return json(policyList(scoped));
+  if (path === "/api/v1/policies/library" && method === "POST") {
+    requireWrite(actor);
+    return json(0);
+  }
   if (path === "/api/v1/policies/reminders" && method === "POST") {
     requireWrite(actor);
     return json(remind(data, actor));
@@ -365,6 +382,7 @@ function policyRoute(
     if (actor.role !== "Admin") throw new DemoError(403, "forbidden");
     return json(approve(policy, actor));
   }
+  if (action === "draft" && method === "PUT") return json(updateDraft(policy, body));
   if (action === "draft") return json(draft(policy));
   if (action === "submit") return json(submit(policy));
   if (action === "acknowledgements") return json(assignAck(policy, body));
@@ -737,6 +755,19 @@ function draft(policy: DemoPolicy) {
     approvedAt: null,
     approvedByName: null,
   });
+  return policyDetail(policy);
+}
+
+function updateDraft(policy: DemoPolicy, body: Record<string, unknown>) {
+  const latest = [...policy.versions].sort((a, b) => b.number - a.number)[0];
+  if (latest.state !== "Draft") throw new DemoError(400, "not_draft");
+  const text = String(body.body ?? "").trim();
+  if (!text) throw new DemoError(400, "invalid_policy");
+  latest.body = text;
+  if (typeof body.title === "string" && body.title.trim()) policy.title = body.title.trim();
+  if (typeof body.ownerName === "string" && body.ownerName.trim()) {
+    policy.ownerName = body.ownerName.trim();
+  }
   return policyDetail(policy);
 }
 

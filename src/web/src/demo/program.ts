@@ -717,6 +717,18 @@ function saveTask(
   return json(taskItem(row));
 }
 
+function nextRecurringDue(dueOn: string, recurrence: string): string | null {
+  if (recurrence === "None") return null;
+  const date = new Date(`${dueOn}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  if (recurrence === "Weekly") date.setUTCDate(date.getUTCDate() + 7);
+  else if (recurrence === "Monthly") date.setUTCMonth(date.getUTCMonth() + 1);
+  else if (recurrence === "Quarterly") date.setUTCMonth(date.getUTCMonth() + 3);
+  else if (recurrence === "Annual") date.setUTCFullYear(date.getUTCFullYear() + 1);
+  else return null;
+  return date.toISOString().slice(0, 10);
+}
+
 function finishTask(
   data: DemoWorld,
   actor: Actor,
@@ -728,6 +740,24 @@ function finishTask(
   if (!canWrite(actor) && row.ownerEmail.toLowerCase() !== actor.email.toLowerCase())
     return fail(403, "forbidden");
   row.status = "Done";
+  const nextDue = nextRecurringDue(row.dueOn, row.recurrence);
+  if (
+    nextDue &&
+    !data.workTasks.some(
+      (item) =>
+        item.title === row.title &&
+        item.linkedCode === row.linkedCode &&
+        item.dueOn === nextDue &&
+        item.status !== "Done",
+    )
+  ) {
+    data.workTasks.unshift({
+      ...row,
+      id: crypto.randomUUID(),
+      dueOn: nextDue,
+      status: "Open",
+    });
+  }
   onRecord("task.done", row.linkedKind);
   return json(taskItem(row));
 }

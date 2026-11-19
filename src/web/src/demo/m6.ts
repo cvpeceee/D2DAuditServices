@@ -1155,7 +1155,7 @@ export function resetPeriod() {
 }
 
 function setPeriod(actor: Actor, body: Record<string, unknown>) {
-  if (actor.role !== "Admin" && actor.role !== "Auditor" && actor.role !== "ControlOwner") {
+  if (!canWrite(actor)) {
     return fail(403, "forbidden");
   }
   const periodStart = String(body.periodStart ?? "");

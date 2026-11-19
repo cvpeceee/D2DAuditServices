@@ -13,7 +13,8 @@ public static class OperationsEndpoints
             return page is null ? Results.NotFound(new { code = "not_found" }) : Results.Ok(page);
         });
         app.MapPost("/api/v1/public/trust/{slug}/requests", async (string slug, TrustAccessRequestBody body, IOperations portal, CancellationToken cancellationToken) =>
-            EndpointResults.FromResult(await portal.RequestTrustAccessAsync(slug, body, cancellationToken)));
+            EndpointResults.FromResult(await portal.RequestTrustAccessAsync(slug, body, cancellationToken)))
+            .RequireRateLimiting("public_trust");
 
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
         group.MapGet("/computers", (IOperations portal, CancellationToken cancellationToken) => portal.ComputersAsync(cancellationToken)).Produces<IReadOnlyList<ComputerItem>>();

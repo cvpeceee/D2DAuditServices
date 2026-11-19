@@ -133,11 +133,13 @@ Collectors sit behind a small set of interfaces:
 
 | Interface | What it does in this release |
 | --- | --- |
-| `ICloudProvider` | Read-only AWS account summary into a normalized resource. Azure and GCP fixtures ship with the example client. |
-| `IWorkspaceDirectory` | Google Workspace and Microsoft 365 users. |
-| `ISourceControlProvider` | GitHub repositories and branch protection. |
-| `IIssueTracker` | Fake Jira issue id for automation rules. |
-| `INotifier` | Fake Slack, Teams, and email delivery id. |
+| `ICloudProvider` | Read-only AWS account summary (configurable region, accurate S3 error handling) into normalized resources. Azure and GCP fixtures ship with the example client (live collectors planned in M8). |
+| `IWorkspaceDirectory` | Google Workspace and Microsoft 365 users with full pagination. |
+| `ISourceControlProvider` | GitHub repositories and branch protection with `Link` header pagination. |
+| `IIssueTracker` | Configurable Jira REST API v3 and Linear GraphQL adapter (`ConfigurableIssueTracker`), with development/example local fallback. |
+| `INotifier` | Configurable Slack webhook, Microsoft Teams webhook, Resend Email, and SMTP TLS adapter (`ConfigurableNotifier`), with development/example local fallback. |
+
+See [CLASS_DIAGRAMS.md](CLASS_DIAGRAMS.md) for domain and adapter class diagrams, and [IMPLEMENTATION_LEDGER.md](IMPLEMENTATION_LEDGER.md) for the chronological milestone and decision ledger.
 
 `AutomatedChecks` evaluates the normalized resources. A new framework does not add a collector. Framework content is JSON: clause numbers, short titles, and original summaries. Control mappings are many-to-many and may be partial.
 

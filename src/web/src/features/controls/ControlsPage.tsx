@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import {
   ApiError,
   api,
@@ -16,6 +16,7 @@ type Tab = "all" | "failing" | "needsEvidence" | "dueSoon" | "mine";
 
 export function ControlsPage() {
   const { t } = useTranslation();
+  const { code: routeCode } = useParams<{ code?: string }>();
   const { tenantId, user } = useAuth();
   const { workspace } = useOutletContext<{ workspace: Workspace | null }>();
   const [tab, setTab] = useState<Tab>("all");
@@ -23,7 +24,8 @@ export function ControlsPage() {
   const [items, setItems] = useState<ControlListItem[] | null>(null);
   const [allCount, setAllCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(routeCode ?? null);
+  const [reloadTick, setReloadTick] = useState(0);
   const [detail, setDetail] = useState<ControlDetail | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [ownerName, setOwnerName] = useState("");
@@ -44,6 +46,10 @@ export function ControlsPage() {
   const [csv, setCsv] = useState(
     "code,title,description,frequency,ownerName,ownerEmail,framework,requirement,coverage",
   );
+
+  useEffect(() => {
+    if (routeCode) setSelected(routeCode);
+  }, [routeCode]);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -68,7 +74,7 @@ export function ControlsPage() {
     return () => {
       cancelled = true;
     };
-  }, [query, tab, tenantId, user?.email]);
+  }, [query, reloadTick, tab, tenantId, user?.email]);
 
   useEffect(() => {
     if (!tenantId || !selected) {
@@ -144,10 +150,16 @@ export function ControlsPage() {
           onSubmit={(event) => {
             event.preventDefault();
             if (!tenantId) return;
-            void api("/api/v1/controls", { method: "POST", tenantId, body: draft }).then(() => {
-              setCreated(draft.code);
-              setDraft({ ...draft, code: "", title: "", description: "" });
-            });
+            setError(null);
+            void api("/api/v1/controls", { method: "POST", tenantId, body: draft })
+              .then(() => {
+                setCreated(draft.code);
+                setDraft({ ...draft, code: "", title: "", description: "" });
+                setReloadTick((tick) => tick + 1);
+              })
+              .catch((caught: unknown) =>
+                setError(caught instanceof ApiError ? caught.code : "load"),
+              );
           }}
         >
           <h3>{t("controls.new")}</h3>
@@ -207,11 +219,19 @@ export function ControlsPage() {
             type="button"
             onClick={() => {
               if (!tenantId) return;
+              setError(null);
               void api<number>("/api/v1/controls/import", {
                 method: "POST",
                 tenantId,
                 body: { csv },
-              }).then((count) => setCreated(String(count)));
+              })
+                .then((count) => {
+                  setCreated(String(count));
+                  setReloadTick((tick) => tick + 1);
+                })
+                .catch((caught: unknown) =>
+                  setError(caught instanceof ApiError ? caught.code : "load"),
+                );
             }}
           >
             {t("controls.import")}

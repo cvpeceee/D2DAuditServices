@@ -25,16 +25,20 @@ public sealed class WorkOsOptions
     public string[] RedirectUris { get; set; } = [];
 }
 
+public sealed class LocalDummyPasswordHash(PasswordHasher<UserAccount> passwords)
+{
+    public string Value { get; } = passwords.HashPassword(new UserAccount(), "dummy-password-not-a-user");
+}
+
 public sealed class LocalIdentityProvider(
     ControlPlaneDbContext db,
     PasswordHasher<UserAccount> passwords,
+    LocalDummyPasswordHash dummyHash,
     TimeProvider time) : IIdentityProvider
 {
     private readonly string _signingKey = DevOnlySigningKey.Resolve(
         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development",
         Environment.GetEnvironmentVariable("LOCAL_IDENTITY_SIGNING_KEY"));
-
-    private readonly string _dummyHash = passwords.HashPassword(new UserAccount(), "dummy-password-not-a-user");
 
     public IdentityMode Mode => IdentityMode.Local;
 
@@ -47,7 +51,7 @@ public sealed class LocalIdentityProvider(
     {
         var normalized = NormalizeEmail(email);
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalized, cancellationToken);
-        var hash = user?.PasswordHash ?? _dummyHash;
+        var hash = user?.PasswordHash ?? dummyHash.Value;
         var verdict = passwords.VerifyHashedPassword(user ?? new UserAccount(), hash, password);
         if (user is null || user.PasswordHash is null || verdict == PasswordVerificationResult.Failed)
         {

@@ -339,7 +339,7 @@ public sealed class GovernancePortal(
         }
 
         await using var db = Open();
-        var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user").ToListAsync(cancellationToken);
+        var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user" || item.Kind == "iam-user").ToListAsync(cancellationToken);
         var accounts = snapshots.Select(ReadAccount).OfType<DirectoryAccount>().ToArray();
         if (accounts.Length == 0)
         {
@@ -590,7 +590,7 @@ public sealed class GovernancePortal(
             return Result<AccessCampaignDetail>.Fail("apps_required");
         }
 
-        var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user").ToListAsync(cancellationToken);
+        var snapshots = await db.Resources.AsNoTracking().Where(item => item.Kind == "user" || item.Kind == "iam-user").ToListAsync(cancellationToken);
         var accounts = snapshots.Select(ReadAccount).OfType<DirectoryAccount>().Where(account => providers.Contains(account.Provider, StringComparer.OrdinalIgnoreCase)).ToArray();
         if (accounts.Length == 0)
         {
@@ -680,6 +680,11 @@ public sealed class GovernancePortal(
         var link = (request.Link ?? "").Trim();
         var reason = (request.ExclusionReason ?? "").Trim();
         if (provider.Length is 0 or > 100 || link.Length > 500 || reason.Length > 500)
+        {
+            return Result<PersonDetail>.Fail("invalid_background");
+        }
+
+        if (link.Length > 0 && !SafeUrl.IsHttpOrHttps(link))
         {
             return Result<PersonDetail>.Fail("invalid_background");
         }
@@ -875,7 +880,7 @@ public sealed class GovernancePortal(
             row.Name = person.Name;
             row.State = person.State;
             row.Source = DirectorySync.SourceOf(person.Accounts);
-            ApplyProfile(row, person.Email, today);
+            ApplyProfile(row, person.Email, today, tenant.IsExample);
             db.PersonAccounts.RemoveRange(row.Accounts);
             row.Accounts.Clear();
             foreach (var account in person.Accounts)
@@ -898,9 +903,9 @@ public sealed class GovernancePortal(
         return added;
     }
 
-    private static void ApplyProfile(DirectoryPerson row, string email, DateOnly today)
+    private static void ApplyProfile(DirectoryPerson row, string email, DateOnly today, bool isExample)
     {
-        var profile = ClientSeed.Person(email);
+        var profile = isExample ? ClientSeed.Person(email) : null;
         if (profile is null)
         {
             if (string.IsNullOrWhiteSpace(row.Department))
@@ -941,7 +946,7 @@ public sealed class GovernancePortal(
         var mapped = await MappedStatusAsync(db, cancellationToken);
         foreach (var leaf in leaves.Where(item => AnnexCodes.IsControl(item.Code)))
         {
-            var excluded = leaf.Code == NotApplicableCode;
+            var excluded = tenant.IsExample && leaf.Code == NotApplicableCode;
             db.Soa.Add(new SoaEntry
             {
                 Id = Guid.NewGuid(),

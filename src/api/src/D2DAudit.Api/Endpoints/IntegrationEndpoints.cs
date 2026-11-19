@@ -14,6 +14,7 @@ public static class IntegrationEndpoints
         group.MapPost("/integrations/collect", Collect).RequireAuthorization("TenantWrite").Produces<Guid>();
         group.MapGet("/tests", (IIntegrationQuery query, CancellationToken cancellationToken) => query.TestsAsync(cancellationToken));
         group.MapGet("/evidence", (IIntegrationQuery query, CancellationToken cancellationToken) => query.EvidenceAsync(cancellationToken));
+        group.MapGet("/evidence/{id:guid}/download", Download);
         group.MapPost("/evidence/verify", (IIntegrationQuery query, CancellationToken cancellationToken) => query.VerifyAsync(cancellationToken));
         group.MapPost("/evidence", Upload).RequireAuthorization("TenantWrite").Produces<EvidenceListItem>();
         return app;
@@ -45,6 +46,22 @@ public static class IntegrationEndpoints
     {
         var result = await query.UploadAsync(body, cancellationToken);
         return EndpointResults.FromResult(result);
+    }
+
+    private static async Task<IResult> Download(Guid id, HttpContext http, IIntegrationQuery query, CancellationToken cancellationToken)
+    {
+        var result = await query.DownloadAsync(id, cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return EndpointResults.FromResult(result);
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.Value.Sha256))
+        {
+            http.Response.Headers["X-Evidence-Sha256"] = result.Value.Sha256;
+        }
+
+        return Results.File(result.Value.Body, result.Value.ContentType, result.Value.FileName);
     }
 }
 

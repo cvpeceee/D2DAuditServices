@@ -271,51 +271,88 @@ public sealed class Microsoft365Directory(HttpClient http, IConfiguration config
             return Result<ProviderCollect>.Fail("provider_not_configured");
         }
 
-        using var usersDocument = await GetAsync(graph.TrimEnd('/') + "/users?$select=id,displayName,mail,userPrincipalName,accountEnabled&$top=200", access, cancellationToken);
-        using var mfaDocument = await GetAsync(graph.TrimEnd('/') + "/reports/authenticationMethods/userRegistrationDetails?$top=200", access, cancellationToken);
-        if (usersDocument is null || mfaDocument is null)
-        {
-            return Result<ProviderCollect>.Fail("directory_collect_failed");
-        }
-
         var mfa = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-        if (mfaDocument.RootElement.TryGetProperty("value", out var mfaRows))
+        var mfaUrl = graph.TrimEnd('/') + "/reports/authenticationMethods/userRegistrationDetails?$top=200";
+        var anyMfaPage = false;
+        for (var page = 0; page < 20 && !string.IsNullOrWhiteSpace(mfaUrl); page++)
         {
-            foreach (var row in mfaRows.EnumerateArray())
+            using var mfaDocument = await GetAsync(mfaUrl, access, cancellationToken);
+            if (mfaDocument is null)
             {
-                var upn = Text(row, "userPrincipalName");
-                if (upn.Length > 0)
+                if (!anyMfaPage)
                 {
-                    mfa[upn] = Bool(row, "isMfaRegistered");
+                    return Result<ProviderCollect>.Fail("directory_collect_failed");
+                }
+
+                break;
+            }
+
+            anyMfaPage = true;
+            if (mfaDocument.RootElement.TryGetProperty("value", out var mfaRows))
+            {
+                foreach (var row in mfaRows.EnumerateArray())
+                {
+                    var upn = Text(row, "userPrincipalName");
+                    if (upn.Length > 0)
+                    {
+                        mfa[upn] = Bool(row, "isMfaRegistered");
+                    }
                 }
             }
+
+            mfaUrl = NextGraphUrl(mfaDocument.RootElement);
         }
 
         var users = new List<NormalizedResource>();
-        if (usersDocument.RootElement.TryGetProperty("value", out var rows))
+        var usersUrl = graph.TrimEnd('/') + "/users?$select=id,displayName,mail,userPrincipalName,accountEnabled&$top=200";
+        var anyUsersPage = false;
+        for (var page = 0; page < 20 && !string.IsNullOrWhiteSpace(usersUrl); page++)
         {
-            foreach (var user in rows.EnumerateArray())
+            using var usersDocument = await GetAsync(usersUrl, access, cancellationToken);
+            if (usersDocument is null)
             {
-                var upn = Text(user, "userPrincipalName");
-                var email = Text(user, "mail");
-                if (string.IsNullOrWhiteSpace(email))
+                if (!anyUsersPage)
                 {
-                    email = upn;
+                    return Result<ProviderCollect>.Fail("directory_collect_failed");
                 }
 
-                var enabled = !user.TryGetProperty("accountEnabled", out var flag) || flag.ValueKind != JsonValueKind.False;
-                var enrolled = mfa.TryGetValue(upn, out var registered) && registered;
-                users.Add(new NormalizedResource("microsoft", "user", Text(user, "id"), Text(user, "displayName"), new Dictionary<string, string>
-                {
-                    ["email"] = email,
-                    ["mfa"] = enrolled ? "true" : "false",
-                    ["offboarded"] = enabled ? "false" : "true",
-                    ["status"] = enabled ? "active" : "suspended",
-                }));
+                break;
             }
+
+            anyUsersPage = true;
+            if (usersDocument.RootElement.TryGetProperty("value", out var rows))
+            {
+                foreach (var user in rows.EnumerateArray())
+                {
+                    var upn = Text(user, "userPrincipalName");
+                    var email = Text(user, "mail");
+                    if (string.IsNullOrWhiteSpace(email))
+                    {
+                        email = upn;
+                    }
+
+                    var enabled = !user.TryGetProperty("accountEnabled", out var flag) || flag.ValueKind != JsonValueKind.False;
+                    var enrolled = mfa.TryGetValue(upn, out var registered) && registered;
+                    users.Add(new NormalizedResource("microsoft", "user", Text(user, "id"), Text(user, "displayName"), new Dictionary<string, string>
+                    {
+                        ["email"] = email,
+                        ["mfa"] = enrolled ? "true" : "false",
+                        ["offboarded"] = enabled ? "false" : "true",
+                        ["status"] = enabled ? "active" : "suspended",
+                    }));
+                }
+            }
+
+            usersUrl = NextGraphUrl(usersDocument.RootElement);
         }
 
         return Result<ProviderCollect>.Ok(new ProviderCollect(users));
+    }
+
+    private static string? NextGraphUrl(JsonElement root)
+    {
+        var next = Text(root, "@odata.nextLink");
+        return SafeUrl.IsHttpOrHttps(next) ? next : null;
     }
 
     private ProviderConnect Pending(string redirectUri, string state, string? domain)

@@ -9,7 +9,7 @@ public static class AuditEndpoints
     {
         var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
         group.MapGet("/audits", (IAuditPortal portal, CancellationToken cancellationToken) => portal.GetAsync(cancellationToken)).Produces<AuditPortalPage>();
-        group.MapPost("/audits/period", SetPeriod).RequireAuthorization("AuditAct").Produces<AuditEngagementDto>();
+        group.MapPost("/audits/period", SetPeriod).RequireAuthorization("TenantWrite").Produces<AuditEngagementDto>();
         group.MapPost("/audits/requests", CreateRequest).RequireAuthorization("AuditAct").Produces<SampleRequestDto>();
         group.MapPost("/audits/requests/{code}/respond", Respond).RequireAuthorization("TenantWrite").Produces<SampleRequestDto>();
         group.MapPost("/audits/requests/{code}/accept", Accept).RequireAuthorization("AuditAct").Produces<SampleRequestDto>();

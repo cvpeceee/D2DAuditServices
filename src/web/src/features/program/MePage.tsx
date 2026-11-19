@@ -16,9 +16,9 @@ function tone(status: string) {
 
 export function MePage() {
   const { t } = useTranslation();
-  const { tenantId } = useOutletContext<ShellContext>();
+  const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [cards, setCards] = useState<MeCard[] | null>(null);
-  const [note, setNote] = useState("");
+  const [notesByKind, setNotesByKind] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -37,9 +37,11 @@ export function MePage() {
   async function complete(kind: string) {
     if (!tenantId) return;
     setMessage(null);
+    setError(null);
+    const note = notesByKind[kind] ?? "";
     try {
       await api("/api/v1/me/cards", { method: "POST", tenantId, body: { kind, note, body: note } });
-      setNote("");
+      setNotesByKind((current) => ({ ...current, [kind]: "" }));
       setMessage(t("mePage.saved"));
       load();
     } catch (caught: unknown) {
@@ -83,22 +85,32 @@ export function MePage() {
                 {t("mePage.openTraining")}
               </Link>
             )}
-            {card.action !== "done" && card.action !== "none" && card.action !== "open" && (
-              <div className="stack">
-                <textarea
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  placeholder={t("mePage.note")}
-                />
-                <button
-                  className="btn primary"
-                  type="button"
-                  onClick={() => void complete(card.kind)}
-                >
-                  {t(`mePage.actions.${card.action}`)}
-                </button>
-              </div>
-            )}
+            {card.action !== "done" &&
+              card.action !== "none" &&
+              card.action !== "open" &&
+              (card.kind === "BackgroundCheck" && !workspace?.canWrite ? (
+                <div className="m">{t("mePage.hrManaged")}</div>
+              ) : (
+                <div className="stack">
+                  <textarea
+                    value={notesByKind[card.kind] ?? ""}
+                    onChange={(event) =>
+                      setNotesByKind((current) => ({
+                        ...current,
+                        [card.kind]: event.target.value,
+                      }))
+                    }
+                    placeholder={t("mePage.note")}
+                  />
+                  <button
+                    className="btn primary"
+                    type="button"
+                    onClick={() => void complete(card.kind)}
+                  >
+                    {t(`mePage.actions.${card.action}`)}
+                  </button>
+                </div>
+              ))}
           </article>
         ))}
       </div>

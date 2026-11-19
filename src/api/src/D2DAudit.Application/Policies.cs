@@ -36,6 +36,8 @@ public sealed record PolicyDetail(
 
 public sealed record AssignAcknowledgementRequest(string PersonName, string PersonEmail, DateOnly DueOn);
 
+public sealed record UpdatePolicyDraftRequest(string Body, string? Title = null, string? OwnerName = null);
+
 public interface IPolicyPortal
 {
     Task<IReadOnlyList<PolicyListItem>> ListAsync(CancellationToken cancellationToken);
@@ -45,6 +47,8 @@ public interface IPolicyPortal
     Task<Result<int>> InstallLibraryAsync(CancellationToken cancellationToken);
 
     Task<Result<PolicyDetail>> DraftAsync(string code, CancellationToken cancellationToken);
+
+    Task<Result<PolicyDetail>> UpdateDraftAsync(string code, UpdatePolicyDraftRequest request, CancellationToken cancellationToken);
 
     Task<Result<PolicyDetail>> SubmitAsync(string code, CancellationToken cancellationToken);
 

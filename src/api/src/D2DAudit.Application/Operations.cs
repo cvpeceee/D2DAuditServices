@@ -150,6 +150,8 @@ public interface INotifier
 public interface IAutomationDispatcher
 {
     Task DispatchAsync(string trigger, string summary, string detail, CancellationToken cancellationToken);
+
+    Task DispatchForTenantAsync(Guid tenantId, string databaseName, string trigger, string summary, string detail, CancellationToken cancellationToken);
 }
 
 public interface IOperations

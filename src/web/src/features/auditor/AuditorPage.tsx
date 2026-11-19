@@ -30,9 +30,13 @@ export function AuditorPage() {
   const [sampleSize, setSampleSize] = useState("");
   const [source, setSource] = useState("");
   const [dueOn, setDueOn] = useState("");
-  const [note, setNote] = useState("");
-  const [evidenceId, setEvidenceId] = useState("");
-  const [response, setResponse] = useState("");
+  const [notesByCode, setNotesByCode] = useState<Record<string, string>>({});
+  const [evidenceByCode, setEvidenceByCode] = useState<Record<string, string>>({});
+  const [responsesByCode, setResponsesByCode] = useState<Record<string, string>>({});
+  const [findingTitle, setFindingTitle] = useState("");
+  const [findingSeverity, setFindingSeverity] = useState<"Exception" | "Observation">("Exception");
+  const [findingRequirement, setFindingRequirement] = useState("");
+  const [findingDetail, setFindingDetail] = useState("");
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const canAct = workspace?.role === "Auditor" || workspace?.canWrite === true;
@@ -127,9 +131,10 @@ export function AuditorPage() {
       await api(`/api/v1/audits/requests/${code}/respond`, {
         method: "POST",
         tenantId,
-        body: { body: note, evidenceId: evidenceId || null },
+        body: { body: notesByCode[code] ?? "", evidenceId: evidenceByCode[code] || null },
       });
-      setNote("");
+      setNotesByCode((current) => ({ ...current, [code]: "" }));
+      setEvidenceByCode((current) => ({ ...current, [code]: "" }));
       load();
     } catch (caught: unknown) {
       setError(caught instanceof ApiError ? caught.code : "load");
@@ -151,6 +156,33 @@ export function AuditorPage() {
     }
   }
 
+  async function createFinding(event: FormEvent) {
+    event.preventDefault();
+    if (!tenantId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/v1/audits/findings", {
+        method: "POST",
+        tenantId,
+        body: {
+          title: findingTitle,
+          severity: findingSeverity,
+          requirementCode: findingRequirement,
+          detail: findingDetail,
+        },
+      });
+      setFindingTitle("");
+      setFindingRequirement("");
+      setFindingDetail("");
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function answer(code: string) {
     if (!tenantId) return;
     setBusy(true);
@@ -158,9 +190,9 @@ export function AuditorPage() {
       await api(`/api/v1/audits/findings/${code}/response`, {
         method: "POST",
         tenantId,
-        body: { response },
+        body: { response: responsesByCode[code] ?? "" },
       });
-      setResponse("");
+      setResponsesByCode((current) => ({ ...current, [code]: "" }));
       load();
     } catch (caught: unknown) {
       setError(caught instanceof ApiError ? caught.code : "load");
@@ -213,7 +245,7 @@ export function AuditorPage() {
           </div>
         )}
       </div>
-      {engagement && canAct && (
+      {engagement && workspace?.canWrite && (
         <form className="card" onSubmit={(event) => void savePeriod(event)}>
           <h3>{t("auditorPage.period")}</h3>
           <p className="m">{t("auditorPage.periodHelp")}</p>
@@ -352,13 +384,23 @@ export function AuditorPage() {
                       >
                         <input
                           aria-label={t("auditorPage.note")}
-                          value={note}
-                          onChange={(event) => setNote(event.target.value)}
+                          value={notesByCode[item.code] ?? ""}
+                          onChange={(event) =>
+                            setNotesByCode((current) => ({
+                              ...current,
+                              [item.code]: event.target.value,
+                            }))
+                          }
                         />
                         <select
                           aria-label={t("auditorPage.attachment")}
-                          value={evidenceId}
-                          onChange={(event) => setEvidenceId(event.target.value)}
+                          value={evidenceByCode[item.code] ?? ""}
+                          onChange={(event) =>
+                            setEvidenceByCode((current) => ({
+                              ...current,
+                              [item.code]: event.target.value,
+                            }))
+                          }
                         >
                           <option value="">{t("auditorPage.noAttachment")}</option>
                           {page.evidence.map((file) => (
@@ -367,7 +409,11 @@ export function AuditorPage() {
                             </option>
                           ))}
                         </select>
-                        <button className="btn" type="submit" disabled={busy || !note.trim()}>
+                        <button
+                          className="btn"
+                          type="submit"
+                          disabled={busy || !(notesByCode[item.code] ?? "").trim()}
+                        >
                           {t("auditorPage.respond")}
                         </button>
                       </form>
@@ -488,16 +534,68 @@ export function AuditorPage() {
                 >
                   <input
                     aria-label={t("auditorPage.management")}
-                    value={response}
-                    onChange={(event) => setResponse(event.target.value)}
+                    value={responsesByCode[item.code] ?? ""}
+                    onChange={(event) =>
+                      setResponsesByCode((current) => ({
+                        ...current,
+                        [item.code]: event.target.value,
+                      }))
+                    }
                   />
-                  <button className="btn" type="submit" disabled={busy || !response.trim()}>
+                  <button
+                    className="btn"
+                    type="submit"
+                    disabled={busy || !(responsesByCode[item.code] ?? "").trim()}
+                  >
                     {t("auditorPage.saveResponse")}
                   </button>
                 </form>
               )}
             </div>
           ))}
+          {canAct && (
+            <form
+              className="stack"
+              onSubmit={(event) => void createFinding(event)}
+              style={{ marginTop: 12 }}
+            >
+              <h3>{t("auditorPage.newFinding")}</h3>
+              <input
+                aria-label={t("auditorPage.findingTitle")}
+                placeholder={t("auditorPage.findingTitle")}
+                value={findingTitle}
+                onChange={(event) => setFindingTitle(event.target.value)}
+                required
+              />
+              <select
+                aria-label={t("auditorPage.severity")}
+                value={findingSeverity}
+                onChange={(event) =>
+                  setFindingSeverity(event.target.value as "Exception" | "Observation")
+                }
+              >
+                <option value="Exception">{t("auditorPage.severities.Exception")}</option>
+                <option value="Observation">{t("auditorPage.severities.Observation")}</option>
+              </select>
+              <input
+                aria-label={t("auditorPage.requirementCode")}
+                placeholder={t("auditorPage.requirementCode")}
+                value={findingRequirement}
+                onChange={(event) => setFindingRequirement(event.target.value)}
+                required
+              />
+              <textarea
+                aria-label={t("auditorPage.detail")}
+                placeholder={t("auditorPage.detail")}
+                value={findingDetail}
+                onChange={(event) => setFindingDetail(event.target.value)}
+                required
+              />
+              <button className="btn" type="submit" disabled={busy}>
+                {t("auditorPage.addFinding")}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </>

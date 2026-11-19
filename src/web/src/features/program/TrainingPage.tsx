@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useOutletContext } from "react-router-dom";
 import { ApiError, api, type Workspace } from "../../shared/api/client";
 import { Pager } from "../../shared/ui/Pager";
-import { formatDate, Pill } from "../../shared/ui/ui";
+import { formatDate, Pill, safeHref } from "../../shared/ui/ui";
 import type { TrainingDetail, TrainingModule, TrainingPeople } from "./types";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
@@ -183,9 +183,15 @@ export function TrainingPage() {
           )}
           {detail.type === "External" && (
             <form onSubmit={(event) => void upload(event)}>
-              {detail.externalUrl && (
+              {safeHref(detail.externalUrl) && (
                 <p>
-                  <a href={detail.externalUrl}>{detail.externalUrl}</a>
+                  <a
+                    href={safeHref(detail.externalUrl) ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {detail.externalUrl}
+                  </a>
                 </p>
               )}
               {!detail.completed && (

@@ -247,30 +247,46 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
             return Result<ProviderCollect>.Fail("provider_not_configured");
         }
 
-        using var repos = await GetAsync(api.TrimEnd('/') + "/installation/repositories?per_page=100", token, cancellationToken);
-        if (repos is null)
-        {
-            return Result<ProviderCollect>.Fail("github_collect_failed");
-        }
-
         var resources = new List<NormalizedResource>();
         var orgs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (repos.RootElement.TryGetProperty("repositories", out var rows))
+        var repoUrl = api.TrimEnd('/') + "/installation/repositories?per_page=100";
+        var anyRepoPage = false;
+        for (var page = 0; page < 20 && !string.IsNullOrWhiteSpace(repoUrl); page++)
         {
-            foreach (var repo in rows.EnumerateArray())
+            var fetched = await GetPagedAsync(repoUrl, token, cancellationToken);
+            if (fetched is null)
             {
-                var name = Text(repo, "full_name");
-                var branch = Text(repo, "default_branch");
-                var protectedBranch = await BranchProtectedAsync(api, token, name, branch, cancellationToken);
-                resources.Add(new NormalizedResource("github", "repository", name, name, new Dictionary<string, string>
+                if (!anyRepoPage)
                 {
-                    ["protected"] = protectedBranch ? "true" : "false",
-                }));
-                if (repo.TryGetProperty("owner", out var owner) && Text(owner, "type") == "Organization")
+                    return Result<ProviderCollect>.Fail("github_collect_failed");
+                }
+
+                break;
+            }
+
+            anyRepoPage = true;
+            using (fetched.Document)
+            {
+                if (fetched.Document.RootElement.TryGetProperty("repositories", out var rows))
                 {
-                    orgs.Add(Text(owner, "login"));
+                    foreach (var repo in rows.EnumerateArray())
+                    {
+                        var name = Text(repo, "full_name");
+                        var branch = Text(repo, "default_branch");
+                        var protectedBranch = await BranchProtectedAsync(api, token, name, branch, cancellationToken);
+                        resources.Add(new NormalizedResource("github", "repository", name, name, new Dictionary<string, string>
+                        {
+                            ["protected"] = protectedBranch ? "true" : "false",
+                        }));
+                        if (repo.TryGetProperty("owner", out var owner) && Text(owner, "type") == "Organization")
+                        {
+                            orgs.Add(Text(owner, "login"));
+                        }
+                    }
                 }
             }
+
+            repoUrl = fetched.NextUrl;
         }
 
         foreach (var org in orgs)
@@ -293,34 +309,54 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
 
     private async Task AddMembersAsync(string api, string token, string org, List<NormalizedResource> resources, CancellationToken cancellationToken)
     {
-        using var members = await GetAsync(api.TrimEnd('/') + "/orgs/" + Uri.EscapeDataString(org) + "/members?per_page=100", token, cancellationToken);
-        using var disabled = await GetAsync(api.TrimEnd('/') + "/orgs/" + Uri.EscapeDataString(org) + "/members?filter=2fa_disabled&per_page=100", token, cancellationToken);
-        if (members is null)
-        {
-            return;
-        }
-
         var withoutMfa = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (disabled is not null)
+        var disabledUrl = api.TrimEnd('/') + "/orgs/" + Uri.EscapeDataString(org) + "/members?filter=2fa_disabled&per_page=100";
+        for (var page = 0; page < 20 && !string.IsNullOrWhiteSpace(disabledUrl); page++)
         {
-            foreach (var row in disabled.RootElement.EnumerateArray())
+            var fetched = await GetPagedAsync(disabledUrl, token, cancellationToken);
+            if (fetched is null)
             {
-                withoutMfa.Add(Text(row, "login"));
+                break;
             }
+
+            using (fetched.Document)
+            {
+                foreach (var row in fetched.Document.RootElement.EnumerateArray())
+                {
+                    withoutMfa.Add(Text(row, "login"));
+                }
+            }
+
+            disabledUrl = fetched.NextUrl;
         }
 
-        foreach (var row in members.RootElement.EnumerateArray())
+        var membersUrl = api.TrimEnd('/') + "/orgs/" + Uri.EscapeDataString(org) + "/members?per_page=100";
+        for (var page = 0; page < 20 && !string.IsNullOrWhiteSpace(membersUrl); page++)
         {
-            var login = Text(row, "login");
-            var email = await PublicEmailAsync(api, token, login, cancellationToken);
-            var mfa = !withoutMfa.Contains(login);
-            resources.Add(new NormalizedResource("github", "user", login, login, new Dictionary<string, string>
+            var fetched = await GetPagedAsync(membersUrl, token, cancellationToken);
+            if (fetched is null)
             {
-                ["email"] = email,
-                ["mfa"] = mfa ? "true" : "false",
-                ["offboarded"] = "false",
-                ["status"] = "active",
-            }));
+                break;
+            }
+
+            using (fetched.Document)
+            {
+                foreach (var row in fetched.Document.RootElement.EnumerateArray())
+                {
+                    var login = Text(row, "login");
+                    var email = await PublicEmailAsync(api, token, login, cancellationToken);
+                    var mfa = !withoutMfa.Contains(login);
+                    resources.Add(new NormalizedResource("github", "user", login, login, new Dictionary<string, string>
+                    {
+                        ["email"] = email,
+                        ["mfa"] = mfa ? "true" : "false",
+                        ["offboarded"] = "false",
+                        ["status"] = "active",
+                    }));
+                }
+            }
+
+            membersUrl = fetched.NextUrl;
         }
     }
 
@@ -426,6 +462,12 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
 
     private async Task<JsonDocument?> GetAsync(string url, string token, CancellationToken cancellationToken)
     {
+        var fetched = await GetPagedAsync(url, token, cancellationToken);
+        return fetched?.Document;
+    }
+
+    private async Task<PagedJson?> GetPagedAsync(string url, string token, CancellationToken cancellationToken)
+    {
         using var request = Authorized(url, token);
         using var response = await http.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -435,8 +477,41 @@ public sealed class GitHubSourceControl(HttpClient http, IConfiguration configur
         }
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        return string.IsNullOrWhiteSpace(body) ? null : JsonDocument.Parse(body);
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return null;
+        }
+
+        string? nextUrl = null;
+        if (response.Headers.TryGetValues("Link", out var linkValues))
+        {
+            foreach (var header in linkValues)
+            {
+                foreach (var segment in header.Split(','))
+                {
+                    if (!segment.Contains("rel=\"next\"", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var start = segment.IndexOf('<');
+                    var end = segment.IndexOf('>');
+                    if (start >= 0 && end > start + 1)
+                    {
+                        var candidate = segment[(start + 1)..end].Trim();
+                        if (SafeUrl.IsHttpOrHttps(candidate))
+                        {
+                            nextUrl = candidate;
+                        }
+                    }
+                }
+            }
+        }
+
+        return new PagedJson(JsonDocument.Parse(body), nextUrl);
     }
+
+    private sealed record PagedJson(JsonDocument Document, string? NextUrl);
 
     private static HttpRequestMessage Authorized(string url, string token)
     {

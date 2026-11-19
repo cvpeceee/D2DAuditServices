@@ -16,7 +16,13 @@ using Microsoft.Extensions.Logging;
 
 namespace D2DAudit.Infrastructure.Audits;
 
-public sealed record ExportWork(Guid TenantId, Guid JobId, string[]? FrameworkKeys, DateOnly? PeriodStart = null, DateOnly? PeriodEnd = null);
+public sealed record ExportWork(
+    Guid TenantId,
+    Guid JobId,
+    string[]? FrameworkKeys,
+    DateOnly? PeriodStart = null,
+    DateOnly? PeriodEnd = null,
+    string? StorageKey = null);
 
 public sealed class AuditExportQueue(IServiceScopeFactory scopes, ILogger<AuditExportQueue> logger) : BackgroundService
 {
@@ -89,10 +95,19 @@ public sealed class AuditPackageRunner(
         {
             foreach (var item in controlItem.Evidence.Where(entry => !string.IsNullOrWhiteSpace(entry.ObjectKey) && InPeriod(work, entry.CollectedAt)))
             {
-                var body = await storage.GetAsync(item.ObjectKey!, cancellationToken);
                 var parts = item.ObjectKey!.Split('/');
                 var name = parts[^1];
-                packed.Add(new PackedFile($"evidence/{controlItem.Code}/{name}", body, EvidenceChain.ContentHash(body), item.Sha256 ?? "", controlItem.Code, item.Title));
+                try
+                {
+                    var body = await storage.GetAsync(item.ObjectKey, cancellationToken);
+                    packed.Add(new PackedFile($"evidence/{controlItem.Code}/{name}", body, EvidenceChain.ContentHash(body), item.Sha256 ?? "", controlItem.Code, item.Title));
+                }
+                catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
+                {
+                    logger.LogWarning(exception, "Evidence object {ObjectKey} missing while packing audit package {JobId}.", item.ObjectKey, work.JobId);
+                    var notice = Encoding.UTF8.GetBytes($"Evidence object '{item.ObjectKey}' could not be read from storage. Chain integrity report records the break.\n");
+                    packed.Add(new PackedFile($"evidence/{controlItem.Code}/{name}.missing.txt", notice, "missing_object", item.Sha256 ?? "", controlItem.Code, item.Title));
+                }
             }
         }
 
@@ -119,7 +134,7 @@ public sealed class AuditPackageRunner(
         await jobs.AdvanceAsync(work.JobId, 6, Steps, "Writing the asset inventory", cancellationToken);
         var description = await SystemDescriptionText.CurrentAsync(db, tenant.Name, tenant.Region, SystemDescriptionText.Product(tenant.IsExample), cancellationToken);
         var zip = BuildZip(manifest, matrix, packed, assets, connections, vendors, accounts, repositories, manual, inScope, description);
-        var key = $"{work.TenantId:N}/exports/{work.JobId:N}.zip";
+        var key = string.IsNullOrWhiteSpace(work.StorageKey) ? $"{work.TenantId:N}/exports/{work.JobId:N}.zip" : work.StorageKey;
 
         await jobs.AdvanceAsync(work.JobId, 7, Steps, "Storing the package", cancellationToken);
         await storage.PutAsync(key, zip, "application/zip", null, cancellationToken);
@@ -174,7 +189,7 @@ public sealed class AuditPackageRunner(
                 manifest.Reason,
             }, Json));
             Write(zip, "control-matrix.csv", Encoding.UTF8.GetBytes(Csv(matrix)));
-            Write(zip, "control-matrix.pdf", PlainPdf.FromLines(PdfLines(matrix)));
+            Write(zip, "control-matrix.pdf", PlainPdf.Document(PdfLines(matrix)));
             Write(zip, "control-mapping.csv", Encoding.UTF8.GetBytes(MappingCsv(controls)));
             Write(zip, "connections.csv", Encoding.UTF8.GetBytes(ConnectionCsv(connections)));
             Write(zip, "vendors.csv", Encoding.UTF8.GetBytes(VendorCsv(vendors)));
@@ -340,11 +355,7 @@ public sealed class AuditPackageRunner(
         return builder.ToString();
     }
 
-    private static string Cell(string value)
-    {
-        var escaped = value.Replace("\"", "\"\"", StringComparison.Ordinal);
-        return $"\"{escaped}\"";
-    }
+    private static string Cell(string value) => CsvSafety.EscapeCell(value);
 
     private static IReadOnlyList<string> PdfLines(IReadOnlyList<MatrixRow> rows)
     {

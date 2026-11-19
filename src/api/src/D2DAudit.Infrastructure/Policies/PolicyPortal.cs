@@ -122,6 +122,51 @@ public sealed class PolicyPortal(
         return await GetAsync(code, cancellationToken);
     }
 
+    public async Task<Result<PolicyDetail>> UpdateDraftAsync(string code, UpdatePolicyDraftRequest request, CancellationToken cancellationToken)
+    {
+        var body = (request.Body ?? "").Trim();
+        if (body.Length is 0 or > 4000)
+        {
+            return Result<PolicyDetail>.Fail("invalid_policy");
+        }
+
+        await using var db = Open();
+        var policy = await FindAsync(db, code, cancellationToken);
+        var latest = policy?.Versions.OrderByDescending(item => item.Number).FirstOrDefault();
+        if (policy is null || latest is null || !Visible(policy, await LoadControlsAsync(db, cancellationToken)))
+        {
+            return Result<PolicyDetail>.Fail("not_found");
+        }
+
+        if (latest.State != PolicyState.Draft)
+        {
+            return Result<PolicyDetail>.Fail("not_draft");
+        }
+
+        latest.Body = body;
+        if (!string.IsNullOrWhiteSpace(request.Title))
+        {
+            var title = request.Title.Trim();
+            if (title.Length <= 200)
+            {
+                policy.Title = title;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.OwnerName))
+        {
+            var owner = request.OwnerName.Trim();
+            if (owner.Length <= 200)
+            {
+                policy.OwnerName = owner;
+            }
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await WriteAsync("policy.draft.updated", policy.Code, cancellationToken);
+        return await GetAsync(code, cancellationToken);
+    }
+
     public async Task<Result<PolicyDetail>> SubmitAsync(string code, CancellationToken cancellationToken)
     {
         await using var db = Open();

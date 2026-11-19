@@ -68,5 +68,27 @@ export function frameworkTag(key: string) {
   if (key === "iso27017") return "27017";
   if (key === "iso27018") return "27018";
   if (key === "soc2") return "SOC 2";
+  if (key === "hipaa") return "HIPAA";
+  if (key === "gdpr") return "GDPR";
+  if (key === "pci-dss") return "PCI 4.0";
+  if (key === "nist-csf") return "NIST 2.0";
+  if (key === "dora") return "DORA";
+  if (key === "iso42001") return "ISO 42001";
+  if (key === "nist-ai-rmf") return "AI RMF";
+  if (key === "eu-ai-act") return "EU AI";
+  if (key === "iec62443") return "IEC 62443";
   return key;
+}
+
+export function safeHref(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value.trim());
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

@@ -70,6 +70,7 @@ public sealed class CollectionRunner(
     ProviderSet providers,
     EvidenceWriter evidence,
     CollectionJobs jobs,
+    IAutomationDispatcher automation,
     TimeProvider time,
     ILogger<CollectionRunner> logger)
 {
@@ -126,6 +127,7 @@ public sealed class CollectionRunner(
         var resources = (await db.Resources.AsNoTracking().ToListAsync(cancellationToken)).Select(ProviderSet.ToResource).ToArray();
         var controls = await db.Controls.Include(item => item.Tests).ToListAsync(cancellationToken);
         var touched = new HashSet<Guid>();
+        var newlyFailed = new List<(CheckSpec Spec, CheckResult Result, Control ControlItem)>();
         foreach (var spec in AutomatedChecks.All)
         {
             step++;
@@ -137,7 +139,13 @@ public sealed class CollectionRunner(
                 continue;
             }
 
+            var previousOutcome = controlItem.Tests.FirstOrDefault(item => item.TestKey == spec.Key)?.Outcome;
             Upsert(db, controlItem, spec, result);
+            if (result.Outcome == TestOutcome.Fail && previousOutcome != TestOutcome.Fail)
+            {
+                newlyFailed.Add((spec, result, controlItem));
+            }
+
             if (result.Outcome == TestOutcome.NotRun)
             {
                 continue;
@@ -172,8 +180,56 @@ public sealed class CollectionRunner(
             controlItem.Status = Recompute(controlItem);
         }
 
+        await RecordTelemetryAsync(db, controls, newlyFailed, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+
+        foreach (var (spec, result, controlItem) in newlyFailed)
+        {
+            await automation.DispatchForTenantAsync(tenantId, tenant.DatabaseName, "TestFailed", spec.Name, result.Detail, cancellationToken);
+            if (controlItem.Status == ControlStatus.Failing)
+            {
+                await automation.DispatchForTenantAsync(tenantId, tenant.DatabaseName, "ControlNotReady", controlItem.Code + " " + controlItem.Title, result.Detail, cancellationToken);
+            }
+        }
+
         await jobs.FinishAsync(jobId, !failed, failed ? "collection_incomplete" : null, cancellationToken);
+    }
+
+    private async Task RecordTelemetryAsync(
+        TenantDbContext db,
+        IReadOnlyList<Control> controls,
+        IReadOnlyList<(CheckSpec Spec, CheckResult Result, Control ControlItem)> newlyFailed,
+        CancellationToken cancellationToken)
+    {
+        var now = time.GetUtcNow();
+        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        var offset = ((int)today.DayOfWeek + 6) % 7;
+        var monday = today.AddDays(-offset);
+        var automatedTests = controls.SelectMany(item => item.Tests).Where(test => test.Outcome is TestOutcome.Pass or TestOutcome.Fail).ToArray();
+        var passing = automatedTests.Count(test => test.Outcome == TestOutcome.Pass);
+        var failing = automatedTests.Count(test => test.Outcome == TestOutcome.Fail);
+        var week = await db.CheckWeeks.FirstOrDefaultAsync(item => item.WeekOf == monday, cancellationToken);
+        if (week is null)
+        {
+            db.CheckWeeks.Add(new CheckWeek { Id = Guid.NewGuid(), WeekOf = monday, Passing = passing, Failing = failing });
+        }
+        else
+        {
+            week.Passing = passing;
+            week.Failing = failing;
+        }
+
+        foreach (var (spec, result, controlItem) in newlyFailed)
+        {
+            db.Notifications.Add(new WorkspaceNotification
+            {
+                Id = Guid.NewGuid(),
+                Title = spec.Name,
+                Body = result.Detail.Length > 1000 ? result.Detail[..1000] : result.Detail,
+                Href = "/controls/" + controlItem.Code,
+                At = now,
+            });
+        }
     }
 
     private async Task ReplaceAsync(

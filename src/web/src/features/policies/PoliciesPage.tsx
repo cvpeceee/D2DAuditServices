@@ -32,6 +32,11 @@ export function PoliciesPage() {
   const [busy, setBusy] = useState(false);
   const [ackQuery, setAckQuery] = useState("");
   const [ackPage, setAckPage] = useState(1);
+  const [editingDraft, setEditingDraft] = useState(false);
+  const [draftBody, setDraftBody] = useState("");
+  const [assignName, setAssignName] = useState("");
+  const [assignEmail, setAssignEmail] = useState("");
+  const [assignDue, setAssignDue] = useState(new Date().toISOString().slice(0, 10));
 
   const load = () => {
     if (!tenantId) return;
@@ -49,14 +54,61 @@ export function PoliciesPage() {
   useEffect(() => {
     setAckQuery("");
     setAckPage(1);
+    setEditingDraft(false);
     if (!tenantId || !selected) {
       setDetail(null);
       return;
     }
     void api<PolicyDetail>(`/api/v1/policies/${selected}`, { tenantId })
-      .then(setDetail)
+      .then((loaded) => {
+        setDetail(loaded);
+        setDraftBody(loaded.versions[0]?.body ?? "");
+      })
       .catch((caught: unknown) => setError(caught instanceof ApiError ? caught.code : "load"));
   }, [selected, tenantId]);
+
+  async function saveDraft(event: React.FormEvent) {
+    event.preventDefault();
+    if (!tenantId || !detail) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api<PolicyDetail>(`/api/v1/policies/${detail.code}/draft`, {
+        method: "PUT",
+        tenantId,
+        body: { body: draftBody },
+      });
+      setDetail(updated);
+      setEditingDraft(false);
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function assignAcknowledgement(event: React.FormEvent) {
+    event.preventDefault();
+    if (!tenantId || !detail) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api<PolicyDetail>(`/api/v1/policies/${detail.code}/acknowledgements`, {
+        method: "POST",
+        tenantId,
+        body: { personName: assignName, personEmail: assignEmail, dueOn: assignDue },
+      });
+      setDetail(updated);
+      setAssignName("");
+      setAssignEmail("");
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function act(path: string) {
     if (!tenantId) return;
@@ -95,6 +147,14 @@ export function PoliciesPage() {
         </div>
         {workspace?.canWrite && (
           <div className="act">
+            <button
+              className="btn"
+              type="button"
+              disabled={busy}
+              onClick={() => void act("/api/v1/policies/library")}
+            >
+              {t("policiesPage.installLibrary")}
+            </button>
             <button
               className="btn"
               type="button"
@@ -161,7 +221,33 @@ export function PoliciesPage() {
                   </Pill>
                 </span>
               </div>
-              <p>{latest.body}</p>
+              {editingDraft && workspace?.canWrite && latest.state === "Draft" ? (
+                <form className="stack" onSubmit={(event) => void saveDraft(event)}>
+                  <textarea
+                    rows={6}
+                    value={draftBody}
+                    onChange={(event) => setDraftBody(event.target.value)}
+                    required
+                  />
+                  <div className="act">
+                    <button className="btn primary" type="submit" disabled={busy}>
+                      {t("policiesPage.saveDraft")}
+                    </button>
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() => {
+                        setEditingDraft(false);
+                        setDraftBody(latest.body);
+                      }}
+                    >
+                      {t("shell.close")}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <p>{latest.body}</p>
+              )}
               <div className="m">
                 {t("policiesPage.owner")}: {detail.ownerName}
                 {detail.controlCodes.length > 0 ? ` · ${detail.controlCodes.join(", ")}` : ""}
@@ -177,14 +263,29 @@ export function PoliciesPage() {
                 </button>
               )}
               {workspace?.canWrite && latest.state === "Draft" && (
-                <button
-                  className="btn"
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void act(`/api/v1/policies/${detail.code}/submit`)}
-                >
-                  {t("policiesPage.submit")}
-                </button>
+                <div className="act" style={{ marginTop: 8 }}>
+                  {!editingDraft && (
+                    <button
+                      className="btn"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setDraftBody(latest.body);
+                        setEditingDraft(true);
+                      }}
+                    >
+                      {t("policiesPage.editDraft")}
+                    </button>
+                  )}
+                  <button
+                    className="btn"
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void act(`/api/v1/policies/${detail.code}/submit`)}
+                  >
+                    {t("policiesPage.submit")}
+                  </button>
+                </div>
               )}
               {workspace?.role === "Admin" && latest.state === "InReview" && (
                 <button
@@ -207,6 +308,40 @@ export function PoliciesPage() {
                 </button>
               )}
               <h3 style={{ marginTop: 16 }}>{t("policiesPage.acknowledgements")}</h3>
+              {workspace?.canWrite &&
+                detail.versions.some((version) => version.state === "Approved") && (
+                  <form
+                    className="split-fields"
+                    style={{ marginBottom: 10 }}
+                    onSubmit={(event) => void assignAcknowledgement(event)}
+                  >
+                    <input
+                      aria-label={t("policiesPage.personName")}
+                      placeholder={t("policiesPage.personName")}
+                      value={assignName}
+                      onChange={(event) => setAssignName(event.target.value)}
+                      required
+                    />
+                    <input
+                      type="email"
+                      aria-label={t("policiesPage.personEmail")}
+                      placeholder={t("policiesPage.personEmail")}
+                      value={assignEmail}
+                      onChange={(event) => setAssignEmail(event.target.value)}
+                      required
+                    />
+                    <input
+                      type="date"
+                      aria-label={t("policiesPage.due")}
+                      value={assignDue}
+                      onChange={(event) => setAssignDue(event.target.value)}
+                      required
+                    />
+                    <button className="btn" type="submit" disabled={busy}>
+                      {t("policiesPage.assignAck")}
+                    </button>
+                  </form>
+                )}
               <label className="field">
                 <span>{t("policiesPage.search")}</span>
                 <input

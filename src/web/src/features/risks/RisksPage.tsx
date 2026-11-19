@@ -298,129 +298,133 @@ export function RisksPage() {
         )}
       </div>
       {workspace?.canWrite && (
-        <form className="card" style={{ marginTop: 14 }} onSubmit={(event) => void save(event)}>
-          <h3>{form.code || t("risksPage.new")}</h3>
-          <div className="field">
-            <label htmlFor="risk-title">{t("risksPage.titleField")}</label>
-            <input
-              id="risk-title"
-              value={form.title}
-              onChange={(event) => setForm({ ...form, title: event.target.value })}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="risk-statement">{t("risksPage.statement")}</label>
-            <textarea
-              id="risk-statement"
-              value={form.statement}
-              onChange={(event) => setForm({ ...form, statement: event.target.value })}
-            />
-          </div>
-          <div className="split-fields">
+        <div className="card" style={{ marginTop: 14 }}>
+          <form onSubmit={(event) => void save(event)}>
+            <h3>{form.code || t("risksPage.new")}</h3>
             <div className="field">
-              <label htmlFor="risk-l">{t("risksPage.likelihood")}</label>
+              <label htmlFor="risk-title">{t("risksPage.titleField")}</label>
               <input
-                id="risk-l"
-                type="number"
-                min={1}
-                max={5}
-                value={form.likelihood}
-                onChange={(event) => setForm({ ...form, likelihood: Number(event.target.value) })}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="risk-i">{t("risksPage.impact")}</label>
-              <input
-                id="risk-i"
-                type="number"
-                min={1}
-                max={5}
-                value={form.impact}
-                onChange={(event) => setForm({ ...form, impact: Number(event.target.value) })}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="risk-treatment">{t("risksPage.treatment")}</label>
-              <select
-                id="risk-treatment"
-                value={form.treatment}
-                onChange={(event) => setForm({ ...form, treatment: event.target.value })}
-              >
-                {treatments.map((treatment) => (
-                  <option key={treatment} value={treatment}>
-                    {t(`risksPage.treatments.${treatment}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="risk-review">{t("risksPage.review")}</label>
-              <input
-                id="risk-review"
-                type="date"
-                value={form.reviewOn}
-                onChange={(event) => setForm({ ...form, reviewOn: event.target.value })}
-              />
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="risk-plan">{t("risksPage.plan")}</label>
-            <textarea
-              id="risk-plan"
-              value={form.treatmentPlan}
-              onChange={(event) => setForm({ ...form, treatmentPlan: event.target.value })}
-            />
-          </div>
-          <div className="split-fields">
-            <div className="field">
-              <label htmlFor="risk-owner">{t("risksPage.owner")}</label>
-              <input
-                id="risk-owner"
-                value={form.ownerName}
-                onChange={(event) => setForm({ ...form, ownerName: event.target.value })}
+                id="risk-title"
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
                 required
               />
             </div>
             <div className="field">
-              <label htmlFor="risk-email">{t("login.email")}</label>
-              <input
-                id="risk-email"
-                type="email"
-                value={form.ownerEmail}
-                onChange={(event) => setForm({ ...form, ownerEmail: event.target.value })}
-                required
+              <label htmlFor="risk-statement">{t("risksPage.statement")}</label>
+              <textarea
+                id="risk-statement"
+                value={form.statement}
+                onChange={(event) => setForm({ ...form, statement: event.target.value })}
               />
+            </div>
+            <div className="split-fields">
+              <div className="field">
+                <label htmlFor="risk-l">{t("risksPage.likelihood")}</label>
+                <input
+                  id="risk-l"
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={form.likelihood}
+                  onChange={(event) => setForm({ ...form, likelihood: Number(event.target.value) })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-i">{t("risksPage.impact")}</label>
+                <input
+                  id="risk-i"
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={form.impact}
+                  onChange={(event) => setForm({ ...form, impact: Number(event.target.value) })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-treatment">{t("risksPage.treatment")}</label>
+                <select
+                  id="risk-treatment"
+                  value={form.treatment}
+                  onChange={(event) => setForm({ ...form, treatment: event.target.value })}
+                >
+                  {treatments.map((treatment) => (
+                    <option key={treatment} value={treatment}>
+                      {t(`risksPage.treatments.${treatment}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="risk-review">{t("risksPage.review")}</label>
+                <input
+                  id="risk-review"
+                  type="date"
+                  value={form.reviewOn}
+                  onChange={(event) => setForm({ ...form, reviewOn: event.target.value })}
+                />
+              </div>
             </div>
             <div className="field">
-              <label htmlFor="risk-controls">{t("risksPage.controls")}</label>
-              <input
-                id="risk-controls"
-                value={form.controlCodes}
-                onChange={(event) => setForm({ ...form, controlCodes: event.target.value })}
+              <label htmlFor="risk-plan">{t("risksPage.plan")}</label>
+              <textarea
+                id="risk-plan"
+                value={form.treatmentPlan}
+                onChange={(event) => setForm({ ...form, treatmentPlan: event.target.value })}
               />
             </div>
-          </div>
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={form.approved}
-              onChange={(event) => setForm({ ...form, approved: event.target.checked })}
-            />
-            {t("risksPage.approve")}
-          </label>
-          <button className="btn primary" type="submit" disabled={busy}>
-            {t("risksPage.save")}
-          </button>
+            <div className="split-fields">
+              <div className="field">
+                <label htmlFor="risk-owner">{t("risksPage.owner")}</label>
+                <input
+                  id="risk-owner"
+                  value={form.ownerName}
+                  onChange={(event) => setForm({ ...form, ownerName: event.target.value })}
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-email">{t("login.email")}</label>
+                <input
+                  id="risk-email"
+                  type="email"
+                  value={form.ownerEmail}
+                  onChange={(event) => setForm({ ...form, ownerEmail: event.target.value })}
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-controls">{t("risksPage.controls")}</label>
+                <input
+                  id="risk-controls"
+                  value={form.controlCodes}
+                  onChange={(event) => setForm({ ...form, controlCodes: event.target.value })}
+                />
+              </div>
+            </div>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={form.approved}
+                onChange={(event) => setForm({ ...form, approved: event.target.checked })}
+              />
+              {t("risksPage.approve")}
+            </label>
+            <button className="btn primary" type="submit" disabled={busy}>
+              {t("risksPage.save")}
+            </button>
+          </form>
           {form.code && (
-            <AssignTask
-              tenantId={tenantId}
-              linkedKind="Risk"
-              linkedCode={form.code}
-              canWrite={Boolean(workspace?.canWrite)}
-            />
+            <div style={{ marginTop: 12 }}>
+              <AssignTask
+                tenantId={tenantId}
+                linkedKind="Risk"
+                linkedCode={form.code}
+                canWrite={Boolean(workspace?.canWrite)}
+              />
+            </div>
           )}
-        </form>
+        </div>
       )}
     </>
   );

@@ -127,6 +127,8 @@ public sealed record VerifyReport(bool Intact, int Checked, string? ObjectKey, s
 
 public sealed record UploadEvidenceRequest(string ControlCode, string Title, string ContentBase64);
 
+public sealed record EvidenceDownload(byte[] Body, string FileName, string ContentType, string? Sha256);
+
 public interface IIntegrationQuery
 {
     Task<IReadOnlyList<IntegrationDto>> ListAsync(CancellationToken cancellationToken);
@@ -144,6 +146,8 @@ public interface IIntegrationQuery
     Task<VerifyReport> VerifyAsync(CancellationToken cancellationToken);
 
     Task<Result<EvidenceListItem>> UploadAsync(UploadEvidenceRequest request, CancellationToken cancellationToken);
+
+    Task<Result<EvidenceDownload>> DownloadAsync(Guid id, CancellationToken cancellationToken);
 }
 
 public interface ICollectionSchedule

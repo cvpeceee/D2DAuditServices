@@ -107,6 +107,11 @@ public sealed class ProgramPortal(
         }
         else
         {
+            if (!tenant.CanWrite)
+            {
+                return Result<MeCard>.Fail("forbidden");
+            }
+
             person.BackgroundStatus = "Clear";
             person.BackgroundOn = today;
             var note = string.IsNullOrWhiteSpace(request.Note) ? "Background check recorded." : request.Note.Trim();
@@ -423,6 +428,29 @@ public sealed class ProgramPortal(
         }
 
         row.Status = "Done";
+        var nextDue = TaskRecurrence.NextDue(row.DueOn, row.Recurrence);
+        if (nextDue is DateOnly scheduled)
+        {
+            var exists = await db.WorkTasks.AnyAsync(
+                item => item.Title == row.Title && item.LinkedKind == row.LinkedKind && item.LinkedCode == row.LinkedCode && item.DueOn == scheduled && item.Status != "Done",
+                cancellationToken);
+            if (!exists)
+            {
+                db.WorkTasks.Add(new WorkTask
+                {
+                    Id = Guid.NewGuid(),
+                    Title = row.Title,
+                    LinkedKind = row.LinkedKind,
+                    LinkedCode = row.LinkedCode,
+                    OwnerName = row.OwnerName,
+                    OwnerEmail = row.OwnerEmail,
+                    DueOn = scheduled,
+                    Status = "Open",
+                    Recurrence = row.Recurrence,
+                });
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "task.done", "ok", row.LinkedKind, null, cancellationToken);
         return Result<WorkTaskItem>.Ok(ToTask(row, Today()));
@@ -441,14 +469,14 @@ public sealed class ProgramPortal(
             return Result<MemberItem>.Fail("forbidden");
         }
 
-        var email = (request.Email ?? "").Trim();
+        var email = (request.Email ?? "").Trim().ToLowerInvariant();
         var name = (request.Name ?? "").Trim();
         if (!Enum.TryParse<TenantRole>(request.Role, out var role) || name.Length == 0 || email.Length is < 3 or > 320 || !email.Contains('@'))
         {
             return Result<MemberItem>.Fail("invalid_member");
         }
 
-        var user = await control.Users.FirstOrDefaultAsync(item => item.Email == email, cancellationToken);
+        var user = await control.Users.FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, email), cancellationToken);
         if (user is null)
         {
             user = new UserAccount
@@ -491,6 +519,17 @@ public sealed class ProgramPortal(
             return Result<MemberItem>.Fail("not_found");
         }
 
+        if (membership.Role == TenantRole.Admin && membership.Active && role != TenantRole.Admin)
+        {
+            var otherAdmins = await control.Memberships.CountAsync(
+                item => item.TenantId == tenant.TenantId && item.Active && item.Role == TenantRole.Admin && item.Id != membership.Id,
+                cancellationToken);
+            if (otherAdmins == 0)
+            {
+                return Result<MemberItem>.Fail("last_admin");
+            }
+        }
+
         membership.Role = role;
         await control.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "member.role", "ok", role.ToString(), null, cancellationToken);
@@ -513,6 +552,17 @@ public sealed class ProgramPortal(
         if (membership.UserId == tenant.UserId)
         {
             return Result<MemberItem>.Fail("invalid_member");
+        }
+
+        if (membership.Role == TenantRole.Admin && membership.Active)
+        {
+            var otherAdmins = await control.Memberships.CountAsync(
+                item => item.TenantId == tenant.TenantId && item.Active && item.Role == TenantRole.Admin && item.Id != membership.Id,
+                cancellationToken);
+            if (otherAdmins == 0)
+            {
+                return Result<MemberItem>.Fail("last_admin");
+            }
         }
 
         membership.Active = false;
@@ -553,8 +603,8 @@ public sealed class ProgramPortal(
             return Result<GrantItem>.Fail("forbidden");
         }
 
-        var email = (request.Email ?? "").Trim();
-        var user = await control.Users.FirstOrDefaultAsync(item => item.Email == email, cancellationToken);
+        var email = (request.Email ?? "").Trim().ToLowerInvariant();
+        var user = await control.Users.FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, email), cancellationToken);
         var member = user is null ? null : await control.Memberships.FirstOrDefaultAsync(item => item.UserId == user.Id && item.TenantId == tenant.TenantId, cancellationToken);
         if (user is null || member is null || request.Frameworks is null || request.Frameworks.Count == 0)
         {
@@ -692,11 +742,17 @@ public sealed class ProgramPortal(
         }
     }
 
-    private static async Task<DirectoryPerson?> FindPersonAsync(TenantDbContext db, string email, CancellationToken cancellationToken) =>
-        await db.People.Include(item => item.Tasks).FirstOrDefaultAsync(item => item.Email == email, cancellationToken);
+    private static async Task<DirectoryPerson?> FindPersonAsync(TenantDbContext db, string email, CancellationToken cancellationToken)
+    {
+        var normalized = email.Trim();
+        return await db.People.Include(item => item.Tasks).FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, normalized), cancellationToken);
+    }
 
-    private static async Task<List<PolicyAcknowledgement>> AcknowledgementsAsync(TenantDbContext db, string email, CancellationToken cancellationToken) =>
-        await db.Acknowledgements.AsNoTracking().Where(item => item.PersonEmail == email).ToListAsync(cancellationToken);
+    private static async Task<List<PolicyAcknowledgement>> AcknowledgementsAsync(TenantDbContext db, string email, CancellationToken cancellationToken)
+    {
+        var normalized = email.Trim();
+        return await db.Acknowledgements.AsNoTracking().Where(item => EF.Functions.ILike(item.PersonEmail, normalized)).ToListAsync(cancellationToken);
+    }
 
     private static async Task<(Guid? Evidence, bool Done)> CompletionAsync(TenantDbContext db, string code, string email, CancellationToken cancellationToken)
     {
@@ -706,7 +762,8 @@ public sealed class ProgramPortal(
             return (null, false);
         }
 
-        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == module.Id && item.PersonEmail == email, cancellationToken);
+        var normalized = email.Trim();
+        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == module.Id && EF.Functions.ILike(item.PersonEmail, normalized), cancellationToken);
         return (completion?.EvidenceId, completion is not null);
     }
 
@@ -786,11 +843,7 @@ public sealed class ProgramPortal(
 
     private static MemberItem ToMember(Membership row) => new(row.Id, row.User?.DisplayName ?? "", row.User?.Email ?? "", row.Role.ToString(), row.Active);
 
-    private static string Cell(string value)
-    {
-        var escaped = value.Replace("\"", "\"\"", StringComparison.Ordinal);
-        return $"\"{escaped}\"";
-    }
+    private static string Cell(string value) => CsvSafety.EscapeCell(value);
 
     private DateOnly Today() => DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
 

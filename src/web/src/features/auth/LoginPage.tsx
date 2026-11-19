@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { examplePassword } from "../../demo/accounts";
 import { ApiError, api, type AuthMode, type AuthResponse } from "../../shared/api/client";
 import { useAuth } from "./AuthContext";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
@@ -36,10 +35,12 @@ export function LoginPage() {
   }, []);
 
   async function signInAs(account: string) {
+    if (import.meta.env.VITE_DEMO !== "true") return;
     setError(null);
     setNotice(null);
     setBusy(true);
     try {
+      const { examplePassword } = await import("../../demo/accounts");
       const session = await api<AuthResponse>("/api/v1/auth/login", {
         method: "POST",
         body: { email: account, password: examplePassword },

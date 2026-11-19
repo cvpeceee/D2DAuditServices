@@ -10,7 +10,7 @@ import {
   type Workspace,
 } from "../../shared/api/client";
 import { Pager } from "../../shared/ui/Pager";
-import { formatDate, Pill } from "../../shared/ui/ui";
+import { formatDate, Pill, safeHref } from "../../shared/ui/ui";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
@@ -410,9 +410,15 @@ export function PeoplePage() {
               {t(`peoplePage.backgrounds.${detail.background ?? "NotStarted"}`)}
               {detail.backgroundOn ? ` · ${formatDate(detail.backgroundOn)}` : ""}
               {detail.backgroundProvider ? ` · ${detail.backgroundProvider}` : ""}
-              {detail.backgroundLink && (
+              {safeHref(detail.backgroundLink) && (
                 <div className="id">
-                  <a href={detail.backgroundLink}>{detail.backgroundLink}</a>
+                  <a
+                    href={safeHref(detail.backgroundLink) ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {detail.backgroundLink}
+                  </a>
                 </div>
               )}
               {detail.backgroundExcluded && detail.backgroundExclusionReason && (

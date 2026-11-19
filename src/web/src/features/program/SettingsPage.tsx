@@ -33,7 +33,7 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [members, setMembers] = useState<Member[] | null>(null);
-  const [sso, setSso] = useState<SsoStatus | null>(null);
+  const [sso, setSso] = useState<SsoStatus[]>([]);
   const [grants, setGrants] = useState<Grant[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -56,14 +56,14 @@ export function SettingsPage() {
     if (!tenantId || workspace?.role !== "Admin") return;
     void Promise.all([
       api<Member[]>("/api/v1/settings/members", { tenantId }),
-      api<SsoStatus>("/api/v1/settings/sso", { tenantId }),
+      api<SsoStatus | SsoStatus[]>("/api/v1/settings/sso", { tenantId }),
       api<Grant[]>("/api/v1/settings/grants", { tenantId }),
       api<Rule[]>("/api/v1/settings/automation", { tenantId }),
       api<Delivery[]>("/api/v1/settings/automation/deliveries", { tenantId }),
     ])
       .then(([people, domains, rows, automation, sent]) => {
         setMembers(people);
-        setSso(domains);
+        setSso(Array.isArray(domains) ? domains : domains ? [domains] : []);
         setGrants(rows);
         setRules(automation);
         setDeliveries(sent);
@@ -79,49 +79,73 @@ export function SettingsPage() {
   async function invite(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/settings/members", {
-      method: "POST",
-      tenantId,
-      body: { name, email, role },
-    });
-    setName("");
-    setEmail("");
-    load();
+    setError(null);
+    try {
+      await api("/api/v1/settings/members", {
+        method: "POST",
+        tenantId,
+        body: { name, email, role },
+      });
+      setName("");
+      setEmail("");
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   async function changeRole(id: string, next: string) {
     if (!tenantId) return;
-    await api(`/api/v1/settings/members/${id}/role`, {
-      method: "POST",
-      tenantId,
-      body: { role: next },
-    });
-    load();
+    setError(null);
+    try {
+      await api(`/api/v1/settings/members/${id}/role`, {
+        method: "POST",
+        tenantId,
+        body: { role: next },
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   async function deactivate(id: string) {
     if (!tenantId) return;
-    await api(`/api/v1/settings/members/${id}/deactivate`, { method: "POST", tenantId, body: {} });
-    load();
+    setError(null);
+    try {
+      await api(`/api/v1/settings/members/${id}/deactivate`, {
+        method: "POST",
+        tenantId,
+        body: {},
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   async function saveGrant(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/settings/grants", {
-      method: "POST",
-      tenantId,
-      body: {
-        email: grantEmail,
-        auditName,
-        firmName,
-        periodStart: "2026-04-01",
-        periodEnd: "2026-09-30",
-        accessExpiresOn: "2026-12-15",
-        frameworks: ["soc2"],
-      },
-    });
-    load();
+    setError(null);
+    try {
+      await api("/api/v1/settings/grants", {
+        method: "POST",
+        tenantId,
+        body: {
+          email: grantEmail,
+          auditName,
+          firmName,
+          periodStart: "2026-04-01",
+          periodEnd: "2026-09-30",
+          accessExpiresOn: "2026-12-15",
+          frameworks: ["soc2"],
+        },
+      });
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    }
   }
 
   if (workspace && workspace.role !== "Admin") {
@@ -138,17 +162,17 @@ export function SettingsPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {error === "last_admin" ? t("settingsPage.lastAdmin") : t("errors.load")}
         </div>
       )}
       <div className="card">
         <h3>{t("settingsPage.sso")}</h3>
-        {sso && (
-          <p>
-            {sso.domain} ·{" "}
-            {sso.connected ? t("settingsPage.connected") : t("settingsPage.notConnected")}
+        {sso.map((entry) => (
+          <p key={entry.domain || "default"}>
+            {entry.domain} ·{" "}
+            {entry.connected ? t("settingsPage.connected") : t("settingsPage.notConnected")}
           </p>
-        )}
+        ))}
       </div>
       <form className="card" style={{ marginTop: 14 }} onSubmit={(event) => void invite(event)}>
         <h3>{t("settingsPage.invite")}</h3>

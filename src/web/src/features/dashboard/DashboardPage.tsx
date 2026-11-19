@@ -377,7 +377,11 @@ export function DashboardPage() {
                   <tr key={test.testId}>
                     <td>
                       <div className="t">{test.testName}</div>
-                      <div className="id">{test.controlCode}</div>
+                      <div className="id">
+                        <Link to={`/controls/${encodeURIComponent(test.controlCode)}`}>
+                          {test.controlCode}
+                        </Link>
+                      </div>
                     </td>
                     <td className="m">{test.detail || "—"}</td>
                     <td>

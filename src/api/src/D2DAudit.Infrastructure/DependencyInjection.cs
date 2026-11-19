@@ -64,6 +64,7 @@ public static class DependencyInjection
         services.AddDbContext<ControlPlaneDbContext>(options => options.UseNpgsql(connectionString));
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<PasswordHasher<UserAccount>>();
+        services.AddSingleton<LocalDummyPasswordHash>();
         services.AddSingleton<IFrameworkCatalog, FrameworkCatalog>();
         services.AddScoped<TenantContext>();
         services.AddScoped<TenantDatabases>();
@@ -104,8 +105,8 @@ public static class DependencyInjection
         services.AddScoped<CollectionRunner>();
         services.AddScoped<IIntegrationQuery, IntegrationQuery>();
         services.AddScoped<IPolicyPortal, PolicyPortal>();
-        services.AddScoped<IIssueTracker, FakeIssueTracker>();
-        services.AddScoped<INotifier, FakeNotifier>();
+        services.AddHttpClient<IIssueTracker, ConfigurableIssueTracker>(client => client.Timeout = TimeSpan.FromSeconds(20));
+        services.AddHttpClient<INotifier, ConfigurableNotifier>(client => client.Timeout = TimeSpan.FromSeconds(20));
         services.AddScoped<IAutomationDispatcher, AutomationDispatcher>();
         services.AddScoped<IGovernance, GovernancePortal>();
         services.AddScoped<IOperations, OperationsPortal>();

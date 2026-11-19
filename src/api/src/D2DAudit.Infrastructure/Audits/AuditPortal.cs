@@ -259,13 +259,19 @@ public sealed class AuditPortal(
             }
         }
 
-        await queue.EnqueueAsync(new ExportWork(tenant.TenantId, id, keys, periodStart, periodEnd), cancellationToken);
+        var storageKey = PackageKey(tenant.TenantId, id, tenant.IsAuditor ? tenant.UserId : null);
+        await queue.EnqueueAsync(new ExportWork(tenant.TenantId, id, keys, periodStart, periodEnd, storageKey), cancellationToken);
         await WriteAsync("audit.package.started", id.ToString("N"), cancellationToken);
         return Result<Guid>.Ok(id);
     }
 
     public async Task<Result<AuditEngagementDto>> SetPeriodAsync(DateOnly periodStart, DateOnly periodEnd, CancellationToken cancellationToken)
     {
+        if (tenant.IsAuditor || !tenant.CanWrite)
+        {
+            return Result<AuditEngagementDto>.Fail("forbidden");
+        }
+
         if (periodEnd < periodStart)
         {
             return Result<AuditEngagementDto>.Fail("invalid_period");
@@ -302,10 +308,22 @@ public sealed class AuditPortal(
             return Result<PackageFile>.Fail("not_ready");
         }
 
-        var key = $"{tenant.TenantId:N}/exports/{jobId:N}.zip";
-        var bytes = await storage.GetAsync(key, cancellationToken);
-        return Result<PackageFile>.Ok(new PackageFile(bytes, "audit-package.zip"));
+        var key = PackageKey(tenant.TenantId, jobId, tenant.IsAuditor ? tenant.UserId : null);
+        try
+        {
+            var bytes = await storage.GetAsync(key, cancellationToken);
+            return Result<PackageFile>.Ok(new PackageFile(bytes, "audit-package.zip"));
+        }
+        catch (Exception exception) when (exception is IOException or Amazon.S3.AmazonS3Exception or InvalidOperationException)
+        {
+            return Result<PackageFile>.Fail(tenant.IsAuditor ? "forbidden" : "not_found");
+        }
     }
+
+    public static string PackageKey(Guid tenantId, Guid jobId, Guid? auditorUserId) =>
+        auditorUserId is Guid auditorId
+            ? $"{tenantId:N}/exports/auditor-{auditorId:N}/{jobId:N}.zip"
+            : $"{tenantId:N}/exports/{jobId:N}.zip";
 
     private TenantDbContext Open() => databases.Create(tenant.DatabaseName);
 

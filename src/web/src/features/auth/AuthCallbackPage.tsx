@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ApiError, api, type AuthResponse } from "../../shared/api/client";
@@ -9,8 +9,11 @@ export function AuthCallbackPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const started = useRef(false);
 
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
@@ -20,14 +23,12 @@ export function AuthCallbackPage() {
       setError(t("login.errors.invalid_state"));
       return;
     }
-    let cancelled = false;
     void api<AuthResponse>("/api/v1/auth/callback", {
       method: "POST",
       body: { code, redirectUri: `${window.location.origin}/auth/callback` },
       skipRefresh: true,
     })
       .then(async (session) => {
-        if (cancelled) return;
         if (session.mfaRequired) {
           setError(t("login.errors.mfa_enrollment_required"));
           return;
@@ -36,15 +37,11 @@ export function AuthCallbackPage() {
         navigate("/", { replace: true });
       })
       .catch((caught: unknown) => {
-        if (cancelled) return;
         const codeName = caught instanceof ApiError ? caught.code : "generic";
         const key = `login.errors.${codeName}`;
         const text = t(key);
         setError(text === key ? t("login.errors.generic") : text);
       });
-    return () => {
-      cancelled = true;
-    };
   }, [navigate, refresh, t]);
 
   return (

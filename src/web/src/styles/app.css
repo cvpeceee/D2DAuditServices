@@ -590,8 +590,11 @@ button.row-hit::after {
   width: var(--assist);
   border-inline-start: 1px solid var(--border);
   background: var(--surface);
-  display: flex;
+  display: none;
   flex-direction: column;
+}
+.assist.open {
+  display: flex;
 }
 .ah {
   padding: 16px;

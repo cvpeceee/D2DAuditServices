@@ -36,7 +36,7 @@ function Tree({ node }: { node: RequirementNode }) {
       )}
       {node.controls.map((control) => (
         <div className="row" key={control.code} style={{ marginTop: 6 }}>
-          <Link to="/controls">{control.code}</Link>
+          <Link to={`/controls/${encodeURIComponent(control.code)}`}>{control.code}</Link>
           <span>{control.title}</span>
           <span className="tag">
             {control.coverage === "full"

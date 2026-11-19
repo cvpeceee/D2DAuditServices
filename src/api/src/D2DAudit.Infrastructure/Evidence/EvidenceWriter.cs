@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Amazon.S3;
 using D2DAudit.Application;
@@ -12,6 +13,8 @@ namespace D2DAudit.Infrastructure.Evidence;
 
 public sealed class EvidenceWriter(IStorageProvider storage, TimeProvider time, ILogger<EvidenceWriter> logger)
 {
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _tenantGates = new();
+
     public async Task AppendAsync(
         TenantDbContext db,
         Guid tenantId,
@@ -21,31 +24,50 @@ public sealed class EvidenceWriter(IStorageProvider storage, TimeProvider time, 
         DateTimeOffset lockedUntil,
         CancellationToken cancellationToken)
     {
-        var hash = EvidenceChain.ContentHash(body);
-        var previous = await db.Chain.OrderByDescending(entry => entry.Sequence).Select(entry => entry.Head).FirstOrDefaultAsync(cancellationToken);
-        var sequence = await db.Chain.MaxAsync(entry => (long?)entry.Sequence, cancellationToken) ?? 0;
-        var canonical = EvidenceChain.Canonical(tenantId, item.ObjectKey!, hash, item.Title);
-        var head = EvidenceChain.NextHead(previous, hash, canonical);
-        await storage.PutAsync(item.ObjectKey!, body, contentType, lockedUntil, cancellationToken);
-        var now = time.GetUtcNow();
-        db.Chain.Add(new ChainEntry
+        var gate = _tenantGates.GetOrAdd(tenantId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
         {
-            Id = Guid.NewGuid(),
-            Sequence = sequence + 1,
-            EvidenceId = item.Id,
-            ObjectKey = item.ObjectKey!,
-            ContentHash = hash,
-            PreviousHead = previous,
-            Head = head,
-            Canonical = canonical,
-            CreatedAt = now,
-        });
-        item.Sha256 = hash;
-        item.PreviousHead = previous;
-        item.ChainHead = head;
-        item.Integrity = EvidenceIntegrity.Verified;
-        item.LockedUntil = lockedUntil;
-        item.CollectedAt = now;
+            var hash = EvidenceChain.ContentHash(body);
+            var last = await db.Chain
+                .AsNoTracking()
+                .OrderByDescending(entry => entry.Sequence)
+                .Select(entry => new { entry.Sequence, entry.Head })
+                .FirstOrDefaultAsync(cancellationToken);
+            var localLast = db.Chain.Local
+                .OrderByDescending(entry => entry.Sequence)
+                .FirstOrDefault();
+            var sequence = Math.Max(last?.Sequence ?? 0, localLast?.Sequence ?? 0);
+            var previous = localLast is not null && localLast.Sequence >= (last?.Sequence ?? 0)
+                ? localLast.Head
+                : last?.Head;
+            var canonical = EvidenceChain.Canonical(tenantId, item.ObjectKey!, hash, item.Title);
+            var head = EvidenceChain.NextHead(previous, hash, canonical);
+            await storage.PutAsync(item.ObjectKey!, body, contentType, lockedUntil, cancellationToken);
+            var now = time.GetUtcNow();
+            db.Chain.Add(new ChainEntry
+            {
+                Id = Guid.NewGuid(),
+                Sequence = sequence + 1,
+                EvidenceId = item.Id,
+                ObjectKey = item.ObjectKey!,
+                ContentHash = hash,
+                PreviousHead = previous,
+                Head = head,
+                Canonical = canonical,
+                CreatedAt = now,
+            });
+            item.Sha256 = hash;
+            item.PreviousHead = previous;
+            item.ChainHead = head;
+            item.Integrity = EvidenceIntegrity.Verified;
+            item.LockedUntil = lockedUntil;
+            item.CollectedAt = now;
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public async Task<VerifyReport> VerifyAsync(TenantDbContext db, Guid tenantId, CancellationToken cancellationToken)

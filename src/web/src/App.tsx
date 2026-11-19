@@ -91,6 +91,7 @@ export function App() {
         <Route path="frameworks" element={<FrameworksPage />} />
         <Route path="frameworks/:key" element={<FrameworkDetailPage />} />
         <Route path="controls" element={<ControlsPage />} />
+        <Route path="controls/:code" element={<ControlsPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="tests" element={<TestsPage />} />
         <Route path="evidence" element={<EvidencePage />} />

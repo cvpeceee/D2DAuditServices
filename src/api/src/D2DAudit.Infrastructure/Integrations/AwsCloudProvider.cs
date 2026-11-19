@@ -63,11 +63,12 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
 
         try
         {
-            var session = await AssumeAsync(connection.RoleArn, connection.ExternalId, cancellationToken);
+            var region = ConfiguredRegion();
+            var session = await AssumeAsync(connection.RoleArn, connection.ExternalId, region, cancellationToken);
             var resources = new List<NormalizedResource>();
-            using var sts = new AmazonSecurityTokenServiceClient(session, RegionEndpoint.USEast1);
+            using var sts = new AmazonSecurityTokenServiceClient(session, region);
             var identity = await sts.GetCallerIdentityAsync(new GetCallerIdentityRequest(), cancellationToken);
-            using var iam = new AmazonIdentityManagementServiceClient(session, RegionEndpoint.USEast1);
+            using var iam = new AmazonIdentityManagementServiceClient(session, region);
             var summary = await iam.GetAccountSummaryAsync(new GetAccountSummaryRequest(), cancellationToken);
             summary.SummaryMap.TryGetValue("AccountMFAEnabled", out var mfaFlag);
             resources.Add(new NormalizedResource(
@@ -77,7 +78,7 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
                 "root:" + identity.Account,
                 Flag(("mfa", mfaFlag == 1))));
 
-            using var s3 = new AmazonS3Client(session, RegionEndpoint.USEast1);
+            using var s3 = new AmazonS3Client(session, region);
             var buckets = await s3.ListBucketsAsync(cancellationToken);
             foreach (var name in buckets.Buckets.Select(bucket => bucket.BucketName))
             {
@@ -86,11 +87,13 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
                 resources.Add(new NormalizedResource("aws", "bucket", name, name, Flag(("public", !blocked), ("encrypted", encrypted))));
             }
 
-            using var trails = new AmazonCloudTrailClient(session, RegionEndpoint.USEast1);
-            var described = await trails.DescribeTrailsAsync(new DescribeTrailsRequest { IncludeShadowTrails = false }, cancellationToken);
+            using var trails = new AmazonCloudTrailClient(session, region);
+            var described = await trails.DescribeTrailsAsync(new DescribeTrailsRequest { IncludeShadowTrails = true }, cancellationToken);
             foreach (var trail in described.TrailList)
             {
-                var status = await trails.GetTrailStatusAsync(new GetTrailStatusRequest { Name = trail.TrailARN }, cancellationToken);
+                var trailRegion = string.IsNullOrWhiteSpace(trail.HomeRegion) ? region : RegionEndpoint.GetBySystemName(trail.HomeRegion);
+                using var homeClient = trailRegion == region ? null : new AmazonCloudTrailClient(session, trailRegion);
+                var status = await (homeClient ?? trails).GetTrailStatusAsync(new GetTrailStatusRequest { Name = trail.TrailARN }, cancellationToken);
                 resources.Add(new NormalizedResource("aws", "trail", trail.Name, trail.Name, Flag(("enabled", status.IsLogging == true))));
             }
 
@@ -129,11 +132,17 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
             IntegrationPolicies.AwsPermissions,
             hint);
 
+    private RegionEndpoint ConfiguredRegion()
+    {
+        var configured = configuration["AWS:Region"] ?? configuration["AWS_REGION"];
+        return string.IsNullOrWhiteSpace(configured) ? RegionEndpoint.USEast1 : RegionEndpoint.GetBySystemName(configured.Trim());
+    }
+
     private async Task<bool> TryAssumeAsync(string roleArn, string externalId, CancellationToken cancellationToken)
     {
         try
         {
-            _ = await AssumeAsync(roleArn, externalId, cancellationToken);
+            _ = await AssumeAsync(roleArn, externalId, ConfiguredRegion(), cancellationToken);
             return true;
         }
         catch (Exception exception) when (exception is AmazonServiceException or AmazonClientException)
@@ -143,9 +152,9 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
         }
     }
 
-    private static async Task<SessionAWSCredentials> AssumeAsync(string roleArn, string externalId, CancellationToken cancellationToken)
+    private static async Task<SessionAWSCredentials> AssumeAsync(string roleArn, string externalId, RegionEndpoint region, CancellationToken cancellationToken)
     {
-        using var sts = new AmazonSecurityTokenServiceClient(new AmazonSecurityTokenServiceConfig { RegionEndpoint = RegionEndpoint.USEast1 });
+        using var sts = new AmazonSecurityTokenServiceClient(new AmazonSecurityTokenServiceConfig { RegionEndpoint = region });
         var assumed = await sts.AssumeRoleAsync(
             new AssumeRoleRequest
             {
@@ -172,7 +181,8 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
             var config = block.PublicAccessBlockConfiguration;
             return config.BlockPublicAcls == true && config.IgnorePublicAcls == true && config.BlockPublicPolicy == true && config.RestrictPublicBuckets == true;
         }
-        catch (AmazonS3Exception)
+        catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound
+            || string.Equals(exception.ErrorCode, "NoSuchPublicAccessBlockConfiguration", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -190,7 +200,8 @@ public sealed class AwsCloudProvider(IConfiguration configuration, ILogger<AwsCl
             var encryption = await client.GetBucketEncryptionAsync(new GetBucketEncryptionRequest { BucketName = bucket }, cancellationToken);
             return encryption.ServerSideEncryptionConfiguration?.ServerSideEncryptionRules?.Count > 0;
         }
-        catch (AmazonS3Exception)
+        catch (AmazonS3Exception exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound
+            || string.Equals(exception.ErrorCode, "ServerSideEncryptionConfigurationNotFoundError", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

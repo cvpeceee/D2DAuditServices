@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using D2DAudit.Application;
+using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Audits;
 
 namespace D2DAudit.Infrastructure.Governance;
@@ -88,9 +89,5 @@ internal static class GovernanceDocuments
         return builder.ToString();
     }
 
-    private static string Cell(string value)
-    {
-        var escaped = value.Replace("\"", "\"\"", StringComparison.Ordinal);
-        return $"\"{escaped}\"";
-    }
+    private static string Cell(string value) => CsvSafety.EscapeCell(value);
 }

@@ -120,10 +120,14 @@ export async function api<T>(
   return (await response.json()) as T;
 }
 
-export async function download(path: string, tenantId: string | null) {
+export async function download(path: string, tenantId: string | null, skipRefresh = false) {
   const headers: Record<string, string> = { "X-D2D-Request": "1" };
   if (tenantId) headers["X-Tenant-Id"] = tenantId;
   const response = await fetch(path, { headers, credentials: "include" });
+  if (response.status === 401 && !skipRefresh) {
+    const refreshed = await refreshSession();
+    if (refreshed) return download(path, tenantId, true);
+  }
   if (!response.ok) throw new ApiError(response.status, "request_failed");
   const blob = await response.blob();
   const match = /filename="?([^";]+)"?/.exec(response.headers.get("Content-Disposition") ?? "");

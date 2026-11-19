@@ -4,6 +4,7 @@ import { useOutletContext } from "react-router-dom";
 import {
   ApiError,
   api,
+  download,
   type EvidenceItem,
   type EvidencePage as EvidencePayload,
   type Job,
@@ -192,6 +193,24 @@ export function EvidencePage() {
                             date: new Date(item.lockedUntil).toLocaleDateString(),
                           })
                         : t("evidencePage.pending")}
+                      {item.integrity === "verified" && (
+                        <div>
+                          <button
+                            className="linkish"
+                            type="button"
+                            onClick={() =>
+                              void download(
+                                `/api/v1/evidence/${encodeURIComponent(item.id)}/download`,
+                                tenantId,
+                              ).catch((caught: unknown) =>
+                                setError(caught instanceof ApiError ? caught.code : "load"),
+                              )
+                            }
+                          >
+                            {t("evidencePage.download")}
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

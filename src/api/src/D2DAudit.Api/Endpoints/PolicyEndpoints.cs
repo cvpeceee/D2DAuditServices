@@ -14,6 +14,7 @@ public static class PolicyEndpoints
         group.MapPost("/policies/reminders", Remind).RequireAuthorization("TenantWrite").Produces<int>();
         group.MapGet("/policies/{code}", Get).Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/draft", Draft).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
+        group.MapPut("/policies/{code}/draft", UpdateDraft).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/submit", Submit).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/approve", Approve).RequireAuthorization("TenantAdmin").Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/acknowledgements", Assign).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
@@ -32,6 +33,9 @@ public static class PolicyEndpoints
 
     private static async Task<IResult> Draft(string code, IPolicyPortal portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.DraftAsync(code, cancellationToken));
+
+    private static async Task<IResult> UpdateDraft(string code, UpdatePolicyDraftRequest body, IPolicyPortal portal, CancellationToken cancellationToken) =>
+        EndpointResults.FromResult(await portal.UpdateDraftAsync(code, body, cancellationToken));
 
     private static async Task<IResult> Submit(string code, IPolicyPortal portal, CancellationToken cancellationToken) =>
         EndpointResults.FromResult(await portal.SubmitAsync(code, cancellationToken));
