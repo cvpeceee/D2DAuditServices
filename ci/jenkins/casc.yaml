@@ -1,0 +1,45 @@
+jenkins:
+  systemMessage: "D2D Audit Services — Self-Hosted Open-Source Jenkins CI/CD (Zero GitHub Actions Minutes)"
+  numExecutors: 4
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USER:-admin}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://localhost:8085/}"
+
+jobs:
+  - script: >
+      multibranchPipelineJob('D2DAuditServices') {
+        displayName('D2D Audit Services')
+        description('Automated .NET 10 + React/Vite + Gitleaks CI/CD and Review Site packaging via Jenkinsfile.')
+        branchSources {
+          git {
+            id('d2daudit-git')
+            remote('https://github.com/cvpeceee/D2DAuditServices.git')
+          }
+        }
+        factory {
+          workflowBranchProjectFactory {
+            scriptPath('Jenkinsfile')
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('5m')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(10)
+          }
+        }
+      }

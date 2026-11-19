@@ -1,0 +1,23 @@
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: d2d-jenkins
+    restart: unless-stopped
+    ports:
+      - "${JENKINS_PORT:-8085}:8080"
+      - "50000:50000"
+    environment:
+      JENKINS_ADMIN_USER: "${JENKINS_ADMIN_USER:-admin}"
+      JENKINS_ADMIN_PASSWORD: "${JENKINS_ADMIN_PASSWORD:?Set JENKINS_ADMIN_PASSWORD before starting Jenkins}"
+      JENKINS_URL: "${JENKINS_URL:-http://localhost:8085/}"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./casc.yaml:/var/jenkins_home/casc_configs/casc.yaml:ro
+      # Mount Docker socket if you want Testcontainers/Postgres integration tests inside Jenkins:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins_home:

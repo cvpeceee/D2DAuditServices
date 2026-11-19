@@ -1,8 +1,9 @@
-name: Deploy review site
+# Automatic GitHub Actions triggers are disabled to avoid consuming Actions minutes.
+# Review site + live demo packaging and optional gh-pages publish run in Jenkinsfile.
+name: Deploy review site (Manual Fallback Only)
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

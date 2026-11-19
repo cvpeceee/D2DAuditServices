@@ -1,9 +1,9 @@
-name: CI
+# Automatic GitHub Actions triggers are disabled to avoid consuming Actions minutes.
+# CI/CD runs on self-hosted open-source Jenkins (see Jenkinsfile and ci/jenkins/README.md).
+name: CI (Manual Fallback Only)
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

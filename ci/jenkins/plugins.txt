@@ -1,0 +1,11 @@
+configuration-as-code
+workflow-aggregator
+git
+github
+github-branch-source
+job-dsl
+timestamper
+ws-cleanup
+junit
+credentials-binding
+blueocean
