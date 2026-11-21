@@ -69,6 +69,17 @@ public sealed class GovernancePortal(
         row.ReviewOn = request.ReviewOn;
         row.ResidualLikelihood = request.ResidualLikelihood;
         row.ResidualImpact = request.ResidualImpact;
+        if (request.ReviewCadence is not null)
+        {
+            row.ReviewCadence = request.ReviewCadence;
+        }
+
+        if (request.SingleLossExpectancy is not null || request.AnnualRateOfOccurrence is not null)
+        {
+            row.SingleLossExpectancy = request.SingleLossExpectancy;
+            row.AnnualRateOfOccurrence = request.AnnualRateOfOccurrence;
+        }
+
         if (request.Approved is bool approved)
         {
             var approver = string.IsNullOrWhiteSpace(request.ApprovedBy) ? tenant.DisplayName : request.ApprovedBy.Trim();
@@ -496,7 +507,9 @@ public sealed class GovernancePortal(
             item.Likelihood,
             item.Impact,
             item.Treatment,
-            rows.Any(risk => risk.LibraryCode == item.Code || risk.Code == item.Code))).ToArray();
+            rows.Any(risk => risk.LibraryCode == item.Code || risk.Code == item.Code),
+            item.Controls,
+            item.Category)).ToArray();
     }
 
     public async Task<Result<RiskListItem>> AdoptLibraryAsync(string code, CancellationToken cancellationToken)
@@ -514,6 +527,13 @@ public sealed class GovernancePortal(
         }
 
         var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        string[] suggested;
+        await using (var lookup = Open())
+        {
+            var known = await lookup.Controls.AsNoTracking().Select(item => item.Code).ToListAsync(cancellationToken);
+            suggested = entry.Controls.Where(item => known.Contains(item, StringComparer.Ordinal)).ToArray();
+        }
+
         var saved = await SaveRiskAsync(new SaveRiskRequest(
             null,
             entry.Title,
@@ -527,7 +547,7 @@ public sealed class GovernancePortal(
             today.AddDays(30),
             Math.Max(1, entry.Likelihood - 1),
             Math.Max(1, entry.Impact - 1),
-            []), cancellationToken);
+            suggested), cancellationToken);
         if (!saved.IsSuccess || saved.Value is null)
         {
             return saved;
@@ -1119,7 +1139,7 @@ public sealed class GovernancePortal(
             person.BackgroundExclusionReason);
     }
 
-    private static RiskListItem ToRisk(RiskItem row)
+    internal static RiskListItem ToRisk(RiskItem row)
     {
         var score = RiskScoring.Score(row.Likelihood, row.Impact);
         var residual = RiskScoring.Score(row.ResidualLikelihood, row.ResidualImpact);
@@ -1144,7 +1164,14 @@ public sealed class GovernancePortal(
             row.Approved,
             row.ApprovedBy,
             row.ApprovedOn,
-            row.LibraryCode);
+            row.LibraryCode,
+            row.ReviewCadence,
+            row.AcceptedBy,
+            row.AcceptedOn,
+            row.AcceptanceExpiresOn,
+            row.SingleLossExpectancy,
+            row.AnnualRateOfOccurrence,
+            RiskQuantification.AnnualizedLossExpectancy(row.SingleLossExpectancy, row.AnnualRateOfOccurrence));
     }
 
     private static PersonListItem ToPersonList(DirectoryPerson person) => new(

@@ -46,6 +46,11 @@ import { TutorialPage } from "./features/tutorial/TutorialPage";
 import { ResetPasswordPage } from "./features/auth/ResetPasswordPage";
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import { ReportsPage } from "./features/reports/ReportsPage";
+import { SignupPage } from "./features/signup/SignupPage";
+import { SignupVerifyPage } from "./features/signup/SignupVerifyPage";
+import { AcceptInvitePage } from "./features/team/AcceptInvitePage";
+import { OnboardingPage } from "./features/onboarding/OnboardingPage";
+import { BillingPage } from "./features/billing/BillingPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -90,6 +95,16 @@ export function App() {
           </GuestOnly>
         }
       />
+      <Route
+        path="/signup"
+        element={
+          <GuestOnly>
+            <SignupPage />
+          </GuestOnly>
+        }
+      />
+      <Route path="/signup/verify" element={<SignupVerifyPage />} />
+      <Route path="/invite/accept" element={<AcceptInvitePage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/trust/:slug" element={<TrustPublicPage />} />
@@ -133,6 +148,8 @@ export function App() {
         <Route path="assets" element={<AssetsPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/billing" element={<BillingPage />} />
+        <Route path="onboarding" element={<OnboardingPage />} />
         <Route path="access-reviews" element={<AccessReviewsPage />} />
         <Route path="auditor" element={<AuditorPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />

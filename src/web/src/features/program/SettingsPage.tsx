@@ -4,6 +4,7 @@ import { useOutletContext } from "react-router-dom";
 import { ApiError, api, type Workspace } from "../../shared/api/client";
 import { formatDate, formatWhen, Pill } from "../../shared/ui/ui";
 import type { Grant, Member, SsoStatus } from "./types";
+import { TeamAccessPanel } from "../team/TeamAccessPanel";
 
 type Rule = {
   id: string;
@@ -296,6 +297,7 @@ export function SettingsPage() {
           </tbody>
         </table>
       </div>
+      <TeamAccessPanel tenantId={tenantId} />
       <div className="card" style={{ marginTop: 14 }}>
         <h3>{t("settingsPage.grants")}</h3>
         <ul>

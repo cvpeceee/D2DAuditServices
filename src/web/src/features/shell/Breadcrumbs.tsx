@@ -25,6 +25,8 @@ export function crumbsFor(
     crumbs.push({ label: label("computers", "computers"), to: "/people/computers" });
   } else if (first === "people" && parts[1] === "lifecycle") {
     crumbs.push({ label: label("lifecycle", "lifecycle"), to: "/people/lifecycle" });
+  } else if (first === "settings" && parts[1] === "billing") {
+    crumbs.push({ label: label("billing", "billing"), to: "/settings/billing" });
   } else if (parts[1]) {
     crumbs.push({ label: parts[1], to: `/${parts[0]}/${encodeURIComponent(parts[1])}` });
   }

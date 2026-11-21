@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { ApiError, api, download, type Dashboard, type Integration } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
+import { GettingStartedCard } from "../onboarding/GettingStartedCard";
 import type { WorkTask } from "../program/types";
 import { daysUntil, formatDate, Pill, Ring, Skeleton } from "../../shared/ui/ui";
 import { TrendsPanel } from "../insights/TrendChart";
@@ -119,6 +120,7 @@ export function DashboardPage() {
   const { t } = useTranslation();
   const { tenantId, tenants } = useAuth();
   const role = tenants.find((item) => item.tenantId === tenantId)?.role;
+  const outlet = useOutletContext<{ workspace?: { canWrite?: boolean } | null } | undefined>();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -206,6 +208,7 @@ export function DashboardPage() {
           </Link>
         </div>
       </div>
+      <GettingStartedCard tenantId={tenantId} canWrite={outlet?.workspace?.canWrite ?? false} />
       <div className="dash-split">
         <div className="card">
           <h3>

@@ -102,6 +102,82 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         activity.Property(x => x.Detail).HasMaxLength(500);
         activity.Property(x => x.IpAddress).HasMaxLength(64);
         activity.HasIndex(x => new { x.TenantId, x.At });
+
+        ConfigureOnboarding(modelBuilder);
+    }
+
+    public DbSet<SignupRequestRecord> SignupRequests => Set<SignupRequestRecord>();
+
+    public DbSet<MemberInvite> MemberInvites => Set<MemberInvite>();
+
+    public DbSet<TenantOnboarding> TenantOnboarding => Set<TenantOnboarding>();
+
+    public DbSet<TenantSubscription> Subscriptions => Set<TenantSubscription>();
+
+    public DbSet<TenantSecuritySettings> SecuritySettings => Set<TenantSecuritySettings>();
+
+    public DbSet<BillingEventRecord> BillingEvents => Set<BillingEventRecord>();
+
+    private static void ConfigureOnboarding(ModelBuilder modelBuilder)
+    {
+        var signup = modelBuilder.Entity<SignupRequestRecord>();
+        signup.ToTable("signup_requests");
+        signup.HasKey(x => x.Id);
+        signup.Property(x => x.CompanyName).HasMaxLength(120).IsRequired();
+        signup.Property(x => x.Email).HasMaxLength(320).IsRequired();
+        signup.Property(x => x.EmailDomain).HasMaxLength(253).IsRequired();
+        signup.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
+        signup.Property(x => x.Region).HasMaxLength(8).IsRequired();
+        signup.Property(x => x.PasswordHash).HasMaxLength(500);
+        signup.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+        signup.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        signup.Property(x => x.Error).HasMaxLength(200);
+        signup.HasIndex(x => x.TokenHash).IsUnique();
+        signup.HasIndex(x => x.Email);
+        signup.HasIndex(x => x.EmailDomain);
+
+        var invite = modelBuilder.Entity<MemberInvite>();
+        invite.ToTable("member_invites");
+        invite.HasKey(x => x.Id);
+        invite.Property(x => x.Email).HasMaxLength(320).IsRequired();
+        invite.Property(x => x.Role).HasConversion<string>().HasMaxLength(32);
+        invite.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+        invite.Property(x => x.InvitedByName).HasMaxLength(200).IsRequired();
+        invite.HasIndex(x => x.TokenHash).IsUnique();
+        invite.HasIndex(x => new { x.TenantId, x.Email });
+
+        var onboarding = modelBuilder.Entity<TenantOnboarding>();
+        onboarding.ToTable("tenant_onboarding");
+        onboarding.HasKey(x => x.TenantId);
+        onboarding.Property(x => x.CompanySize).HasMaxLength(32).IsRequired();
+        onboarding.Property(x => x.Industry).HasMaxLength(64).IsRequired();
+        onboarding.Property(x => x.CloudProviders).HasMaxLength(200).IsRequired();
+        onboarding.Property(x => x.DataTypes).HasMaxLength(400).IsRequired();
+        onboarding.Property(x => x.Frameworks).HasMaxLength(400).IsRequired();
+        onboarding.Property(x => x.ScopedControls).HasMaxLength(2000).IsRequired();
+        onboarding.Property(x => x.CompletedSteps).HasMaxLength(200).IsRequired();
+
+        var subscription = modelBuilder.Entity<TenantSubscription>();
+        subscription.ToTable("tenant_subscriptions");
+        subscription.HasKey(x => x.TenantId);
+        subscription.Property(x => x.Plan).HasMaxLength(32).IsRequired();
+        subscription.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        subscription.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        subscription.Property(x => x.CustomerId).HasMaxLength(200);
+        subscription.Property(x => x.SubscriptionId).HasMaxLength(200);
+        subscription.HasIndex(x => x.CustomerId);
+
+        var security = modelBuilder.Entity<TenantSecuritySettings>();
+        security.ToTable("tenant_security_settings");
+        security.HasKey(x => x.TenantId);
+        security.Property(x => x.ScimTokenHash).HasMaxLength(64);
+        security.Property(x => x.ScimTokenPrefix).HasMaxLength(16);
+
+        var billingEvent = modelBuilder.Entity<BillingEventRecord>();
+        billingEvent.ToTable("billing_events");
+        billingEvent.HasKey(x => x.Id);
+        billingEvent.Property(x => x.Id).HasMaxLength(200);
+        billingEvent.Property(x => x.Type).HasMaxLength(100).IsRequired();
     }
 }
 
@@ -483,6 +559,10 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         risk.Property(x => x.Approved).HasDefaultValue(false);
         risk.HasIndex(x => x.Code).IsUnique();
         risk.Property<uint>("Version").IsRowVersion();
+        risk.Property(x => x.ReviewCadence).HasMaxLength(32).HasDefaultValue("Quarterly");
+        risk.Property(x => x.AcceptedBy).HasMaxLength(200).HasDefaultValue("");
+        risk.Property(x => x.SingleLossExpectancy).HasPrecision(18, 2);
+        risk.Property(x => x.AnnualRateOfOccurrence).HasPrecision(9, 4);
 
         var riskControl = modelBuilder.Entity<RiskControlLink>();
         riskControl.ToTable("risk_controls");

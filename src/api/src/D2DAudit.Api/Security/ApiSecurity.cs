@@ -142,6 +142,7 @@ public sealed class CsrfMiddleware(RequestDelegate next)
             || HttpMethods.IsHead(context.Request.Method)
             || HttpMethods.IsOptions(context.Request.Method)
             || context.Request.Path.StartsWithSegments("/health")
+            || context.Request.Path.Equals(D2DAudit.Api.Endpoints.OnboardingEndpoints.BillingWebhookPath, StringComparison.OrdinalIgnoreCase)
             || string.Equals(context.User.FindFirst("d2d_auth")?.Value, "api_key", StringComparison.Ordinal))
         {
             await next(context);
