@@ -48,7 +48,7 @@ public sealed class PolicyPortal(
         var existing = await db.Policies.Select(item => item.Code).ToListAsync(cancellationToken);
         var now = time.GetUtcNow();
         var added = 0;
-        foreach (var template in PolicyTemplates.Core)
+        foreach (var template in PolicyTemplateLibrary.All)
         {
             if (existing.Contains(template.Code, StringComparer.Ordinal))
             {

@@ -241,8 +241,27 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RemediationPullRequest> RemediationPullRequests => Set<RemediationPullRequest>();
 
+    public DbSet<CustomTestDefinition> CustomTests => Set<CustomTestDefinition>();
+
+    public DbSet<TestSuppression> TestSuppressions => Set<TestSuppression>();
+
+    public DbSet<EvidenceDocument> EvidenceDocuments => Set<EvidenceDocument>();
+
+    public DbSet<EvidenceDocumentLink> EvidenceDocumentLinks => Set<EvidenceDocumentLink>();
+
+    public DbSet<EvidenceRequest> EvidenceRequests => Set<EvidenceRequest>();
+
+    public DbSet<ControlProfile> ControlProfiles => Set<ControlProfile>();
+
+    public DbSet<ControlComment> ControlComments => Set<ControlComment>();
+
+    public DbSet<PolicyAttestationCampaign> AttestationCampaigns => Set<PolicyAttestationCampaign>();
+
+    public DbSet<PolicyAttestation> PolicyAttestations => Set<PolicyAttestation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        AssuranceModel.Configure(modelBuilder);
         var framework = modelBuilder.Entity<FrameworkRecord>();
         framework.ToTable("frameworks");
         framework.HasKey(x => x.Id);
