@@ -1,5 +1,7 @@
 using D2DAudit.Api.Security;
 using D2DAudit.Application;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace D2DAudit.Api.Endpoints;
 
@@ -12,6 +14,13 @@ public static class IntegrationEndpoints
         group.MapPost("/integrations/{provider}/connect", Connect).RequireAuthorization("TenantWrite").Produces<ConnectResponse>();
         group.MapPost("/integrations/example", Example).RequireAuthorization("TenantWrite").Produces<IReadOnlyList<IntegrationDto>>();
         group.MapPost("/integrations/collect", Collect).RequireAuthorization("TenantWrite").Produces<Guid>();
+        group.MapGet("/integrations/catalog", (string? category, string? search, IConnectorHub hub, CancellationToken cancellationToken) => hub.CatalogAsync(category, search, cancellationToken));
+        group.MapGet("/integrations/catalog/{key}", async (string key, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.DetailAsync(key, cancellationToken))).Produces<ConnectorDetailDto>();
+        group.MapGet("/integrations/catalog/{key}/history", async (string key, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.HistoryAsync(key, cancellationToken))).Produces<IReadOnlyList<ConnectorRunDto>>();
+        group.MapPost("/integrations/catalog/{key}/connect", async (string key, ConnectConnectorRequest body, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.ConnectAsync(key, body, cancellationToken))).RequireAuthorization("TenantWrite").Produces<ConnectorActionResponse>();
+        group.MapPost("/integrations/catalog/{key}/test", async (string key, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] ConnectConnectorRequest? body, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.TestAsync(key, body, cancellationToken))).RequireAuthorization("TenantWrite").Produces<ConnectorActionResponse>();
+        group.MapPost("/integrations/catalog/{key}/sync", async (string key, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.SyncAsync(key, cancellationToken))).RequireAuthorization("TenantWrite").Produces<ConnectorActionResponse>();
+        group.MapPost("/integrations/catalog/{key}/disconnect", async (string key, IConnectorHub hub, CancellationToken cancellationToken) => EndpointResults.FromResult(await hub.DisconnectAsync(key, cancellationToken))).RequireAuthorization("TenantWrite").Produces<ConnectorDetailDto>();
         group.MapGet("/tests", (IIntegrationQuery query, CancellationToken cancellationToken) => query.TestsAsync(cancellationToken));
         group.MapGet("/evidence", (IIntegrationQuery query, CancellationToken cancellationToken) => query.EvidenceAsync(cancellationToken)).RequireAuthorization("EvidenceRead");
         group.MapGet("/evidence/{id:guid}/download", Download).RequireAuthorization("EvidenceRead");

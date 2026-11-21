@@ -132,7 +132,7 @@ public sealed class DemoSeeder(
             return false;
         }
 
-        foreach (var provider in IntegrationPolicies.ExampleProviders(fixture))
+        foreach (var provider in IntegrationPolicies.ExampleRows(fixture))
         {
             db.Integrations.Add(new IntegrationConnection
             {

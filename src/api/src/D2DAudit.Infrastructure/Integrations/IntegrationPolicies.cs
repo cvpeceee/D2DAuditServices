@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using D2DAudit.Application;
 using Microsoft.Extensions.Configuration;
 
 namespace D2DAudit.Infrastructure.Integrations;
@@ -74,6 +75,12 @@ public static partial class IntegrationPolicies
             ? ["aws", "google", "microsoft", "github"]
             : ["aws", "azure", "gcp", "google", "microsoft", "github"];
 
+    /// <summary>Built-in example providers plus the catalog connectors that come pre-connected for the fixture.</summary>
+    public static IReadOnlyList<string> ExampleRows(string fixture) =>
+        fixture == "acme"
+            ? [.. ExampleProviders(fixture), .. ConnectorCatalog.Connectors.Where(item => item.Harborline && !item.Builtin).Select(item => item.Key)]
+            : ExampleProviders(fixture);
+
     public static string DisplayName(string provider) => provider switch
     {
         "aws" => "Amazon Web Services",
@@ -82,7 +89,7 @@ public static partial class IntegrationPolicies
         "google" => "Google Workspace",
         "microsoft" => "Microsoft 365",
         "github" => "GitHub",
-        _ => provider,
+        _ => ConnectorCatalog.Find(provider)?.Name ?? provider,
     };
 
     private static string? GoogleUrl(IConfiguration configuration, string redirectUri, string state)

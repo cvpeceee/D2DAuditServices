@@ -116,6 +116,22 @@ public static class AutomatedChecks
             "AC-07",
             ["soc2 CC6.1", "iso27001 A.5.15"],
             "Remove allUsers and allAuthenticatedUsers from the project policy."),
+        new("endpoint-edr", "EDR agent healthy on every endpoint", "MAL-01", ["soc2 CC6.8", "iso27001 A.8.7"], "Reinstall or repair the sensor on degraded endpoints and confirm prevention is on."),
+        new("endpoint-disk-encryption", "Disk encryption on managed devices", "EP-03", ["soc2 CC6.7", "iso27001 A.8.1"], "Enforce FileVault or BitLocker with an MDM profile and escrow the recovery key."),
+        new("vulnerability-sla", "Vulnerabilities fixed within SLA", "VM-02", ["soc2 CC7.1", "iso27001 A.8.8"], "Patch or accept the risk for open findings past their severity SLA (critical 15, high 30, medium 90, low 180 days)."),
+        new("hris-leavers-deprovisioned", "HRIS leavers have no active accounts", "HR-08", ["soc2 CC6.2", "soc2 CC6.3", "iso27001 A.6.5"], "Suspend every account that belongs to a terminated employee."),
+        new("alerts-triaged", "Security alerts are triaged", "LG-08", ["soc2 CC7.3", "iso27001 A.5.25"], "Acknowledge or resolve open alerts and assign an owner."),
+        new("monitors-active", "Monitoring alerts are active", "LG-08", ["soc2 CC7.2", "iso27001 A.8.16"], "Unmute monitors or document why they are muted."),
+        new("log-retention", "Audit logs retained for one year", "LG-03", ["soc2 CC7.2", "iso27001 A.8.15"], "Raise retention on audit indexes to at least 365 days or archive to cold storage."),
+        new("training-completed", "Security training completed", "HR-06", ["soc2 CC1.4", "soc2 CC2.2", "iso27001 A.6.3"], "Send reminders and escalate overdue learners to their managers."),
+        new("background-screened", "Background checks cleared", "HR-01", ["soc2 CC1.4", "iso27001 A.6.1"], "Finish or adjudicate the pending screenings before granting production access."),
+        new("database-hardening", "Managed databases encrypted and private", "CR-02", ["soc2 CC6.1", "soc2 CC6.7", "iso27001 A.8.24"], "Turn on encryption at rest and remove 0.0.0.0/0 from database access lists."),
+        new("tls-enforced", "TLS enforced on public domains", "CR-05", ["soc2 CC6.7", "iso27001 A.8.24"], "Set SSL mode to Full (strict), turn on Always Use HTTPS and minimum TLS 1.2."),
+        new("password-manager-mfa", "Password manager members use MFA", "AC-07", ["soc2 CC6.1", "iso27001 A.5.17"], "Require two-factor in the password manager policy for every member."),
+        new("server-backups", "Server backups enabled", "BC-01", ["soc2 A1.2", "iso27001 A.8.13"], "Turn on automated backups for every production server."),
+        new("network-exposure", "Firewalls block unrestricted inbound", "CFG-01", ["soc2 CC6.6", "iso27001 A.8.20"], "Restrict administrative ports to known address ranges."),
+        new("change-approved", "Changes approved before release", "CM-11", ["soc2 CC8.1", "iso27001 A.8.32"], "Record an approver on every change before it is released."),
+        new("oncall-coverage", "On-call schedules are staffed", "IR-02", ["soc2 CC7.4", "iso27001 A.5.24"], "Fill the gaps in on-call rotations so every hour has a responder."),
     ];
 
     public static CheckResult Evaluate(string key, IReadOnlyList<NormalizedResource> resources) => key switch
@@ -136,7 +152,45 @@ public static class AutomatedChecks
         "gcp-kms" => ProviderAny(resources, "gcp", "kms", "enabled", "true", "No GCP KMS inventory was collected.", "Cloud KMS key rings are present."),
         "gcp-audit-log" => ProviderAny(resources, "gcp", "trail", "enabled", "true", "No GCP audit log was collected.", "An audit log sink is present."),
         "gcp-iam-public" => ProviderAll(resources, "gcp", "iam", "public", "false", "No GCP IAM policy was collected.", "The project policy is public"),
+        "endpoint-edr" => AllOf(resources, "edrAgent", "healthy", "true", "No EDR agents were collected.", "These endpoints have a degraded or missing sensor"),
+        "endpoint-disk-encryption" => AllOf(resources, "device", "encrypted", "true", "No managed devices were collected.", "Disk encryption is off on"),
+        "vulnerability-sla" => Matching(resources, "vulnerability", static item => Flag(item, "status") is "open" or "", static item => Flag(item, "withinSla") == "true", "No open vulnerabilities were collected.", "Open findings are past their SLA"),
+        "hris-leavers-deprovisioned" => HrisLeavers(resources),
+        "alerts-triaged" => AllOf(resources, "alert", "triaged", "true", "No alerts were collected.", "These alerts are not triaged"),
+        "monitors-active" => AllOf(resources, "monitor", "muted", "false", "No monitors were collected.", "These monitors are muted"),
+        "log-retention" => Matching(resources, "logIndex", static item => Flag(item, "audit") == "true", static item => int.TryParse(Flag(item, "retentionDays"), out var days) && days >= 365, "No audit log indexes were collected.", "Audit indexes keep logs for under 365 days"),
+        "training-completed" => Matching(resources, "training", static item => Flag(item, "status") != "terminated", static item => Flag(item, "completed") == "true", "No training assignments were collected.", "These people have not completed training"),
+        "background-screened" => AllOf(resources, "backgroundCheck", "cleared", "true", "No background checks were collected.", "These screenings are not cleared"),
+        "database-hardening" => Matching(resources, "database", static _ => true, static item => Flag(item, "encrypted") == "true" && Flag(item, "public") == "false", "No managed databases were collected.", "These databases are unencrypted or public"),
+        "tls-enforced" => AllOf(resources, "domain", "tls", "true", "No domains were collected.", "TLS is not enforced on"),
+        "password-manager-mfa" => Matching(resources, "vaultMember", static item => Flag(item, "status") != "suspended", static item => Flag(item, "mfa") == "true", "No password manager members were collected.", "These members have no two-factor"),
+        "server-backups" => AllOf(resources, "server", "backups", "true", "No servers were collected.", "Backups are off on"),
+        "network-exposure" => AllOf(resources, "firewall", "open", "false", "No firewalls were collected.", "These firewalls allow unrestricted inbound"),
+        "change-approved" => AllOf(resources, "change", "approved", "true", "No changes were collected.", "These changes have no approver"),
+        "oncall-coverage" => AllOf(resources, "schedule", "covered", "true", "No on-call schedules were collected.", "These schedules have gaps"),
         _ => throw new InvalidOperationException($"Unknown automated check {key}."),
+    };
+
+    /// <summary>The resource kind each connector-fed check reads, used to build parquet evidence.</summary>
+    public static string? KindFor(string key) => key switch
+    {
+        "endpoint-edr" => "edrAgent",
+        "endpoint-disk-encryption" => "device",
+        "vulnerability-sla" => "vulnerability",
+        "hris-leavers-deprovisioned" => "employee",
+        "alerts-triaged" => "alert",
+        "monitors-active" => "monitor",
+        "log-retention" => "logIndex",
+        "training-completed" => "training",
+        "background-screened" => "backgroundCheck",
+        "database-hardening" => "database",
+        "tls-enforced" => "domain",
+        "password-manager-mfa" => "vaultMember",
+        "server-backups" => "server",
+        "network-exposure" => "firewall",
+        "change-approved" => "change",
+        "oncall-coverage" => "schedule",
+        _ => null,
     };
 
     public static IReadOnlyList<NormalizedResource> Inputs(string key, IReadOnlyList<NormalizedResource> resources) => key switch
@@ -154,8 +208,60 @@ public static class AutomatedChecks
         "gcp-kms" => Of(resources, "gcp", "kms"),
         "gcp-audit-log" => Of(resources, "gcp", "trail"),
         "gcp-iam-public" => Of(resources, "gcp", "iam"),
+        "hris-leavers-deprovisioned" => resources.Where(item => item.Kind is "employee" or "user").ToArray(),
+        _ when KindFor(key) is { } kind => resources.Where(item => item.Kind == kind).ToArray(),
         _ => resources.Where(item => item.Kind == "user").ToArray(),
     };
+
+    private static CheckResult Matching(
+        IReadOnlyList<NormalizedResource> resources,
+        string kind,
+        Func<NormalizedResource, bool> include,
+        Func<NormalizedResource, bool> passes,
+        string empty,
+        string failure)
+    {
+        var rows = resources.Where(item => item.Kind == kind && include(item)).ToArray();
+        if (rows.Length == 0)
+        {
+            return new CheckResult(TestOutcome.NotRun, empty);
+        }
+
+        var bad = rows.Where(item => !passes(item)).Select(item => item.Name).Distinct(StringComparer.Ordinal).ToArray();
+        return bad.Length == 0
+            ? new CheckResult(TestOutcome.Pass, $"{rows.Length} {kind} resources match.")
+            : new CheckResult(TestOutcome.Fail, $"{failure}: {string.Join(", ", bad)}.");
+    }
+
+    private static CheckResult HrisLeavers(IReadOnlyList<NormalizedResource> resources)
+    {
+        var terminated = resources
+            .Where(item => item.Kind == "employee" && Flag(item, "status") == "terminated")
+            .Select(Email)
+            .Where(email => email.Length > 0)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!resources.Any(item => item.Kind == "employee"))
+        {
+            return new CheckResult(TestOutcome.NotRun, "No HRIS employees were collected.");
+        }
+
+        if (terminated.Count == 0)
+        {
+            return new CheckResult(TestOutcome.Pass, "The HRIS has no terminated employees.");
+        }
+
+        var active = resources
+            .Where(item => item.Kind is "user" or "vaultMember"
+                && Flag(item, "status") != "suspended"
+                && Flag(item, "offboarded") != "true"
+                && terminated.Contains(Email(item)))
+            .Select(item => item.Name + " (" + item.Provider + ")")
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        return active.Length == 0
+            ? new CheckResult(TestOutcome.Pass, $"{terminated.Count} terminated employees have no active accounts.")
+            : new CheckResult(TestOutcome.Fail, $"Terminated employees still have active accounts: {string.Join(", ", active)}.");
+    }
 
     private static NormalizedResource[] Of(IReadOnlyList<NormalizedResource> resources, string provider, string kind) =>
         resources.Where(item => item.Provider == provider && item.Kind == kind).ToArray();

@@ -9,7 +9,8 @@ public sealed class ProviderSet(
     IEnumerable<ICloudProvider> clouds,
     IEnumerable<IWorkspaceDirectory> directories,
     IEnumerable<ISourceControlProvider> sources,
-    SecretBox secrets)
+    SecretBox secrets,
+    Connectors.ConnectorExecutor connectors)
 {
     public ProviderConnection ToConnection(IntegrationConnection row)
     {
@@ -56,6 +57,14 @@ public sealed class ProviderSet(
 
     public async Task<Result<ProviderCollect>> CollectAsync(IntegrationConnection row, CancellationToken cancellationToken)
     {
+        if (connectors.Registry.Handles(row.Provider))
+        {
+            var outcome = await connectors.CollectAsync(row, cancellationToken);
+            return outcome.Result.IsSuccess && outcome.Result.Value is not null
+                ? Result<ProviderCollect>.Ok(new ProviderCollect(outcome.Result.Value))
+                : Result<ProviderCollect>.Fail(outcome.Result.Error ?? "collect_failed");
+        }
+
         if (row.Example)
         {
             return Result<ProviderCollect>.Ok(new ProviderCollect(ExampleSnapshots.For(row.Provider, row.Fixture)));

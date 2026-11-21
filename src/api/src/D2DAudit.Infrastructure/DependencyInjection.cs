@@ -19,6 +19,7 @@ using D2DAudit.Infrastructure.Insights;
 using D2DAudit.Infrastructure.Lifecycle;
 using D2DAudit.Infrastructure.Integrations;
 using D2DAudit.Infrastructure.Onboarding;
+using D2DAudit.Infrastructure.Integrations.Connectors;
 using D2DAudit.Infrastructure.Operations;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Queries;
@@ -123,6 +124,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkspaceDirectory>(provider => provider.GetRequiredService<GoogleWorkspaceDirectory>());
         services.AddScoped<IWorkspaceDirectory>(provider => provider.GetRequiredService<Microsoft365Directory>());
         services.AddScoped<ISourceControlProvider>(provider => provider.GetRequiredService<GitHubSourceControl>());
+        services.AddConnectorCatalog();
         services.AddScoped<ProviderSet>();
         services.AddScoped<CollectionJobs>();
         services.AddScoped<CollectionRunner>();

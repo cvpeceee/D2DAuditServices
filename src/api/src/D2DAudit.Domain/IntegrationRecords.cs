@@ -33,6 +33,29 @@ public sealed class IntegrationConnection
     public string? LastError { get; set; }
 }
 
+public sealed class IntegrationSyncRun
+{
+    public Guid Id { get; set; }
+
+    public string Provider { get; set; } = "";
+
+    public string Kind { get; set; } = "sync";
+
+    public string Mode { get; set; } = "mock";
+
+    public string Status { get; set; } = "ok";
+
+    public int ResourceCount { get; set; }
+
+    public string? Error { get; set; }
+
+    public string Trigger { get; set; } = "manual";
+
+    public DateTimeOffset StartedAt { get; set; }
+
+    public DateTimeOffset FinishedAt { get; set; }
+}
+
 public sealed class ChainEntry
 {
     public Guid Id { get; set; }
