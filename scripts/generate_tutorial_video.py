@@ -423,22 +423,53 @@ def blend(c1: tuple[int, int, int], c2: tuple[int, int, int], t: float) -> tuple
     )
 
 
-def wrap_text(text: str, max_chars: int) -> list[str]:
-    words = text.split()
+def wrap_text_px(text: str, font: Any, max_width: float) -> list[str]:
     lines: list[str] = []
-    current: list[str] = []
-    count = 0
-    for w in words:
-        if current and count + 1 + len(w) > max_chars:
-            lines.append(" ".join(current))
-            current = [w]
-            count = len(w)
+    current = ""
+    for w in text.split():
+        candidate = f"{current} {w}" if current else w
+        if current and font.getlength(candidate) > max_width:
+            lines.append(current)
+            current = w
         else:
-            current.append(w)
-            count += len(w) + (1 if len(current) > 1 else 0)
+            current = candidate
     if current:
-        lines.append(" ".join(current))
+        lines.append(current)
     return lines
+
+
+# Status icons are drawn as vector shapes because common UI fonts (e.g. Segoe UI Bold) lack glyphs like U+2713.
+def draw_check(draw: ImageDraw.ImageDraw, x: int, y: int, size: int, color: tuple[int, int, int]) -> None:
+    w = max(2, size // 5)
+    draw.line(
+        [(x, y + size * 0.55), (x + size * 0.38, y + size * 0.9), (x + size, y + size * 0.12)],
+        fill=color,
+        width=w,
+        joint="curve",
+    )
+
+
+def draw_status(
+    draw: ImageDraw.ImageDraw,
+    right_x: int,
+    y: int,
+    kind: str,
+    label: str,
+    font: Any,
+    color: tuple[int, int, int],
+) -> None:
+    icon = 12
+    text_w = font.getlength(label)
+    text_x = right_x - text_w
+    icon_x = int(text_x - icon - 8)
+    icon_y = y + 3
+    if kind == "check":
+        draw_check(draw, icon_x, icon_y, icon, color)
+    elif kind == "dot":
+        draw.ellipse([icon_x + 1, icon_y + 1, icon_x + icon - 1, icon_y + icon - 1], fill=color)
+    else:
+        draw.ellipse([icon_x + 1, icon_y + 1, icon_x + icon - 1, icon_y + icon - 1], outline=color, width=2)
+    draw.text((text_x, y), label, font=font, fill=color)
 
 
 def render_chapter_phase_frame(
@@ -467,7 +498,7 @@ def render_chapter_phase_frame(
 
     # Brand mark + Super-App Header
     draw.rounded_rectangle([36, 22, 92, 78], radius=14, fill=accent)
-    draw.text((48, 36), "D2D", font=fonts["brand"], fill=(255, 255, 255))
+    draw.text((64, 50), "D2D", font=fonts["brand"], fill=(255, 255, 255), anchor="mm")
     draw.text(
         (110, 22),
         "D2D AUDIT SERVICES — VANTA + DRATA + VRINDA SUPER-APP WALKTHROUGH",
@@ -519,10 +550,12 @@ def render_chapter_phase_frame(
 
     # Main Chapter Banner Card
     draw.rounded_rectangle([36, 198, WIDTH - 36, 336], radius=16, fill=(19, 25, 46), outline=(45, 56, 92), width=2)
-    draw.rounded_rectangle([58, 218, 255, 254], radius=8, fill=accent)
-    draw.text((74, 226), f"CHAPTER 0{ch['number']} WALKTHROUGH", font=fonts["small_bold"], fill=(255, 255, 255))
+    chapter_label = f"CHAPTER 0{ch['number']} WALKTHROUGH"
+    label_x1 = int(58 + 16 + fonts["small_bold"].getlength(chapter_label) + 16)
+    draw.rounded_rectangle([58, 218, label_x1, 254], radius=8, fill=accent)
+    draw.text((74, 236), chapter_label, font=fonts["small_bold"], fill=(255, 255, 255), anchor="lm")
 
-    draw.text((275, 224), ch["badge"], font=fonts["mono_sm"], fill=(147, 197, 253))
+    draw.text((label_x1 + 20, 236), ch["badge"], font=fonts["mono_sm"], fill=(147, 197, 253), anchor="lm")
     draw.text((58, 266), ch["title"], font=fonts["title"], fill=(255, 255, 255))
     draw.text(
         (58, 304),
@@ -558,14 +591,11 @@ def render_chapter_phase_frame(
     start_x = 68
     node_y0 = pipe_y0 + 62
     node_y1 = pipe_y1 - 28
-    node_cy = (node_y0 + node_y1) // 2
-
-    # Connector track + moving packet pulse
+    # Packet rail sits below the node text so the moving orb never covers stage titles.
+    rail_y = node_y1 - 20
     track_x0 = start_x + node_w // 2
     track_x1 = start_x + 3 * (node_w + node_gap) + node_w // 2
-    draw.line([(track_x0, node_cy), (track_x1, node_cy)], fill=(45, 55, 92), width=6)
     packet_x = int(track_x0 + (track_x1 - track_x0) * phase_frac)
-    draw.line([(track_x0, node_cy), (packet_x, node_cy)], fill=accent, width=6)
 
     for idx, node in enumerate(nodes):
         nx0 = start_x + idx * (node_w + node_gap)
@@ -589,18 +619,24 @@ def render_chapter_phase_frame(
             font=fonts["small_bold"],
             fill=(255, 255, 255),
         )
-        status_txt = "● TRANSMITTING" if current else ("✓ VERIFIED" if reached else "○ QUEUED")
-        draw.text(
-            (nx1 - 145, node_y0 + 22),
-            status_txt,
-            font=fonts["small_bold"],
-            fill=(110, 231, 183) if reached else (130, 142, 176),
+        status_kind, status_label = (
+            ("dot", "TRANSMITTING") if current else (("check", "VERIFIED") if reached else ("ring", "QUEUED"))
+        )
+        draw_status(
+            draw,
+            nx1 - 18,
+            node_y0 + 22,
+            status_kind,
+            status_label,
+            fonts["small_bold"],
+            (110, 231, 183) if reached else (130, 142, 176),
         )
         draw.text((nx0 + 18, node_y0 + 64), node["stage"], font=fonts["node_title"], fill=(255, 255, 255))
         draw.text((nx0 + 18, node_y0 + 102), node["detail"], font=fonts["sub"], fill=(195, 206, 235))
 
-    # Glowing animated packet orb on connector track
-    draw.ellipse([packet_x - 16, node_cy - 16, packet_x + 16, node_cy + 16], fill=(255, 255, 255), outline=accent, width=4)
+    draw.line([(track_x0, rail_y), (track_x1, rail_y)], fill=(45, 55, 92), width=4)
+    draw.line([(track_x0, rail_y), (packet_x, rail_y)], fill=accent, width=4)
+    draw.ellipse([packet_x - 10, rail_y - 10, packet_x + 10, rail_y + 10], fill=(255, 255, 255), outline=accent, width=3)
 
     # Bottom Split: Left = Key Architectural Callouts, Right = Cryptographic / Runtime Code Badge
     bot_y0 = 625
@@ -614,17 +650,14 @@ def render_chapter_phase_frame(
         bullet_bg = (26, 38, 68) if revealed else (20, 26, 46)
         bullet_border = accent if revealed else (40, 50, 82)
         draw.rounded_rectangle([60, by, 1116, by + 52], radius=10, fill=bullet_bg, outline=bullet_border, width=2)
-        draw.text(
-            (78, by + 14),
-            f"✓  {bullet}",
-            font=fonts["bullet"],
-            fill=(240, 246, 255) if revealed else (140, 152, 184),
-        )
+        bullet_color = (240, 246, 255) if revealed else (140, 152, 184)
+        draw_check(draw, 80, by + 18, 16, accent if revealed else bullet_color)
+        draw.text((108, by + 26), bullet, font=fonts["bullet"], fill=bullet_color, anchor="lm")
 
     # Right Terminal / Code / Hash Verification Box
     draw.rounded_rectangle([1162, bot_y0, WIDTH - 36, bot_y1], radius=16, fill=(12, 16, 30), outline=accent, width=2)
     draw.text((1186, bot_y0 + 18), "RUNTIME INVARIANT & VERIFICATION SPEC", font=fonts["section"], fill=(110, 231, 183))
-    snippet_lines = wrap_text(ch["codeSnippet"], 44)
+    snippet_lines = wrap_text_px(ch["codeSnippet"], fonts["mono"], WIDTH - 60 - 1186)
     for l_idx, line in enumerate(snippet_lines[:3]):
         draw.text((1186, bot_y0 + 66 + l_idx * 34), line, font=fonts["mono"], fill=(224, 231, 255))
 
@@ -642,8 +675,11 @@ def render_chapter_phase_frame(
     cap_y1 = 1048
     draw.rounded_rectangle([36, cap_y0, WIDTH - 36, cap_y1], radius=14, fill=(9, 12, 22), outline=(60, 72, 114), width=2)
     draw.text((60, cap_y0 + 14), "SPOKEN AUDIO TRANSCRIPT (CC)", font=fonts["small_bold"], fill=accent)
-    caption_lines = wrap_text(ch["narration"], 108)
-    for c_idx, cline in enumerate(caption_lines[:3]):
+    # Page through the full narration in 3-line chunks in step with the spoken audio.
+    caption_lines = wrap_text_px(ch["narration"], fonts["caption"], WIDTH - 36 - 60 - 24)
+    pages = [caption_lines[i : i + 3] for i in range(0, len(caption_lines), 3)] or [[]]
+    page = pages[min(len(pages) - 1, phase_idx * len(pages) // max(1, total_phases))]
+    for c_idx, cline in enumerate(page):
         draw.text((60, cap_y0 + 44 + c_idx * 28), cline, font=fonts["caption"], fill=(245, 247, 255))
 
     return img.tobytes()
