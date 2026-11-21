@@ -8,7 +8,7 @@ This directory documents the **1080p H.264 + AAC Video & Spoken Audio Tutorial**
 
 | Artifact | Path | Format & Specification |
 | --- | --- | --- |
-| **1080p Video + Spoken Audio Tutorial** | `src/web/public/tutorial/d2d-super-app-tutorial.mp4` | `1920x1080` Full HD, H.264 (`libx264`, `yuv420p`, `10 fps`) + Spoken English Voiceover (`AAC`, `128 kbps`, `44.1 kHz`), `228.00s` (`3m 48s`) total duration, `9.85 MiB` (`10,323,734 bytes`) |
+| **1080p Video + Spoken Audio Tutorial** | `src/web/public/tutorial/d2d-super-app-tutorial.mp4` | `1920x1080` Full HD, H.264 (`libx264`, `yuv420p`, `10 fps`) + Spoken English Voiceover (`AAC`, `128 kbps`, `44.1 kHz`), `228.00s` (`3m 48s`) total duration, `9.85 MiB` (`10,323,247 bytes`) |
 | **Synced WebVTT Closed Captions** | `src/web/public/tutorial/d2d-super-app-tutorial.vtt` | Standard `WEBVTT` closed captions track synchronized to each chapter's exact start and end timestamp |
 | **Chapter Manifest & Timestamps** | `src/web/public/tutorial/tutorial-chapters.json` | Machine-readable JSON manifest containing exact `startTime`, `endTime`, `duration`, `moduleRoute`, `codeSnippet`, `nodes`, and `narration` for all 8 chapters |
 | **Reproducible Generator Script** | `scripts/generate_tutorial_video.py` | Synthesizes spoken English `.wav` narration via Windows `System.Speech.Synthesis.SpeechSynthesizer`, renders multi-frame animated 1080p slides with `Pillow`, and muxes H.264 + AAC via `imageio-ffmpeg` |

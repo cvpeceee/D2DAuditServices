@@ -220,7 +220,7 @@ CHAPTERS: list[dict[str, Any]] = [
         "moduleLabel": "Open Enterprise Governance Hub",
         "accent": "#3b82f6",
         "badge": "MULTI-ENTITY ROLLUP | GDPR ROPA & DPIA | AI MODEL REGISTRY | CHECKR + KNOWBE4 + SCIM 2.0",
-        "codeSnippet": "GET /api/v1/governance-hub/board -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
+        "codeSnippet": "GET /api/v1/governance/overview -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
         "narration": (
             "Chapter Seven tours workforce security and the Enterprise Governance Hub. "
             "D2D integrates Jamf, Intune, Kandji, and endpoint device agent check-ins alongside Checkr background "

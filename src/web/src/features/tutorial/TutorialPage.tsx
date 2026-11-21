@@ -550,7 +550,8 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
       {
         stage: "S3 Object Lock",
         detail: "Immutable WORM Retention Storage",
-        payload: "infra/terraform/main.tf -> S3 Object Lock GOVERNANCE mode",
+        payload:
+          "infra/terraform/s3_object_lock.tf -> S3 Object Lock COMPLIANCE (configurable to GOVERNANCE)",
         invariant: "Enforces multi-year audit retention across US and EU regions",
       },
       {
@@ -632,7 +633,7 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
     badge:
       "MULTI-ENTITY ROLLUP | GDPR ROPA & DPIA | AI MODEL REGISTRY | CHECKR + KNOWBE4 + SCIM 2.0",
     codeSnippet:
-      "GET /api/v1/governance-hub/board -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
+      "GET /api/v1/governance/overview -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
     narration:
       "Chapter Seven tours workforce security and the Enterprise Governance Hub. D2D integrates Jamf, Intune, Kandji, and endpoint device agent check-ins alongside Checkr background checks, KnowBe4 phishing simulations, and SCIM 2.0 directory sync. The Governance Hub adds parent-child Multi-Entity Rollups, GDPR Record of Processing Activities and DPIA assessments, and an AI Model Governance Registry mapped to ISO 42001 and the EU AI Act.",
     nodes: [
