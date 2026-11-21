@@ -412,6 +412,10 @@ export function assetSources() {
     }));
 }
 
+export function inventoryResources(): readonly SeedResource[] {
+  return resources;
+}
+
 export function resourceRows() {
   return [...resources]
     .map((item) => ({

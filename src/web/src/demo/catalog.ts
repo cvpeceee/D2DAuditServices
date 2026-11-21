@@ -628,7 +628,7 @@ export async function createWorld(now = new Date()): Promise<DemoWorld> {
     access.versions.push({
       number: 2,
       state: "InReview",
-      body: `${access.versions[0].body} Contractors use the same second factor before their account is marked active.`,
+      body: `${access.versions[0].body}\nContractors use the same second factor before their account is marked active.`,
       createdAt: iso(addDays(now, -2)),
       approvedAt: null,
       approvedByName: null,
