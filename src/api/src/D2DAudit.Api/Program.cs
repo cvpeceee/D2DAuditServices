@@ -15,6 +15,9 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Fail at startup, not on the first request, when a service registration is missing.
+builder.Host.UseDefaultServiceProvider(options => options.ValidateOnBuild = true);
+
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IJobNotifier, SignalRJobNotifier>();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);

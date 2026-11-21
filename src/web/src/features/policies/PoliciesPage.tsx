@@ -182,7 +182,7 @@ export function PoliciesPage() {
             </thead>
             <tbody>
               {rows?.map((row) => (
-                <tr key={row.code} className={selected === row.code ? "sel" : ""}>
+                <tr key={row.code} className={`click ${selected === row.code ? "sel" : ""}`}>
                   <td>
                     <button type="button" className="row-hit" onClick={() => setSelected(row.code)}>
                       <span className="id">{row.code}</span> {row.title}

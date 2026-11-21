@@ -82,29 +82,44 @@ export function ContinuityPage() {
   async function saveService(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/continuity/services", { method: "POST", tenantId, body: service });
-    setService({ ...service, name: "", notes: "" });
-    load();
+    try {
+      await api("/api/v1/continuity/services", { method: "POST", tenantId, body: service });
+      setService({ ...service, name: "", notes: "" });
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function savePlan(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/continuity/plans", { method: "POST", tenantId, body: plan });
-    setPlan({ ...plan, name: "", body: "" });
-    load();
+    try {
+      await api("/api/v1/continuity/plans", { method: "POST", tenantId, body: plan });
+      setPlan({ ...plan, name: "", body: "" });
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function saveExercise(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/continuity/exercises", {
-      method: "POST",
-      tenantId,
-      body: { ...exercise, planId: exercise.planId || null },
-    });
-    setExercise({ ...exercise, name: "", notes: "" });
-    load();
+    try {
+      await api("/api/v1/continuity/exercises", {
+        method: "POST",
+        tenantId,
+        body: { ...exercise, planId: exercise.planId || null },
+      });
+      setExercise({ ...exercise, name: "", notes: "" });
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   return (
@@ -117,7 +132,7 @@ export function ContinuityPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(error === "save" ? "errors.save" : "errors.load")}
         </div>
       )}
       <h2>{t("continuityPage.services")}</h2>

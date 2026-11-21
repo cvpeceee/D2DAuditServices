@@ -105,9 +105,14 @@ export function ExposurePage() {
   }
 
   function copySnippet(key: string, text: string) {
-    void navigator.clipboard?.writeText(text);
-    setCopiedKey(key);
-    window.setTimeout(() => setCopiedKey(null), 1800);
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopiedKey(key);
+        window.setTimeout(() => setCopiedKey(null), 1800);
+      },
+      () => setCopiedKey(null),
+    );
   }
 
   const visible = (board?.findings ?? []).filter(
@@ -138,7 +143,7 @@ export function ExposurePage() {
       )}
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(error === "save" ? "errors.save" : "errors.load")}
         </div>
       )}
 

@@ -63,31 +63,46 @@ export function ChangesPage() {
   async function record(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/changes", { method: "POST", tenantId, body: draft });
-    setDraft({ title: "", source: "manual", externalKey: "", repository: "" });
-    setNotice(t("changesPage.saved"));
-    load();
+    try {
+      await api("/api/v1/changes", { method: "POST", tenantId, body: draft });
+      setDraft({ title: "", source: "manual", externalKey: "", repository: "" });
+      setNotice(t("changesPage.saved"));
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function act(action: string) {
     if (!tenantId || !current) return;
-    await api(`/api/v1/changes/${current.id}`, {
-      method: "POST",
-      tenantId,
-      body: { action, deployRef },
-    });
-    setDeployRef("");
-    load();
+    try {
+      await api(`/api/v1/changes/${current.id}`, {
+        method: "POST",
+        tenantId,
+        body: { action, deployRef },
+      });
+      setDeployRef("");
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function sync() {
     if (!tenantId) return;
-    const result = await api<{ imported: number }>("/api/v1/changes/sync", {
-      method: "POST",
-      tenantId,
-    });
-    setNotice(t("changesPage.synced", { count: result.imported }));
-    load();
+    try {
+      const result = await api<{ imported: number }>("/api/v1/changes/sync", {
+        method: "POST",
+        tenantId,
+      });
+      setNotice(t("changesPage.synced", { count: result.imported }));
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   return (
@@ -105,7 +120,7 @@ export function ChangesPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(error === "save" ? "errors.save" : "errors.load")}
         </div>
       )}
       {notice && (

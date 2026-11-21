@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig(({ mode }) => ({
   base: mode === "demo" ? "/D2DAuditServices/app/" : "/",
@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
+    exclude: [...configDefaults.exclude, "e2e/**"],
   },
   server: {
     port: 5173,

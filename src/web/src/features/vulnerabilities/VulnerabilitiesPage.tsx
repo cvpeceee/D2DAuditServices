@@ -114,28 +114,43 @@ export function VulnerabilitiesPage() {
   async function ignore(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId || !selected) return;
-    await api(`/api/v1/vulnerabilities/${selected}/ignore`, {
-      method: "POST",
-      tenantId,
-      body: { reason },
-    });
-    setReason("");
-    setSelected("");
-    load();
+    try {
+      await api(`/api/v1/vulnerabilities/${selected}/ignore`, {
+        method: "POST",
+        tenantId,
+        body: { reason },
+      });
+      setReason("");
+      setSelected("");
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function saveSla(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId || !sla) return;
-    await api("/api/v1/vulnerabilities/sla", { method: "POST", tenantId, body: sla });
-    load();
+    try {
+      await api("/api/v1/vulnerabilities/sla", { method: "POST", tenantId, body: sla });
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function resolveScan(id: string) {
     if (!tenantId) return;
-    await api(`/api/v1/security/scans/${id}/resolve`, { method: "POST", tenantId });
-    setNotice(t("vulnPage.scanResolved"));
-    load();
+    try {
+      await api(`/api/v1/security/scans/${id}/resolve`, { method: "POST", tenantId });
+      setNotice(t("vulnPage.scanResolved"));
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function ingestSarif(event: React.FormEvent) {
@@ -319,10 +334,13 @@ export function VulnerabilitiesPage() {
               void api<{ imported: number }>("/api/v1/vulnerabilities/sync", {
                 method: "POST",
                 tenantId,
-              }).then((result) => {
-                setNotice(t("vulnPage.synced", { count: result.imported }));
-                load();
-              });
+              })
+                .then((result) => {
+                  setNotice(t("vulnPage.synced", { count: result.imported }));
+                  setError(null);
+                  load();
+                })
+                .catch(() => setError("save"));
             }}
           >
             {t("vulnPage.sync")}
@@ -353,11 +371,14 @@ export function VulnerabilitiesPage() {
                 method: "POST",
                 tenantId,
                 body: pentest,
-              }).then(() => {
-                setPentest({ title: "", vendor: "", testedOn: "", csv: "" });
-                setNotice(t("vulnPage.pentestSaved"));
-                load();
-              });
+              })
+                .then(() => {
+                  setPentest({ title: "", vendor: "", testedOn: "", csv: "" });
+                  setNotice(t("vulnPage.pentestSaved"));
+                  setError(null);
+                  load();
+                })
+                .catch(() => setError("save"));
             }}
           >
             <label className="field">
@@ -392,7 +413,7 @@ export function VulnerabilitiesPage() {
       </section>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(error === "save" ? "errors.save" : "errors.load")}
         </div>
       )}
       <div className="tabs" role="tablist">

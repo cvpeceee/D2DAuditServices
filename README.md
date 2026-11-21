@@ -134,12 +134,22 @@ cd src/web && npm test && npm run lint && npm run format:check && npm run build
 
 Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an existing admin connection when Docker is not available, for example `Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres`. The role needs `CREATEDB`. Unit tests do not need a database.
 
+Without Docker on Windows, `scripts/start-local-postgres.ps1` runs a portable PostgreSQL from the EnterpriseDB binaries zip. It creates the cluster on first run (superuser `d2d` / `d2d_dev_password`) and starts it on port 5432. `-PgHome`, `-DataDir`, `-Port`, `-User`, and `-Password` override the defaults (`..\tools\pgsql` and `..\tools\pgdata` next to the checkout). Stop it with `pg_ctl -D <DataDir> stop`.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start-local-postgres.ps1 -PgHome C:\tools\pgsql -DataDir C:\tools\pgdata
+$env:TEST_POSTGRES = "Host=localhost;Port=5432;Username=d2d;Password=d2d_dev_password;Database=postgres"
+dotnet test src/api/D2DAudit.slnx
+```
+
+Browser smoke test of the demo build (not part of `npm test`): `cd src/web && npx playwright install chromium && npm run e2e`. It signs in as the demo admin, opens every route, and fails on console errors, unhandled rejections, failed demo API calls, or raw i18n keys.
+
 ## Layout
 
 - `src/api` — C# solution. Domain, Application, Infrastructure, Api, unit tests, and integration tests. HTTP is minimal APIs grouped by feature.
 - `src/aspire` — Aspire AppHost for local orchestration and the dashboard.
 - `src/web` — React, TypeScript, Vite. Features live under `src/web/src/features`. Visible strings are in `src/web/src/shared/i18n/locales/en.json`.
-- `infra/terraform` — placeholder. Nothing is applied.
+- `infra/terraform` — AWS production Terraform: ECS Fargate (API, web, Temporal worker), Multi-AZ RDS PostgreSQL 16, KMS keys, and S3 Object Lock evidence buckets with an optional `eu-central-1` residency replica. `terraform fmt -check` and `terraform validate` pass; it is not applied by CI. See `infra/terraform/README.md`.
 - `docs/` — architecture, features, the roadmap, and the GitHub Pages review site, including the mockups.
 
 ## Choices that are not in DECISIONS.md

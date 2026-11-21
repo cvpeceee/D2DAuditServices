@@ -575,7 +575,7 @@ export function AppShell() {
           )}
         </header>
         <div className="body">
-          <div className="content" id="content">
+          <main className="content" id="content">
             {import.meta.env.VITE_DEMO === "true" && (
               <div className="local-banner" role="status">
                 {t("demo.banner")}
@@ -595,7 +595,7 @@ export function AppShell() {
               </div>
             )}
             <Outlet context={{ workspace, tenantId, jobs }} />
-          </div>
+          </main>
           <aside className={`assist ${assist ? "open" : ""}`}>
             <div className="ah">
               <div className="spark" aria-hidden="true">
