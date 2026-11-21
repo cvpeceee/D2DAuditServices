@@ -55,6 +55,9 @@ public sealed class SaveRiskValidator : AbstractValidator<SaveRiskRequest>
         RuleFor(request => request.Treatment).Must(value => Enum.TryParse<RiskTreatment>(value, out _));
         RuleFor(request => request.TreatmentPlan).MaximumLength(2000);
         RuleFor(request => request.ControlCodes).NotNull();
+        RuleFor(request => request.ReviewCadence).Must(value => value is null || RiskCadence.IsKnown(value));
+        RuleFor(request => request.SingleLossExpectancy).Must(value => value is null or >= 0);
+        RuleFor(request => request.AnnualRateOfOccurrence).Must(value => value is null or >= 0);
     }
 }
 

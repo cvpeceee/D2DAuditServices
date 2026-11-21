@@ -18,13 +18,14 @@ import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
+import { findDynamicAccount, handleOnboarding, handlePublicOnboarding } from "./onboarding";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
 const tenantId = "a360c8ce-0988-4dfc-9722-bce45697b553";
 const sessionKey = "d2d-demo-user";
 
-type Session = (typeof exampleAccounts)[number];
+type Session = { email: string; name: string; role: string };
 type Job = {
   id: string;
   kind: string;
@@ -129,6 +130,18 @@ async function route(
     if (extra) return extra;
     return publicTrust(method, path, body, data);
   }
+  if (path.startsWith("/api/v1/signup") || path.startsWith("/api/v1/invites")) {
+    const data = await world();
+    const onboardingPublic = await handlePublicOnboarding(
+      method,
+      path,
+      query,
+      body,
+      data,
+      exampleAccounts.map((account) => account.email),
+    );
+    if (onboardingPublic) return onboardingPublic;
+  }
   if (path === "/api/v1/auth/mode" && method === "GET") {
     return json({
       mode: "demo",
@@ -136,7 +149,7 @@ async function route(
       exampleEmails: exampleAccounts.map((account) => account.email),
     });
   }
-  if (path === "/api/v1/auth/login" && method === "POST") return login(body);
+  if (path === "/api/v1/auth/login" && method === "POST") return login(body, await world());
   if (path === "/api/v1/auth/logout" && method === "POST") {
     session = null;
     sessionStorage.removeItem(sessionKey);
@@ -179,6 +192,10 @@ async function route(
   if (enterprise) return enterprise;
   const governanceHub = await handleGovernanceHub(method, path, query, body, data, actor);
   if (governanceHub) return governanceHub;
+  const onboarding = await handleOnboarding(method, path, body, data, actor, (action, detail) =>
+    record(actor, action, "ok", detail),
+  );
+  if (onboarding) return onboarding;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
@@ -403,15 +420,23 @@ function policyRoute(
   throw new DemoError(404, "not_found");
 }
 
-function login(body: Record<string, unknown>) {
+function login(body: Record<string, unknown>, data: DemoWorld) {
   const email = String(body.email ?? "").toLowerCase();
-  const account = exampleAccounts.find((item) => item.email === email);
-  if (!account || body.password !== examplePassword)
-    return json({ errorCode: "invalid_credentials" }, 401);
-  session = account;
-  sessionStorage.setItem(sessionKey, account.email);
-  record(account, "sign_in", "ok", "example account");
-  return json(authBody());
+  const example = exampleAccounts.find((item) => item.email === email);
+  if (example && body.password === examplePassword) {
+    session = example;
+    sessionStorage.setItem(sessionKey, example.email);
+    record(example, "sign_in", "ok", "example account");
+    return json(authBody());
+  }
+  const dynamic = findDynamicAccount(data, email);
+  if (dynamic && body.password === dynamic.password) {
+    session = { email: dynamic.email, name: dynamic.name, role: dynamic.role };
+    sessionStorage.setItem(sessionKey, dynamic.email);
+    record(session, "sign_in", "ok", "created account");
+    return json(authBody());
+  }
+  return json({ errorCode: "invalid_credentials" }, 401);
 }
 
 function authBody() {
@@ -1441,6 +1466,16 @@ function saveRisk(data: DemoWorld, actor: Session, body: Record<string, unknown>
       ? String(body.approvedOn ?? existing?.approvedOn ?? new Date().toISOString().slice(0, 10))
       : null,
     libraryCode: existing?.libraryCode ?? "",
+    reviewCadence: String(body.reviewCadence ?? "Quarterly"),
+    singleLossExpectancy:
+      typeof body.singleLossExpectancy === "number" ? body.singleLossExpectancy : null,
+    annualRateOfOccurrence:
+      typeof body.annualRateOfOccurrence === "number" ? body.annualRateOfOccurrence : null,
+    annualizedLossExpectancy:
+      typeof body.singleLossExpectancy === "number" &&
+      typeof body.annualRateOfOccurrence === "number"
+        ? Math.round(body.singleLossExpectancy * body.annualRateOfOccurrence * 100) / 100
+        : null,
   };
   const index = data.risks.findIndex((item) => item.code === code);
   if (index >= 0) data.risks[index] = row;

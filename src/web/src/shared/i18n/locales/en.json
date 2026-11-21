@@ -38,7 +38,9 @@
     "audit": "Audit",
     "auditor": "Auditor portal",
     "integrations": "Integrations",
-    "activity": "Activity"
+    "activity": "Activity",
+    "onboarding": "Getting started",
+    "billing": "Billing"
   },
   "theme": {
     "light": "Light",
@@ -119,7 +121,9 @@
       "redirect_not_allowed": "This sign-in return address is not allowed.",
       "invalid_state": "The sign-in request could not be matched. Try again.",
       "unknown_provider": "That sign-in provider is not available."
-    }
+    },
+    "noAccount": "New to D2D Audit?",
+    "createAccount": "Create an account"
   },
   "dashboard": {
     "goodMorning": "Good morning, {{name}}",
@@ -520,7 +524,44 @@
     "approval": "Approval",
     "approved": "Approved",
     "unapproved": "Not approved",
-    "approve": "Mark approved"
+    "approve": "Mark approved",
+    "heatView": "Heat map view",
+    "views": {
+      "inherent": "Inherent",
+      "residual": "Residual"
+    },
+    "criticalSummary": "Critical risks: {{inherent}} inherent, {{residual}} residual.",
+    "totalAle": "Total annualized loss expectancy: {{amount}}",
+    "librarySub": "{{count}} prewritten risks with suggested controls.",
+    "suggestedControls": "Suggested controls: {{codes}}",
+    "ale": "ALE",
+    "cadence": "Review cadence",
+    "cadences": {
+      "Monthly": "Monthly",
+      "Quarterly": "Quarterly",
+      "SemiAnnual": "Every 6 months",
+      "Annual": "Annual"
+    },
+    "residualLikelihood": "Residual likelihood",
+    "residualImpact": "Residual impact",
+    "sle": "Single loss expectancy (USD)",
+    "aro": "Annual rate of occurrence",
+    "quantifyHint": "Optional. ALE = single loss expectancy ? annual rate of occurrence.",
+    "acceptance": {
+      "title": "Accept a risk",
+      "sub": "Record who approved keeping the residual risk and when the decision expires.",
+      "approver": "Approver",
+      "expires": "Expires on",
+      "rationale": "Rationale",
+      "submit": "Record acceptance",
+      "done": "Acceptance recorded for {{code}}.",
+      "until": "Accepted by {{name}} until {{date}}"
+    },
+    "errors": {
+      "invalid_acceptance": "Enter an approver, a future expiry within 1 year, and a rationale.",
+      "not_found": "That risk was not found.",
+      "forbidden": "You do not have permission to do that."
+    }
   },
   "peoplePage": {
     "title": "People",
@@ -791,7 +832,8 @@
       "Test": "Test",
       "Risk": "Risk",
       "Vendor": "Vendor",
-      "Policy": "Policy"
+      "Policy": "Policy",
+      "Readiness": "Readiness"
     },
     "recurrence": {
       "None": "Does not repeat",
@@ -1282,5 +1324,299 @@
   "errors": {
     "load": "The page could not be loaded.",
     "forbidden": "You do not have access to this workspace."
+  },
+  "signup": {
+    "title": "Create your workspace",
+    "sub": "Start a compliance program for your company. We verify your work email before creating the workspace.",
+    "company": "Company name",
+    "fullName": "Your name",
+    "email": "Work email",
+    "emailPlaceholder": "you@company.com",
+    "emailHint": "Use your company domain. Personal and disposable addresses are not accepted.",
+    "password": "Password",
+    "passwordHint": "At least {{count}} characters.",
+    "ssoNote": "This deployment uses single sign-on. After you verify your email, sign in with your company identity provider.",
+    "region": "Data residency",
+    "regions": {
+      "US": "United States",
+      "EU": "European Union"
+    },
+    "regionHint": "Your workspace data is stored in this region. It cannot be changed later.",
+    "submit": "Create workspace",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "checkEmail": "Check your email",
+    "checkEmailSub": "We sent a verification link to {{email}}. The link expires in 24 hours.",
+    "devLinkTitle": "Development mode",
+    "devLinkSub": "Email is mocked here, so the verification link is shown below.",
+    "verifyNow": "Verify email and continue",
+    "provisioningTitle": "Setting up your workspace",
+    "readyTitle": "Your workspace is ready",
+    "provisioningSub": "Creating the workspace for {{company}}.",
+    "progress": "Workspace setup progress",
+    "startOnboarding": "Start the setup wizard",
+    "signInNow": "Sign in",
+    "startOver": "Start over",
+    "ssoReady": "Sign in with your company single sign-on to continue.",
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "invalid_company": "Enter a company name between 2 and 120 characters.",
+      "invalid_email": "Enter a valid email address.",
+      "disposable_email": "Disposable email addresses are not accepted.",
+      "work_email_required": "Use your work email, not a personal mailbox.",
+      "invalid_region": "Choose a supported data region.",
+      "weak_password": "Use a longer password.",
+      "email_taken": "An account already exists for this email. Sign in instead.",
+      "domain_taken": "A workspace already exists for this company domain. Ask an admin there to invite you.",
+      "too_many_signups": "Too many signup attempts. Try again later.",
+      "rate_limited": "Too many attempts. Try again in a few minutes.",
+      "invalid_token": "This verification link is not valid.",
+      "token_expired": "This verification link has expired. Sign up again.",
+      "not_found": "We could not find that signup.",
+      "provisioning_failed": "We could not create the workspace. Contact support."
+    }
+  },
+  "onboarding": {
+    "title": "Get started",
+    "sub": "Set up your compliance program in a few steps. You can come back at any time.",
+    "percent": "{{percent}}% complete",
+    "stepsLabel": "Setup steps",
+    "saveContinue": "Save and continue",
+    "markDone": "Mark as done",
+    "readOnly": "You can view the setup checklist. An editor or admin completes the steps.",
+    "complete": "Setup is complete.",
+    "toDashboard": "Go to the dashboard",
+    "steps": {
+      "profile": "Company profile",
+      "frameworks": "Frameworks",
+      "integrations": "Integrations",
+      "team": "Invite your team",
+      "policies": "Policy templates",
+      "plan": "Audit readiness plan"
+    },
+    "profile": {
+      "title": "Tell us about your company",
+      "sub": "We use this to recommend frameworks and pre-scope controls.",
+      "size": "Company size",
+      "sizeOption": "{{size}} employees",
+      "industry": "Industry",
+      "clouds": "Cloud providers",
+      "dataTypes": "Data you handle",
+      "recommend": "Recommend frameworks",
+      "recommended": "Recommended: {{frameworks}}. {{count}} controls pre-scoped."
+    },
+    "industries": {
+      "saas": "Software as a service",
+      "fintech": "Financial services",
+      "healthcare": "Healthcare",
+      "ecommerce": "E-commerce",
+      "manufacturing": "Manufacturing",
+      "public_sector": "Public sector",
+      "ai": "AI products",
+      "other": "Other"
+    },
+    "clouds": {
+      "aws": "AWS",
+      "azure": "Microsoft Azure",
+      "gcp": "Google Cloud",
+      "on_prem": "On-premises"
+    },
+    "dataTypes": {
+      "customer_pii": "Customer personal data",
+      "eu_personal_data": "EU personal data",
+      "health": "Health information",
+      "payment_cards": "Payment card data",
+      "financial": "Financial records",
+      "ai_training": "AI training data",
+      "ot_telemetry": "Industrial / OT telemetry"
+    },
+    "reasons": {
+      "customer_trust": "Customer trust",
+      "international_or_scale": "International or growing",
+      "cloud_services": "Cloud services",
+      "cloud_pii": "Personal data in the cloud",
+      "health_data": "Health data",
+      "payment_cards": "Card payments",
+      "eu_personal_data": "EU personal data",
+      "eu_financial_services": "EU financial services",
+      "ai_management": "AI management",
+      "ai_risk": "AI risk",
+      "eu_ai": "EU AI Act",
+      "operational_technology": "Operational technology",
+      "baseline": "Security baseline"
+    },
+    "frameworks": {
+      "title": "Choose frameworks",
+      "sub": "Pick from {{count}} frameworks. Recommended ones are marked.",
+      "recommended": "Recommended",
+      "scoped": "{{count}} controls pre-scoped from your profile.",
+      "limit": "Your plan includes {{limit}}."
+    },
+    "integrations": {
+      "title": "Connect your first integration",
+      "sub": "Connect a cloud, identity, or code provider so tests run automatically.",
+      "open": "Open integrations"
+    },
+    "team": {
+      "title": "Invite teammates",
+      "sub": "Invite links expire after 7 days. Pick a role for each person.",
+      "adminOnly": "Only an admin can send invites."
+    },
+    "policies": {
+      "title": "Install policy templates",
+      "sub": "Add the standard policy set as drafts you can edit and approve.",
+      "install": "Install templates",
+      "installed": "Policy templates installed.",
+      "open": "Open policies"
+    },
+    "plan": {
+      "title": "Choose your audit target date",
+      "sub": "We build milestones and tasks with due dates working back from this date.",
+      "target": "Audit target date",
+      "targetHint": "At least 30 days from today.",
+      "generate": "Generate readiness plan",
+      "result": "Readiness plan",
+      "created": "{{count}} tasks created for an audit on {{date}}.",
+      "viewTasks": "View tasks"
+    },
+    "card": {
+      "title": "Getting started",
+      "continue": "Continue setup",
+      "dismiss": "Dismiss",
+      "done": "done",
+      "todo": "to do"
+    },
+    "errors": {
+      "invalid_onboarding": "Some choices were not valid. Review and try again.",
+      "target_too_soon": "Pick a date at least 30 days away.",
+      "target_too_far": "Pick a date within the next 2 years.",
+      "forbidden": "You do not have permission to do that."
+    }
+  },
+  "billingPage": {
+    "title": "Billing and plan",
+    "sub": "Your plan, usage against limits, and invoices.",
+    "portal": "Manage payment details",
+    "checkoutSuccess": "Payment complete. Your plan updates as soon as the provider confirms.",
+    "checkoutCancelled": "Checkout was cancelled. Your plan did not change.",
+    "changed": "You are now on the {{plan}} plan.",
+    "current": "Current plan",
+    "mockProvider": "Mock billing (no charges)",
+    "provider": "Billed through {{provider}}",
+    "renews": "Current period ends {{date}}",
+    "usage": "Usage",
+    "usedOf": "{{used}} of {{limit}}",
+    "unlimited": "Unlimited",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "changePlan": "Plans",
+    "currentPlan": "Current plan",
+    "switchTo": "Switch to {{plan}}",
+    "adminOnly": "Only an admin can change the plan.",
+    "contactSales": "Contact sales",
+    "perMonth": "{{price}} / month",
+    "invoices": "Invoices",
+    "noInvoices": "No invoices yet.",
+    "invoice": "Invoice",
+    "issued": "Issued",
+    "amount": "Amount",
+    "status": "Status",
+    "plans": {
+      "Starter": "Starter",
+      "Growth": "Growth",
+      "Enterprise": "Enterprise"
+    },
+    "statuses": {
+      "Active": "Active",
+      "Trialing": "Trial",
+      "PastDue": "Past due",
+      "Canceled": "Canceled"
+    },
+    "invoiceStatuses": {
+      "paid": "Paid",
+      "open": "Open",
+      "void": "Void",
+      "draft": "Draft",
+      "uncollectible": "Uncollectible"
+    },
+    "features": {
+      "frameworks": "Frameworks",
+      "seats": "Seats",
+      "integrations": "Integrations",
+      "trust_center": "Trust Center",
+      "api_access": "API access"
+    },
+    "limits": {
+      "frameworks": "Frameworks: {{value}}",
+      "seats": "Seats: {{value}}",
+      "integrations": "Integrations: {{value}}",
+      "trustCenter": "Trust Center included",
+      "noTrustCenter": "No Trust Center",
+      "api": "REST API access",
+      "noApi": "No API access"
+    },
+    "upgrade": {
+      "reached": "You are using {{used}} of {{limit}} {{feature}} on your plan.",
+      "over": "You are over your plan: {{used}} of {{limit}} {{feature}}.",
+      "cta": "Upgrade to {{plan}}"
+    },
+    "errors": {
+      "forbidden": "Only an admin can change billing.",
+      "invalid_plan": "That plan does not exist.",
+      "contact_sales": "Contact sales to move to Enterprise.",
+      "billing_unavailable": "The billing provider is unavailable. Try again later.",
+      "no_customer": "There is no billing account yet. Choose a paid plan first."
+    }
+  },
+  "team": {
+    "inviteEmail": "Email to invite",
+    "inviteRole": "Role",
+    "sendInvite": "Send invite link",
+    "invited": "Invite sent to {{email}}.",
+    "devLink": "Email is mocked here:",
+    "openLink": "open the invite link",
+    "invitesTitle": "Invite links",
+    "invitesSub": "Each invite is a one-time link that expires after 7 days.",
+    "billingLink": "Seats and billing",
+    "expires": "Expires",
+    "invitedBy": "Invited by {{name}}",
+    "revoke": "Revoke",
+    "states": {
+      "Pending": "Pending",
+      "Accepted": "Accepted",
+      "Revoked": "Revoked",
+      "Expired": "Expired"
+    },
+    "securityTitle": "Sign-in security",
+    "mockSso": "WorkOS is not configured, so SSO enforcement is simulated in this workspace.",
+    "enforceSso": "Require single sign-on for {{domain}}",
+    "enforceHint": "When on, people with your company domain must sign in with SSO instead of a password.",
+    "scimTitle": "SCIM provisioning",
+    "scimEndpoint": "Endpoint: {{url}}",
+    "scimToken": "Token {{prefix}}? created {{date}}",
+    "scimNone": "No SCIM token yet.",
+    "rotateScim": "Rotate SCIM token",
+    "createScim": "Create SCIM token",
+    "accept": {
+      "title": "Join a workspace",
+      "sub": "{{tenant}} invited {{email}} as {{role}}.",
+      "expires": "This invite expires {{date}}.",
+      "passwordHint": "Choose a password to create your account.",
+      "submit": "Accept invite",
+      "done": "You joined the workspace. Sign in to continue.",
+      "sso": "You joined the workspace. Sign in with your company SSO."
+    },
+    "errors": {
+      "invalid_token": "This invite link is not valid.",
+      "token_expired": "This invite has expired. Ask for a new one.",
+      "invite_revoked": "This invite was revoked.",
+      "invite_used": "This invite was already used.",
+      "weak_password": "Use a longer password.",
+      "invalid_member": "Enter a valid email and role.",
+      "already_member": "That person is already a member.",
+      "seat_limit": "Your plan has no seats left. Upgrade to add more people.",
+      "forbidden": "Only an admin can do that.",
+      "not_found": "That invite was not found."
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError, api, type AuthMode, type AuthResponse } from "../../shared/api/client";
 import { useAuth } from "./AuthContext";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
@@ -327,6 +327,9 @@ export function LoginPage() {
                 </div>
               )}
             <div className="login-note">{t("login.auditorNote")}</div>
+            <div className="login-note">
+              {t("login.noAccount")} <Link to="/signup">{t("login.createAccount")}</Link>
+            </div>
           </>
         )}
         {busy && (

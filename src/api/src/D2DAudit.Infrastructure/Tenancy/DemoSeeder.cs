@@ -53,6 +53,36 @@ public sealed class DemoSeeder(
         var now = time.GetUtcNow();
         await DemoPortal.SeedAsync(databases, acme, now, evidence, cancellationToken);
         await SeedActivityAsync(acme.Id, now, cancellationToken);
+        await EnsureSubscriptionAsync(acme.Id, now, cancellationToken);
+    }
+
+    private async Task EnsureSubscriptionAsync(Guid tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (await control.Subscriptions.AnyAsync(item => item.TenantId == tenantId, cancellationToken))
+        {
+            return;
+        }
+
+        control.Subscriptions.Add(new TenantSubscription { TenantId = tenantId, Plan = PlanCatalog.Growth, Status = "Active", Provider = "mock", UpdatedAt = now });
+        if (await control.TenantOnboarding.AnyAsync(item => item.TenantId == tenantId, cancellationToken))
+        {
+            await control.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        control.TenantOnboarding.Add(new TenantOnboarding
+        {
+            TenantId = tenantId,
+            CompanySize = "51-200",
+            Industry = "saas",
+            CloudProviders = "aws",
+            DataTypes = "customer_pii",
+            Frameworks = "soc2,iso27001",
+            CompletedSteps = OnboardingSteps.Join(OnboardingSteps.All),
+            Dismissed = true,
+            UpdatedAt = now,
+        });
+        await control.SaveChangesAsync(cancellationToken);
     }
 
     private async Task SeedActivityAsync(Guid tenantId, DateTimeOffset now, CancellationToken cancellationToken)

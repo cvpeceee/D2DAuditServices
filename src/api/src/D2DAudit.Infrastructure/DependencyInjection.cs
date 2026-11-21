@@ -16,6 +16,7 @@ using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Identity;
 using D2DAudit.Infrastructure.Incidents;
 using D2DAudit.Infrastructure.Integrations;
+using D2DAudit.Infrastructure.Onboarding;
 using D2DAudit.Infrastructure.Operations;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Queries;
@@ -175,6 +176,7 @@ public static class DependencyInjection
         }
 
         services.AddHostedService<StartupInitializer>();
+        services.AddOnboardingServices(configuration, mode);
         return services;
     }
 

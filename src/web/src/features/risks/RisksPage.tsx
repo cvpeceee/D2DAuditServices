@@ -10,6 +10,13 @@ import {
 } from "../../shared/api/client";
 import { formatDate, Pill } from "../../shared/ui/ui";
 import { AssignTask } from "../program/AssignTask";
+import {
+  annualizedLoss,
+  buildHeatmap,
+  coordinates,
+  criticalCount,
+  type HeatmapView,
+} from "./heatmap";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
@@ -18,6 +25,13 @@ type RichRisk = RiskListItem & {
   approvedBy?: string;
   approvedOn?: string | null;
   libraryCode?: string;
+  reviewCadence?: string;
+  acceptedBy?: string;
+  acceptedOn?: string | null;
+  acceptanceExpiresOn?: string | null;
+  singleLossExpectancy?: number | null;
+  annualRateOfOccurrence?: number | null;
+  annualizedLossExpectancy?: number | null;
 };
 
 type LibraryItem = {
@@ -28,9 +42,32 @@ type LibraryItem = {
   impact: number;
   treatment: string;
   added: boolean;
+  suggestedControls?: string[] | null;
+  category?: string;
 };
 
 const treatments = ["Mitigate", "Accept", "Transfer", "Avoid"] as const;
+const cadences = ["Monthly", "Quarterly", "SemiAnnual", "Annual"] as const;
+
+function inDays(days: number) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function money(value: number | null | undefined) {
+  return value == null
+    ? "—"
+    : new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }).format(value);
+}
+
+function optionalNumber(value: string) {
+  return value.trim() === "" ? null : Number(value);
+}
 
 function bandStatus(band: string) {
   if (band === "critical") return "fail";
@@ -54,6 +91,9 @@ const emptyRisk = {
   residualImpact: 2,
   controlCodes: "",
   approved: false,
+  reviewCadence: "Quarterly",
+  singleLossExpectancy: "",
+  annualRateOfOccurrence: "",
 };
 
 export function RisksPage() {
@@ -65,6 +105,13 @@ export function RisksPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState<{ likelihood: number; impact: number } | null>(null);
+  const [view, setView] = useState<HeatmapView>("inherent");
+  const [acceptance, setAcceptance] = useState({
+    approver: "",
+    expiresOn: inDays(180),
+    rationale: "",
+  });
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = () => {
     if (!tenantId) return;
@@ -81,9 +128,45 @@ export function RisksPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenantId]);
 
-  const shown = (rows ?? []).filter(
-    (row) => !filter || (row.likelihood === filter.likelihood && row.impact === filter.impact),
+  const shown = (rows ?? []).filter((row) => {
+    if (!filter) return true;
+    const at = coordinates(row, view);
+    return at.likelihood === filter.likelihood && at.impact === filter.impact;
+  });
+  const cells = buildHeatmap(rows ?? [], view);
+  const totalLoss = (rows ?? []).reduce(
+    (sum, row) => sum + (annualizedLoss(row.singleLossExpectancy, row.annualRateOfOccurrence) ?? 0),
+    0,
   );
+  const formLoss = annualizedLoss(
+    optionalNumber(form.singleLossExpectancy),
+    optionalNumber(form.annualRateOfOccurrence),
+  );
+
+  async function acceptRisk(event: React.FormEvent) {
+    event.preventDefault();
+    if (!tenantId || !form.code) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await api(`/api/v1/risks/${encodeURIComponent(form.code)}/accept`, {
+        method: "POST",
+        tenantId,
+        body: {
+          approver: acceptance.approver || null,
+          expiresOn: acceptance.expiresOn,
+          rationale: acceptance.rationale || null,
+        },
+      });
+      setNotice(t("risksPage.acceptance.done", { code: form.code }));
+      load();
+    } catch (caught: unknown) {
+      setError(caught instanceof ApiError ? caught.code : "load");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   function select(row: RichRisk) {
     setForm({
@@ -101,6 +184,11 @@ export function RisksPage() {
       residualImpact: row.residualImpact,
       controlCodes: row.controlCodes.join(", "),
       approved: Boolean(row.approved),
+      reviewCadence: row.reviewCadence ?? "Quarterly",
+      singleLossExpectancy:
+        row.singleLossExpectancy == null ? "" : String(row.singleLossExpectancy),
+      annualRateOfOccurrence:
+        row.annualRateOfOccurrence == null ? "" : String(row.annualRateOfOccurrence),
     });
   }
 
@@ -139,6 +227,8 @@ export function RisksPage() {
             .map((code) => code.trim())
             .filter(Boolean),
           approved: form.approved,
+          singleLossExpectancy: optionalNumber(form.singleLossExpectancy),
+          annualRateOfOccurrence: optionalNumber(form.annualRateOfOccurrence),
         },
       });
       load();
@@ -175,11 +265,34 @@ export function RisksPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(`risksPage.errors.${error}`, { defaultValue: t("errors.load") })}
+        </div>
+      )}
+      {notice && (
+        <div className="notice" role="status">
+          {notice}
         </div>
       )}
       <div className="card">
-        <h3>{t("risksPage.heat")}</h3>
+        <div className="label-row">
+          <h3>{t("risksPage.heat")}</h3>
+          <div className="toggle" role="group" aria-label={t("risksPage.heatView")}>
+            {(["inherent", "residual"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={view === item ? "on" : ""}
+                aria-pressed={view === item}
+                onClick={() => {
+                  setView(item);
+                  setFilter(null);
+                }}
+              >
+                {t(`risksPage.views.${item}`)}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="heat" role="grid" aria-label={t("risksPage.heat")}>
           <span />
           {[1, 2, 3, 4, 5].map((likelihood) => (
@@ -190,47 +303,61 @@ export function RisksPage() {
           {[5, 4, 3, 2, 1].map((impact) => (
             <span key={impact} style={{ display: "contents" }}>
               <span className="axis">{impact}</span>
-              {[1, 2, 3, 4, 5].map((likelihood) => {
-                const count = (rows ?? []).filter(
-                  (row) => row.likelihood === likelihood && row.impact === impact,
-                ).length;
-                const score = likelihood * impact;
-                const tone =
-                  score >= 15 ? "critical" : score >= 8 ? "high" : score >= 4 ? "medium" : "low";
-                return (
-                  <button
-                    key={`${likelihood}-${impact}`}
-                    type="button"
-                    className={`cell ${tone}`}
-                    aria-pressed={filter?.likelihood === likelihood && filter.impact === impact}
-                    aria-label={t("risksPage.cell", { likelihood, impact, count })}
-                    onClick={() =>
-                      setFilter((current) =>
-                        current?.likelihood === likelihood && current.impact === impact
-                          ? null
-                          : { likelihood, impact },
-                      )
-                    }
-                  >
-                    {count}
-                  </button>
-                );
-              })}
+              {cells
+                .filter((cell) => cell.impact === impact)
+                .map(({ likelihood, band, codes }) => {
+                  const count = codes.length;
+                  return (
+                    <button
+                      key={`${likelihood}-${impact}`}
+                      type="button"
+                      className={`cell ${band}`}
+                      title={codes.join(", ")}
+                      aria-pressed={filter?.likelihood === likelihood && filter.impact === impact}
+                      aria-label={t("risksPage.cell", { likelihood, impact, count })}
+                      onClick={() =>
+                        setFilter((current) =>
+                          current?.likelihood === likelihood && current.impact === impact
+                            ? null
+                            : { likelihood, impact },
+                        )
+                      }
+                    >
+                      {count}
+                    </button>
+                  );
+                })}
             </span>
           ))}
         </div>
         <div className="hint">
           {t("risksPage.likelihood")} → · {t("risksPage.impact")} ↑
         </div>
+        <div className="hint">
+          {t("risksPage.criticalSummary", {
+            inherent: criticalCount(rows ?? [], "inherent"),
+            residual: criticalCount(rows ?? [], "residual"),
+          })}
+          {totalLoss > 0 && ` · ${t("risksPage.totalAle", { amount: money(totalLoss) })}`}
+        </div>
       </div>
       {library && library.length > 0 && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{t("risksPage.library")}</h3>
+          <div className="hint">{t("risksPage.librarySub", { count: library.length })}</div>
           <ul>
             {library.map((item) => (
               <li key={item.code}>
                 <b>{item.code}</b> {item.title}
+                {item.category && <span className="m"> · {item.category}</span>}
                 <div className="id">{item.statement}</div>
+                {item.suggestedControls && item.suggestedControls.length > 0 && (
+                  <div className="id">
+                    {t("risksPage.suggestedControls", {
+                      codes: item.suggestedControls.join(", "),
+                    })}
+                  </div>
+                )}
                 {workspace?.canWrite &&
                   (item.added ? (
                     <span className="m">{t("risksPage.added")}</span>
@@ -260,8 +387,10 @@ export function RisksPage() {
                   <th>{t("risksPage.titleField")}</th>
                   <th>{t("risksPage.score")}</th>
                   <th>{t("risksPage.residual")}</th>
+                  <th>{t("risksPage.owner")}</th>
                   <th>{t("risksPage.treatment")}</th>
                   <th>{t("risksPage.review")}</th>
+                  <th>{t("risksPage.ale")}</th>
                   <th>{t("risksPage.approval")}</th>
                 </tr>
               </thead>
@@ -282,8 +411,30 @@ export function RisksPage() {
                     <td className="m">
                       {row.residualScore} · {t(`risksPage.bands.${row.residualBand}`)}
                     </td>
-                    <td>{t(`risksPage.treatments.${row.treatment}`)}</td>
-                    <td className="m">{formatDate(row.reviewOn)}</td>
+                    <td>{row.ownerName}</td>
+                    <td>
+                      {t(`risksPage.treatments.${row.treatment}`)}
+                      {row.acceptanceExpiresOn && (
+                        <div className="id">
+                          {t("risksPage.acceptance.until", {
+                            name: row.acceptedBy,
+                            date: formatDate(row.acceptanceExpiresOn),
+                          })}
+                        </div>
+                      )}
+                    </td>
+                    <td className="m">
+                      {formatDate(row.reviewOn)}
+                      {row.reviewCadence && (
+                        <div className="id">{t(`risksPage.cadences.${row.reviewCadence}`)}</div>
+                      )}
+                    </td>
+                    <td className="m">
+                      {money(
+                        row.annualizedLossExpectancy ??
+                          annualizedLoss(row.singleLossExpectancy, row.annualRateOfOccurrence),
+                      )}
+                    </td>
                     <td>
                       <Pill status={row.approved ? "pass" : "warn"}>
                         {row.approved ? t("risksPage.approved") : t("risksPage.unapproved")}
@@ -402,6 +553,83 @@ export function RisksPage() {
                 />
               </div>
             </div>
+            <div className="split-fields">
+              <div className="field">
+                <label htmlFor="risk-cadence">{t("risksPage.cadence")}</label>
+                <select
+                  id="risk-cadence"
+                  value={form.reviewCadence}
+                  onChange={(event) => setForm({ ...form, reviewCadence: event.target.value })}
+                >
+                  {cadences.map((cadence) => (
+                    <option key={cadence} value={cadence}>
+                      {t(`risksPage.cadences.${cadence}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="risk-rl">{t("risksPage.residualLikelihood")}</label>
+                <input
+                  id="risk-rl"
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={form.residualLikelihood}
+                  onChange={(event) =>
+                    setForm({ ...form, residualLikelihood: Number(event.target.value) })
+                  }
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-ri">{t("risksPage.residualImpact")}</label>
+                <input
+                  id="risk-ri"
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={form.residualImpact}
+                  onChange={(event) =>
+                    setForm({ ...form, residualImpact: Number(event.target.value) })
+                  }
+                />
+              </div>
+            </div>
+            <div className="split-fields">
+              <div className="field">
+                <label htmlFor="risk-sle">{t("risksPage.sle")}</label>
+                <input
+                  id="risk-sle"
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={form.singleLossExpectancy}
+                  onChange={(event) =>
+                    setForm({ ...form, singleLossExpectancy: event.target.value })
+                  }
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="risk-aro">{t("risksPage.aro")}</label>
+                <input
+                  id="risk-aro"
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={form.annualRateOfOccurrence}
+                  onChange={(event) =>
+                    setForm({ ...form, annualRateOfOccurrence: event.target.value })
+                  }
+                />
+              </div>
+              <div className="field">
+                <span>{t("risksPage.ale")}</span>
+                <div className="m" aria-live="polite">
+                  {money(formLoss)}
+                </div>
+              </div>
+            </div>
+            <div className="hint">{t("risksPage.quantifyHint")}</div>
             <label className="check-row">
               <input
                 type="checkbox"
@@ -414,6 +642,56 @@ export function RisksPage() {
               {t("risksPage.save")}
             </button>
           </form>
+          {form.code && (
+            <form
+              style={{ marginTop: 12 }}
+              aria-label={t("risksPage.acceptance.title")}
+              onSubmit={(event) => void acceptRisk(event)}
+            >
+              <h3>{t("risksPage.acceptance.title")}</h3>
+              <div className="hint">{t("risksPage.acceptance.sub")}</div>
+              <div className="split-fields">
+                <div className="field">
+                  <label htmlFor="accept-approver">{t("risksPage.acceptance.approver")}</label>
+                  <input
+                    id="accept-approver"
+                    value={acceptance.approver}
+                    placeholder={workspace?.displayName ?? ""}
+                    onChange={(event) =>
+                      setAcceptance({ ...acceptance, approver: event.target.value })
+                    }
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="accept-expires">{t("risksPage.acceptance.expires")}</label>
+                  <input
+                    id="accept-expires"
+                    type="date"
+                    value={acceptance.expiresOn}
+                    min={inDays(1)}
+                    max={inDays(365)}
+                    onChange={(event) =>
+                      setAcceptance({ ...acceptance, expiresOn: event.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+              <div className="field">
+                <label htmlFor="accept-rationale">{t("risksPage.acceptance.rationale")}</label>
+                <textarea
+                  id="accept-rationale"
+                  value={acceptance.rationale}
+                  onChange={(event) =>
+                    setAcceptance({ ...acceptance, rationale: event.target.value })
+                  }
+                />
+              </div>
+              <button className="btn" type="submit" disabled={busy}>
+                {t("risksPage.acceptance.submit")}
+              </button>
+            </form>
+          )}
           {form.code && (
             <div style={{ marginTop: 12 }}>
               <AssignTask

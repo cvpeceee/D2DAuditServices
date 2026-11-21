@@ -23,7 +23,14 @@ public sealed record RiskListItem(
     bool Approved = false,
     string ApprovedBy = "",
     DateOnly? ApprovedOn = null,
-    string LibraryCode = "");
+    string LibraryCode = "",
+    string ReviewCadence = "Quarterly",
+    string AcceptedBy = "",
+    DateOnly? AcceptedOn = null,
+    DateOnly? AcceptanceExpiresOn = null,
+    decimal? SingleLossExpectancy = null,
+    decimal? AnnualRateOfOccurrence = null,
+    decimal? AnnualizedLossExpectancy = null);
 
 public sealed record SaveRiskRequest(
     string? Code,
@@ -41,7 +48,12 @@ public sealed record SaveRiskRequest(
     IReadOnlyList<string> ControlCodes,
     bool? Approved = null,
     string? ApprovedBy = null,
-    DateOnly? ApprovedOn = null);
+    DateOnly? ApprovedOn = null,
+    string? ReviewCadence = null,
+    decimal? SingleLossExpectancy = null,
+    decimal? AnnualRateOfOccurrence = null);
+
+public sealed record AcceptRiskRequest(string? Approver, DateOnly ExpiresOn, string? Rationale = null);
 
 public sealed record PersonAccountDto(string Provider, string AccountName, bool Active);
 
@@ -182,7 +194,7 @@ public sealed record RemediateRequest(string Note);
 
 public sealed record PersonStatusRequest(string State, string Reason);
 
-public sealed record RiskLibraryItem(string Code, string Title, string Statement, int Likelihood, int Impact, string Treatment, bool Added);
+public sealed record RiskLibraryItem(string Code, string Title, string Statement, int Likelihood, int Impact, string Treatment, bool Added, IReadOnlyList<string>? SuggestedControls = null, string Category = "");
 
 public sealed record AccessDecisionRequest(string Decision);
 

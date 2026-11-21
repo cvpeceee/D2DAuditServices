@@ -192,8 +192,20 @@ export function AppShell() {
     if (workspace?.canWrite) {
       items.push({ id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") });
     }
+    if (workspace?.canWrite)
+      items.push({
+        id: "onboarding",
+        label: t("nav.onboarding"),
+        run: () => navigate("/onboarding"),
+      });
     if (workspace?.role === "Admin")
       items.push({ id: "activity", label: t("nav.activity"), run: () => navigate("/activity") });
+    if (workspace?.role === "Admin")
+      items.push({
+        id: "billing",
+        label: t("nav.billing"),
+        run: () => navigate("/settings/billing"),
+      });
     (["light", "dark", "system", "high-contrast"] as ThemeChoice[]).forEach((theme) => {
       items.push({
         id: `theme-${theme}`,
@@ -240,7 +252,9 @@ export function AppShell() {
           ? "attackPaths"
           : parts[0] === "governance-hub"
             ? "governanceHub"
-            : parts[0] || "dashboard";
+            : parts[0] === "settings" && parts[1] === "billing"
+              ? "billing"
+              : parts[0] || "dashboard";
   const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>
@@ -421,11 +435,22 @@ export function AppShell() {
         {workspace?.role === "Admin" && (
           <NavLink
             to="/settings"
+            end
             className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             <Icon name="settings" />
             <span>{t("nav.settings")}</span>
+          </NavLink>
+        )}
+        {workspace?.role === "Admin" && (
+          <NavLink
+            to="/settings/billing"
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name="finops" />
+            <span>{t("nav.billing")}</span>
           </NavLink>
         )}
         {workspace?.role === "Admin" && (
