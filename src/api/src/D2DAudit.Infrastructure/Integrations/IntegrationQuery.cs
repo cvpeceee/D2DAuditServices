@@ -213,7 +213,7 @@ public sealed class IntegrationQuery(
         }
 
         await using var db = databases.Create(Database());
-        foreach (var provider in IntegrationPolicies.ExampleProviders(fixture))
+        foreach (var provider in IntegrationPolicies.ExampleRows(fixture))
         {
             var row = await db.Integrations.FirstOrDefaultAsync(item => item.Provider == provider, cancellationToken);
             if (row is null)

@@ -635,6 +635,52 @@ button.row-hit::after {
   text-decoration: none;
   font-weight: 500;
 }
+.chip.on {
+  border-color: var(--accent);
+  background: var(--accentSoft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.btn.danger {
+  color: var(--bad);
+  border-color: var(--badSoft);
+}
+.connector-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.connector-toolbar .search-input {
+  flex: 1 1 240px;
+}
+.connector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.connector-card .connector-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.drawer-section {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: grid;
+  gap: 8px;
+}
 .drawer {
   width: min(430px, 100%);
   border-inline-start: 1px solid var(--border);

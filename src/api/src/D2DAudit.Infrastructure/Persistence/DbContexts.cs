@@ -135,6 +135,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<IntegrationConnection> Integrations => Set<IntegrationConnection>();
 
+    public DbSet<IntegrationSyncRun> IntegrationSyncRuns => Set<IntegrationSyncRun>();
+
     public DbSet<ChainEntry> Chain => Set<ChainEntry>();
 
     public DbSet<ResourceSnapshot> Resources => Set<ResourceSnapshot>();
@@ -323,6 +325,17 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         integration.Property(x => x.SetupHint).HasMaxLength(500);
         integration.Property(x => x.LastError).HasMaxLength(300);
         integration.HasIndex(x => x.Provider).IsUnique();
+
+        var syncRun = modelBuilder.Entity<IntegrationSyncRun>();
+        syncRun.ToTable("integration_sync_runs");
+        syncRun.HasKey(x => x.Id);
+        syncRun.Property(x => x.Provider).HasMaxLength(32).IsRequired();
+        syncRun.Property(x => x.Kind).HasMaxLength(16).IsRequired();
+        syncRun.Property(x => x.Mode).HasMaxLength(16).IsRequired();
+        syncRun.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        syncRun.Property(x => x.Error).HasMaxLength(300);
+        syncRun.Property(x => x.Trigger).HasMaxLength(16).IsRequired();
+        syncRun.HasIndex(x => new { x.Provider, x.StartedAt });
 
         var chain = modelBuilder.Entity<ChainEntry>();
         chain.ToTable("evidence_chain");

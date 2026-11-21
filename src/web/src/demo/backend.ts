@@ -18,6 +18,7 @@ import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
+import { handleConnectors } from "./connectors";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -179,6 +180,10 @@ async function route(
   if (enterprise) return enterprise;
   const governanceHub = await handleGovernanceHub(method, path, query, body, data, actor);
   if (governanceHub) return governanceHub;
+  const connector = handleConnectors(method, path, query, body, data, actor, (action, detail) =>
+    record(actor, action, "ok", detail),
+  );
+  if (connector) return connector;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));

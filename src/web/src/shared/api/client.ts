@@ -46,6 +46,74 @@ export type Job = Model<"JobDto">;
 export type ActivityEvent = Model<"ActivityDto">;
 export type Integration = Model<"IntegrationDto">;
 export type ConnectResult = Model<"ConnectResponse">;
+export type ConnectorField = {
+  key: string;
+  label: string;
+  secret: boolean;
+  required: boolean;
+  placeholder: string;
+};
+export type ConnectorConfigValue = {
+  key: string;
+  value: string | null;
+  configured: boolean;
+};
+export type ConnectorRun = {
+  id: string;
+  kind: string;
+  mode: string;
+  status: string;
+  resourceCount: number;
+  error: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  trigger: string;
+};
+export type ConnectorCheck = {
+  key: string;
+  name: string;
+  controlCode: string;
+  outcome: string;
+  detail: string;
+};
+export type ConnectorSummary = {
+  key: string;
+  name: string;
+  category: string;
+  authType: string;
+  description: string;
+  resources: string[];
+  tests: string[];
+  controls: string[];
+  docsUrl: string;
+  builtin: boolean;
+  managedAt: string | null;
+  status: string;
+  mode: string | null;
+  resourceCount: number;
+  lastSyncedAt: string | null;
+  lastError: string | null;
+};
+export type ConnectorDetail = {
+  connector: ConnectorSummary;
+  fields: ConnectorField[];
+  config: ConnectorConfigValue[];
+  envKeys: string[];
+  checks: ConnectorCheck[];
+  history: ConnectorRun[];
+};
+export type ConnectorCatalog = {
+  categories: string[];
+  total: number;
+  connected: number;
+  connectors: ConnectorSummary[];
+};
+export type ConnectorActionResponse = {
+  detail: ConnectorDetail;
+  run: ConnectorRun | null;
+  jobId: string | null;
+  message: string | null;
+};
 export type AutomatedTest = Model<"AutomatedTestDto">;
 export type EvidenceItem = Model<"EvidenceListItem">;
 export type EvidencePage = Model<"EvidencePage">;
