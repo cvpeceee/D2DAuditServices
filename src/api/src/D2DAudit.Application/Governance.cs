@@ -102,6 +102,29 @@ public sealed record PersonDetail(
 
 public sealed record SetTaskRequest(string TaskCode, bool Done);
 
+public static class PersonPrivacy
+{
+    public static bool CanSeeHrFields(TenantContext tenant) =>
+        tenant.Role is Domain.TenantRole.Admin or Domain.TenantRole.ControlOwner;
+
+    public static PersonListItem Redact(PersonListItem item) =>
+        item with { MfaEnrolled = false, Background = "Restricted", BackgroundOn = null, StatusReason = "" };
+
+    public static PersonDetail Redact(PersonDetail detail) =>
+        detail with
+        {
+            MfaEnrolled = false,
+            Background = "Restricted",
+            BackgroundOn = null,
+            StatusReason = "",
+            BackgroundProvider = "",
+            BackgroundLink = "",
+            BackgroundEvidenceId = null,
+            BackgroundExcluded = false,
+            BackgroundExclusionReason = "",
+        };
+}
+
 public sealed record BackgroundCheckRequest(
     string Provider,
     string? Link,

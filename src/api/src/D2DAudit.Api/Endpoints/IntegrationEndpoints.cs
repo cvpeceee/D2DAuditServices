@@ -7,15 +7,15 @@ public static class IntegrationEndpoints
 {
     public static IEndpointRouteBuilder MapIntegrationEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/integrations", (IIntegrationQuery query, CancellationToken cancellationToken) => query.ListAsync(cancellationToken));
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/integrations", (IIntegrationQuery query, CancellationToken cancellationToken) => query.ListAsync(cancellationToken)).RequireAuthorization("WorkspaceMember");
         group.MapPost("/integrations/{provider}/connect", Connect).RequireAuthorization("TenantWrite").Produces<ConnectResponse>();
         group.MapPost("/integrations/example", Example).RequireAuthorization("TenantWrite").Produces<IReadOnlyList<IntegrationDto>>();
         group.MapPost("/integrations/collect", Collect).RequireAuthorization("TenantWrite").Produces<Guid>();
         group.MapGet("/tests", (IIntegrationQuery query, CancellationToken cancellationToken) => query.TestsAsync(cancellationToken));
-        group.MapGet("/evidence", (IIntegrationQuery query, CancellationToken cancellationToken) => query.EvidenceAsync(cancellationToken));
-        group.MapGet("/evidence/{id:guid}/download", Download);
-        group.MapPost("/evidence/verify", (IIntegrationQuery query, CancellationToken cancellationToken) => query.VerifyAsync(cancellationToken));
+        group.MapGet("/evidence", (IIntegrationQuery query, CancellationToken cancellationToken) => query.EvidenceAsync(cancellationToken)).RequireAuthorization("EvidenceRead");
+        group.MapGet("/evidence/{id:guid}/download", Download).RequireAuthorization("EvidenceRead");
+        group.MapPost("/evidence/verify", (IIntegrationQuery query, CancellationToken cancellationToken) => query.VerifyAsync(cancellationToken)).RequireAuthorization("EvidenceRead");
         group.MapPost("/evidence", Upload).RequireAuthorization("TenantWrite").Produces<EvidenceListItem>();
         return app;
     }

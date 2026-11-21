@@ -7,10 +7,10 @@ public static class QuestionnaireEndpoints
 {
     public static IEndpointRouteBuilder MapQuestionnaireEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/questionnaires", (IQuestionnaires portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).Produces<IReadOnlyList<QuestionnaireSummary>>();
-        group.MapGet("/questionnaires/{id:guid}", Get).Produces<QuestionnaireDetail>();
-        group.MapGet("/questionnaires/{id:guid}/export", Export);
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/questionnaires", (IQuestionnaires portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<QuestionnaireSummary>>();
+        group.MapGet("/questionnaires/{id:guid}", Get).RequireAuthorization("SensitiveRead").Produces<QuestionnaireDetail>();
+        group.MapGet("/questionnaires/{id:guid}/export", Export).RequireAuthorization("SensitiveRead").RequireRateLimiting("export").WithRequestTimeout("export");
         group.MapPost("/questionnaires", Upload).RequireAuthorization("TenantWrite").Produces<QuestionnaireDetail>();
         group.MapPost("/questionnaires/{id:guid}/answers/{answerId:guid}", Review).RequireAuthorization("TenantWrite").Produces<QuestionnaireAnswerItem>();
         return app;

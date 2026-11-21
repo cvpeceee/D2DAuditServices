@@ -7,7 +7,7 @@ public static class PolicyEndpoints
 {
     public static IEndpointRouteBuilder MapPolicyEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/policies", (IPolicyPortal portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken))
             .Produces<IReadOnlyList<PolicyListItem>>();
         group.MapPost("/policies/library", Install).RequireAuthorization("TenantWrite").Produces<int>();
@@ -18,7 +18,7 @@ public static class PolicyEndpoints
         group.MapPost("/policies/{code}/submit", Submit).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/approve", Approve).RequireAuthorization("TenantAdmin").Produces<PolicyDetail>();
         group.MapPost("/policies/{code}/acknowledgements", Assign).RequireAuthorization("TenantWrite").Produces<PolicyDetail>();
-        group.MapPost("/policies/{code}/acknowledge", Acknowledge).Produces<PolicyDetail>();
+        group.MapPost("/policies/{code}/acknowledge", Acknowledge).RequireAuthorization("WorkspaceMember").Produces<PolicyDetail>();
         return app;
     }
 

@@ -7,7 +7,7 @@ public static class ContinuityEndpoints
 {
     public static IEndpointRouteBuilder MapContinuityEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/continuity", (IContinuity portal, CancellationToken cancellationToken) => portal.GetAsync(cancellationToken)).Produces<ContinuityBoard>();
         group.MapPost("/continuity/services", SaveService).RequireAuthorization("TenantWrite").Produces<ImpactItem>();
         group.MapPost("/continuity/plans", SavePlan).RequireAuthorization("TenantWrite").Produces<PlanItem>();

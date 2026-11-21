@@ -7,16 +7,16 @@ public static class AuditEndpoints
 {
     public static IEndpointRouteBuilder MapAuditEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/audits", (IAuditPortal portal, CancellationToken cancellationToken) => portal.GetAsync(cancellationToken)).Produces<AuditPortalPage>();
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/audits", (IAuditPortal portal, CancellationToken cancellationToken) => portal.GetAsync(cancellationToken)).RequireAuthorization("EvidenceRead").Produces<AuditPortalPage>();
         group.MapPost("/audits/period", SetPeriod).RequireAuthorization("TenantWrite").Produces<AuditEngagementDto>();
         group.MapPost("/audits/requests", CreateRequest).RequireAuthorization("AuditAct").Produces<SampleRequestDto>();
         group.MapPost("/audits/requests/{code}/respond", Respond).RequireAuthorization("TenantWrite").Produces<SampleRequestDto>();
         group.MapPost("/audits/requests/{code}/accept", Accept).RequireAuthorization("AuditAct").Produces<SampleRequestDto>();
         group.MapPost("/audits/findings", CreateFinding).RequireAuthorization("AuditAct").Produces<FindingDto>();
         group.MapPost("/audits/findings/{code}/response", RespondFinding).RequireAuthorization("TenantWrite").Produces<FindingDto>();
-        group.MapPost("/audits/package", Export).RequireAuthorization("AuditAct").Produces<Guid>();
-        group.MapGet("/audits/packages/{id:guid}", Download).RequireAuthorization("AuditAct");
+        group.MapPost("/audits/package", Export).RequireAuthorization("AuditAct").RequireRateLimiting("export").Produces<Guid>().WithRequestTimeout("export");
+        group.MapGet("/audits/packages/{id:guid}", Download).RequireAuthorization("AuditAct").RequireRateLimiting("export").WithRequestTimeout("export");
         return app;
     }
 

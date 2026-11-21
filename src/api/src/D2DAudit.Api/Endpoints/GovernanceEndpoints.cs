@@ -7,28 +7,28 @@ public static class GovernanceEndpoints
 {
     public static IEndpointRouteBuilder MapGovernanceEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/risks", (IGovernance portal, CancellationToken cancellationToken) => portal.RisksAsync(cancellationToken)).Produces<IReadOnlyList<RiskListItem>>();
-        group.MapGet("/risks/library", (IGovernance portal, CancellationToken cancellationToken) => portal.LibraryAsync(cancellationToken)).Produces<IReadOnlyList<RiskLibraryItem>>();
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/risks", (IGovernance portal, CancellationToken cancellationToken) => portal.RisksAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<RiskListItem>>();
+        group.MapGet("/risks/library", (IGovernance portal, CancellationToken cancellationToken) => portal.LibraryAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<RiskLibraryItem>>();
         group.MapPost("/risks/library/{code}", AdoptRisk).RequireAuthorization("TenantWrite").Produces<RiskListItem>();
         group.MapPost("/risks", SaveRisk).RequireAuthorization("TenantWrite").Produces<RiskListItem>();
-        group.MapGet("/risks/export", ExportRisks).Produces<FileExport>();
+        group.MapGet("/risks/export", ExportRisks).RequireAuthorization("SensitiveRead").RequireRateLimiting("export").Produces<FileExport>().WithRequestTimeout("export");
         group.MapGet("/people", (int? page, int? pageSize, string? q, IGovernance portal, CancellationToken cancellationToken) =>
-            portal.PeopleAsync(page ?? 1, pageSize ?? 40, q, cancellationToken)).Produces<PersonPage>();
+            portal.PeopleAsync(page ?? 1, pageSize ?? 40, q, cancellationToken)).RequireAuthorization("SensitiveRead").Produces<PersonPage>();
         group.MapPost("/people/sync", SyncPeople).RequireAuthorization("TenantWrite").Produces<int>();
-        group.MapGet("/people/{id:guid}", GetPerson).Produces<PersonDetail>();
+        group.MapGet("/people/{id:guid}", GetPerson).RequireAuthorization("SensitiveRead").Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/tasks", SetTask).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/status", SetStatus).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapPost("/people/{id:guid}/background", RecordBackground).RequireAuthorization("TenantWrite").Produces<PersonDetail>();
         group.MapGet("/soa", (IGovernance portal, CancellationToken cancellationToken) => portal.SoaAsync(cancellationToken)).Produces<IReadOnlyList<SoaRow>>();
         group.MapPut("/soa/{code}", SaveSoa).RequireAuthorization("TenantWrite").Produces<SoaRow>();
-        group.MapGet("/soa/export", ExportSoa).Produces<FileExport>();
-        group.MapGet("/vendors", (IGovernance portal, CancellationToken cancellationToken) => portal.VendorsAsync(cancellationToken)).Produces<IReadOnlyList<VendorListItem>>();
+        group.MapGet("/soa/export", ExportSoa).RequireRateLimiting("export").Produces<FileExport>().WithRequestTimeout("export");
+        group.MapGet("/vendors", (IGovernance portal, CancellationToken cancellationToken) => portal.VendorsAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<VendorListItem>>();
         group.MapPost("/vendors", SaveVendor).RequireAuthorization("TenantWrite").Produces<VendorListItem>();
-        group.MapGet("/access-reviews", (IGovernance portal, CancellationToken cancellationToken) => portal.CampaignsAsync(cancellationToken)).Produces<IReadOnlyList<AccessCampaignListItem>>();
+        group.MapGet("/access-reviews", (IGovernance portal, CancellationToken cancellationToken) => portal.CampaignsAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<AccessCampaignListItem>>();
         group.MapPost("/access-reviews", StartCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/draft", DraftCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
-        group.MapGet("/access-reviews/{id:guid}", GetCampaign).Produces<AccessCampaignDetail>();
+        group.MapGet("/access-reviews/{id:guid}", GetCampaign).RequireAuthorization("SensitiveRead").Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/{id:guid}/items/{itemId:guid}", Decide).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/{id:guid}/apps", PickApps).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();
         group.MapPost("/access-reviews/{id:guid}/start", BeginCampaign).RequireAuthorization("TenantWrite").Produces<AccessCampaignDetail>();

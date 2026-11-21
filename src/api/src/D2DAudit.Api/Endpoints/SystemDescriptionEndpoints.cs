@@ -7,7 +7,7 @@ public static class SystemDescriptionEndpoints
 {
     public static IEndpointRouteBuilder MapSystemDescriptionEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/system-description", (ISystemDescription portal, CancellationToken cancellationToken) => portal.GetAsync(cancellationToken)).Produces<SystemDescriptionDto>();
         group.MapPost("/system-description", Save).RequireAuthorization("TenantWrite").Produces<SystemDescriptionDto>();
         group.MapPost("/system-description/redraft", Redraft).RequireAuthorization("TenantWrite").Produces<SystemDescriptionDto>();

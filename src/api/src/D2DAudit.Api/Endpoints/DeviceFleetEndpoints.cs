@@ -7,7 +7,7 @@ public static class DeviceFleetEndpoints
 {
     public static IEndpointRouteBuilder MapDeviceFleetEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
         group.MapPost("/computers/check-in", CheckIn).RequireAuthorization("TenantWrite").Produces<ComputerItem>();
         group.MapPost("/computers/mdm-sync", Sync).RequireAuthorization("TenantWrite").Produces<MdmSyncResult>();
         return app;

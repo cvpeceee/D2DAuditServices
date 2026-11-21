@@ -61,7 +61,8 @@ public sealed class SessionAuthenticationHandler(
     ILoggerFactory logger,
     UrlEncoder encoder,
     IIdentityProvider identity,
-    IApiKeyAuthenticator apiKeys) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    IApiKeyAuthenticator apiKeys,
+    ISessionGuard sessions) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     public const string SchemeName = "d2d";
 
@@ -104,6 +105,11 @@ public sealed class SessionAuthenticationHandler(
         if (identityResult is null)
         {
             return AuthenticateResult.Fail("invalid token");
+        }
+
+        if (await sessions.IsRevokedAsync(token, identityResult, Context.RequestAborted))
+        {
+            return AuthenticateResult.Fail("revoked token");
         }
 
         var claims = new List<Claim> { new("sub", identityResult.Subject) };
@@ -301,6 +307,73 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
     {
         context.Response.StatusCode = status;
         return context.Response.WriteAsJsonAsync(new { title = code, status, code }, context.RequestAborted);
+    }
+}
+
+public static class TenantPolicies
+{
+    public const string Read = "TenantRead";
+
+    public const string SensitiveRead = "SensitiveRead";
+
+    public const string EvidenceRead = "EvidenceRead";
+
+    public const string WorkspaceMember = "WorkspaceMember";
+
+    public const string Write = "TenantWrite";
+
+    public const string Admin = "TenantAdmin";
+
+    public const string AuditAct = "AuditAct";
+
+    public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
+    {
+        Read, SensitiveRead, EvidenceRead, WorkspaceMember, Write, Admin, AuditAct,
+    };
+
+    public static void Register(AuthorizationOptions options)
+    {
+        options.AddPolicy(Write, policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantWriteRequirement()));
+        options.AddPolicy(Admin, policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantAdminRequirement()));
+        options.AddPolicy(AuditAct, policy => policy.RequireAuthenticatedUser().AddRequirements(new AuditActRequirement()));
+        options.AddPolicy(WorkspaceMember, policy => policy.RequireAuthenticatedUser().AddRequirements(new WorkspaceMemberRequirement()));
+        options.AddPolicy(Read, policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantRoleRequirement(
+            "read_denied", TenantRole.Admin, TenantRole.ControlOwner, TenantRole.Editor, TenantRole.Viewer, TenantRole.Employee, TenantRole.Auditor)));
+        options.AddPolicy(SensitiveRead, policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantRoleRequirement(
+            "sensitive_read_denied", TenantRole.Admin, TenantRole.ControlOwner, TenantRole.Editor, TenantRole.Viewer)));
+        options.AddPolicy(EvidenceRead, policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantRoleRequirement(
+            "evidence_read_denied", TenantRole.Admin, TenantRole.ControlOwner, TenantRole.Editor, TenantRole.Viewer, TenantRole.Auditor)));
+    }
+}
+
+public sealed class TenantRoleRequirement(string deniedAction, params TenantRole[] roles) : IAuthorizationRequirement
+{
+    public string DeniedAction { get; } = deniedAction;
+
+    public IReadOnlySet<TenantRole> Roles { get; } = roles.ToHashSet();
+}
+
+public sealed class TenantRoleHandler(TenantContext tenant, IActivityWriter activity, IHttpContextAccessor http) : AuthorizationHandler<TenantRoleRequirement>
+{
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TenantRoleRequirement requirement)
+    {
+        if (tenant.IsResolved && Enum.IsDefined(tenant.Role) && requirement.Roles.Contains(tenant.Role))
+        {
+            context.Succeed(requirement);
+            return;
+        }
+
+        if (tenant.IsResolved)
+        {
+            await activity.WriteAsync(
+                tenant.UserId,
+                tenant.TenantId,
+                requirement.DeniedAction,
+                "denied",
+                tenant.Role.ToString(),
+                http.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                http.HttpContext?.RequestAborted ?? CancellationToken.None);
+        }
     }
 }
 

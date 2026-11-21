@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\D2DAudit.Application\D2DAudit.Application.csproj" />
@@ -17,6 +17,7 @@
     <PackageReference Include="AWSSDK.S3" Version="4.0.104.6" />
     <PackageReference Include="AWSSDK.SecurityToken" Version="4.0.101.6" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.15" />
     <PackageReference Include="Parquet.Net" Version="6.1.0" />
     <PackageReference Include="Temporalio" Version="1.21.0" />
     <PackageReference Include="Temporalio.Extensions.Hosting" Version="1.21.0" />

@@ -77,6 +77,21 @@ public static class DependencyInjection
         services.AddScoped<IControlPlaneDirectory, ControlPlaneDirectory>();
         services.AddScoped<ITenantProvisioner, TenantProvisioner>();
         services.AddScoped<IDemoSeeder, DemoSeeder>();
+        var redis = First(configuration["Redis:ConnectionString"], Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING"));
+        if (string.IsNullOrWhiteSpace(redis))
+        {
+            services.AddDistributedMemoryCache();
+        }
+        else
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redis;
+                options.InstanceName = "d2d:";
+            });
+        }
+
+        services.TryAddSingleton<ISessionGuard, DistributedSessionGuard>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IWorkspaceQuery, WorkspaceQuery>();
         services.AddScoped<IClientRead, ClientPortal>();
@@ -123,6 +138,10 @@ public static class DependencyInjection
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+        services.AddSingleton<WebhookSecretProtector>();
+        services.AddScoped<IApiKeyAuthenticator, ApiKeyAuthenticator>();
+        services.AddHttpClient<IWebhookDispatcher, WebhookDispatcher>(client => client.Timeout = TimeSpan.FromSeconds(15))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();
         services.AddHttpClient<IGovernanceHub, GovernanceHubPortal>(client => client.Timeout = TimeSpan.FromSeconds(25));
         services.AddSingleton<AwsInspectorFeed>();
