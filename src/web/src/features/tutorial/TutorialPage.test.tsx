@@ -152,4 +152,58 @@ describe("TutorialPage interactive product tour & 1080p video/audio tutorial cen
       expect(hrefs).toContain(route);
     }
   });
+
+  it("uses storyboard chapters from a v2 manifest for the video jump list", async () => {
+    window.fetch = vi.fn(async () => {
+      return new Response(
+        JSON.stringify({
+          version: 2,
+          chapters: [
+            {
+              number: 1,
+              id: "welcome",
+              title: "Welcome",
+              shortTitle: "Welcome",
+              summary: "Hook.",
+              startTime: 0,
+              endTime: 30,
+              duration: 30,
+            },
+            {
+              number: 2,
+              id: "trust",
+              title: "Prove it to customers",
+              shortTitle: "Trust Center",
+              summary: "Share proof publicly.",
+              startTime: 42.5,
+              endTime: 90,
+              duration: 47.5,
+            },
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as typeof window.fetch;
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/tutorial"]}>
+        <TutorialPage />
+      </MemoryRouter>,
+    );
+
+    const trustButton = await screen.findByRole("button", { name: /Ch 2: Trust Center/i });
+    expect(screen.getByText(/Walkthrough \(2 Chapters\)/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Ch 6: Trust Center v2/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(trustButton);
+    const video = screen.getByLabelText(
+      /D2D Audit Services Super App 1080p Video Tutorial/i,
+    ) as HTMLVideoElement;
+    expect(trustButton).toHaveAttribute("aria-pressed", "true");
+    expect(video.currentTime).toBeCloseTo(42.5, 1);
+    expect(screen.getByText("Share proof publicly.")).toBeInTheDocument();
+  });
 });

@@ -1,0 +1,17 @@
+{
+  "name": "D2D Audit Tutorials",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Tutorial site",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postStartCommand": "nohup python -m http.server 8080 --bind 0.0.0.0 > /tmp/tutorial-site.log 2>&1 &",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}

@@ -22,3 +22,8 @@ src/api/**/appsettings.*.local.json
 *.tfplan
 src/web/test-results/
 src/web/playwright-report/
+
+# Tutorial pipeline scratch & Python caches
+.tutorial-build/
+__pycache__/
+*.py[cod]
