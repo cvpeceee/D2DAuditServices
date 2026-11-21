@@ -15,3 +15,10 @@ coverage/
 data/
 .DS_Store
 src/api/**/appsettings.*.local.json
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+src/web/test-results/
+src/web/playwright-report/

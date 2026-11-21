@@ -1045,6 +1045,22 @@ button.row-hit::after {
   .content {
     padding: 16px;
   }
+  .top {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .crumb {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card {
+    min-width: 0;
+    overflow-x: auto;
+  }
+  code {
+    overflow-wrap: anywhere;
+  }
 }
 .heat {
   display: grid;

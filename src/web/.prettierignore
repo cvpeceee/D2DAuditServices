@@ -4,3 +4,5 @@ coverage
 package-lock.json
 src/shared/api/schema.ts
 openapi
+test-results
+playwright-report

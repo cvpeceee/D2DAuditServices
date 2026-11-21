@@ -37,16 +37,26 @@ export function AssetsPage() {
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId || !selected) return;
-    await api("/api/v1/assets", { method: "POST", tenantId, body: selected });
-    setSelected(null);
-    load();
+    try {
+      await api("/api/v1/assets", { method: "POST", tenantId, body: selected });
+      setSelected(null);
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   async function importCsv(event: React.FormEvent) {
     event.preventDefault();
     if (!tenantId) return;
-    await api("/api/v1/assets/import", { method: "POST", tenantId, body: { csv } });
-    load();
+    try {
+      await api("/api/v1/assets/import", { method: "POST", tenantId, body: { csv } });
+      setError(null);
+      load();
+    } catch {
+      setError("save");
+    }
   }
 
   return (
@@ -68,7 +78,7 @@ export function AssetsPage() {
       </div>
       {error && (
         <div className="error" role="alert">
-          {t("errors.load")}
+          {t(error === "save" ? "errors.save" : "errors.load")}
         </div>
       )}
       <label className="field">
