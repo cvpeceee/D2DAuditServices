@@ -18,6 +18,7 @@ import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
+import { handleLifecycle, handlePublicVendorPortal } from "./lifecycle";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -129,6 +130,11 @@ async function route(
     if (extra) return extra;
     return publicTrust(method, path, body, data);
   }
+  if (path.startsWith("/api/v1/public/vendor-portal/")) {
+    const data = await world();
+    const portal = await handlePublicVendorPortal(method, path, body, data);
+    if (portal) return portal;
+  }
   if (path === "/api/v1/auth/mode" && method === "GET") {
     return json({
       mode: "demo",
@@ -179,6 +185,10 @@ async function route(
   if (enterprise) return enterprise;
   const governanceHub = await handleGovernanceHub(method, path, query, body, data, actor);
   if (governanceHub) return governanceHub;
+  const lifecycle = await handleLifecycle(method, path, body, data, actor, (action, detail) =>
+    record(actor, action, "ok", detail),
+  );
+  if (lifecycle) return lifecycle;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));

@@ -39,6 +39,7 @@ const governance = [
   { to: "/vendors", key: "vendors" },
   { to: "/people", key: "people", end: true },
   { to: "/people/computers", key: "computers" },
+  { to: "/people/lifecycle", key: "lifecycle" },
   { to: "/vulnerabilities", key: "vulnerabilities" },
   { to: "/incidents", key: "incidents" },
   { to: "/changes", key: "changes" },
@@ -166,6 +167,12 @@ export function AppShell() {
       items.push(
         { id: "integrations", label: t("nav.integrations"), run: () => navigate("/integrations") },
         { id: "computers", label: t("nav.computers"), run: () => navigate("/people/computers") },
+        { id: "lifecycle", label: t("nav.lifecycle"), run: () => navigate("/people/lifecycle") },
+        {
+          id: "vendor-discovery",
+          label: t("nav.vendorDiscovery"),
+          run: () => navigate("/vendors?tab=discovery"),
+        },
         {
           id: "vulnerabilities",
           label: t("nav.vulnerabilities"),
@@ -234,13 +241,15 @@ export function AppShell() {
   const crumbKey =
     parts[0] === "people" && parts[1] === "computers"
       ? "computers"
-      : parts[0] === "trust-center"
-        ? "trust"
-        : parts[0] === "attack-paths"
-          ? "attackPaths"
-          : parts[0] === "governance-hub"
-            ? "governanceHub"
-            : parts[0] || "dashboard";
+      : parts[0] === "people" && parts[1] === "lifecycle"
+        ? "lifecycle"
+        : parts[0] === "trust-center"
+          ? "trust"
+          : parts[0] === "attack-paths"
+            ? "attackPaths"
+            : parts[0] === "governance-hub"
+              ? "governanceHub"
+              : parts[0] || "dashboard";
   const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>

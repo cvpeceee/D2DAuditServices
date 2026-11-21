@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, Link } from "react-router-dom";
 import {
   ApiError,
   api,
@@ -11,6 +11,7 @@ import {
 } from "../../shared/api/client";
 import { Pager } from "../../shared/ui/Pager";
 import { formatDate, Pill, safeHref } from "../../shared/ui/ui";
+import { PersonLifecyclePanel } from "./LifecycleParts";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
 
@@ -231,6 +232,7 @@ export function PeoplePage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<"details" | "lifecycle">("details");
 
   const load = () => {
     if (!tenantId) return;
@@ -286,11 +288,21 @@ export function PeoplePage() {
           <h1>{t("peoplePage.title")}</h1>
           <div className="sub">{t("peoplePage.sub")}</div>
         </div>
-        {workspace?.canWrite && (
-          <button className="btn primary" type="button" disabled={busy} onClick={() => void sync()}>
-            {t("peoplePage.sync")}
-          </button>
-        )}
+        <div className="stack" style={{ flexDirection: "row" }}>
+          <Link className="btn" to="/people/lifecycle">
+            {t("lifecycle.title")}
+          </Link>
+          {workspace?.canWrite && (
+            <button
+              className="btn primary"
+              type="button"
+              disabled={busy}
+              onClick={() => void sync()}
+            >
+              {t("peoplePage.sync")}
+            </button>
+          )}
+        </div>
       </div>
       {error && (
         <div className="error" role="alert">
@@ -400,128 +412,157 @@ export function PeoplePage() {
       {detail && (
         <div className="card" style={{ marginTop: 14 }}>
           <h3>{detail.name}</h3>
-          <div className="kv">
-            <div>
-              <small>{t("peoplePage.mfa")}</small>
-              {detail.mfaEnrolled ? t("peoplePage.enrolled") : t("peoplePage.missingMfa")}
-            </div>
-            <div>
-              <small>{t("peoplePage.background")}</small>
-              {t(`peoplePage.backgrounds.${detail.background ?? "NotStarted"}`)}
-              {detail.backgroundOn ? ` · ${formatDate(detail.backgroundOn)}` : ""}
-              {detail.backgroundProvider ? ` · ${detail.backgroundProvider}` : ""}
-              {safeHref(detail.backgroundLink) && (
-                <div className="id">
-                  <a
-                    href={safeHref(detail.backgroundLink) ?? undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {detail.backgroundLink}
-                  </a>
-                </div>
-              )}
-              {detail.backgroundExcluded && detail.backgroundExclusionReason && (
-                <div className="id">
-                  {t("peoplePage.exclusion")}: {detail.backgroundExclusionReason}
-                </div>
-              )}
-            </div>
-            <div>
-              <small>{t("peoplePage.device")}</small>
-              {t(`peoplePage.devices.${detail.device ?? "Missing"}`)}
-            </div>
-            <div>
-              <small>{t("peoplePage.training")}</small>
-              {t(`peoplePage.trainingStates.${detail.training}`)}
-              {detail.trainingCompletedOn ? ` · ${formatDate(detail.trainingCompletedOn)}` : ""}
-            </div>
-            <div>
-              <small>{t("peoplePage.hired")}</small>
-              {detail.hireOn ? formatDate(detail.hireOn) : "—"}
-            </div>
-            <div>
-              <small>{t("peoplePage.left")}</small>
-              {detail.leftOn ? formatDate(detail.leftOn) : "—"}
-            </div>
+          <div className="tabs" role="tablist" aria-label={detail.name}>
+            {(["details", "lifecycle"] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={drawerTab === key}
+                className={`tab ${drawerTab === key ? "on" : ""}`}
+                onClick={() => setDrawerTab(key)}
+              >
+                {key === "details" ? t("lifecycle.details") : t("lifecycle.tab")}
+              </button>
+            ))}
           </div>
-          {detail.statusReason && (
-            <p className="m">
-              {t("peoplePage.reason")}: {detail.statusReason}
-            </p>
-          )}
-          {tenantId && workspace?.canWrite && (
-            <BackgroundForm
-              key={`${detail.id}-background`}
-              person={detail}
-              tenantId={tenantId}
-              onSaved={async () => {
-                setNotice(t("peoplePage.savedBackground"));
-                await open(detail.id);
-                load();
-              }}
-            />
-          )}
-          {tenantId && (
-            <StatusOverride
+          {drawerTab === "lifecycle" && tenantId && (
+            <PersonLifecyclePanel
               key={detail.id}
-              person={detail}
+              personId={detail.id}
               tenantId={tenantId}
               canWrite={Boolean(workspace?.canWrite)}
-              onSaved={async () => {
-                setNotice(t("peoplePage.savedStatus"));
-                await open(detail.id);
-                load();
-              }}
+              onChanged={load}
             />
           )}
-          {detail.leaverStillHasAccess && (
-            <div className="error" role="status">
-              {t("peoplePage.leaver")}
-            </div>
-          )}
-          <h3>{t("peoplePage.access")}</h3>
-          <ul>
-            {detail.accounts.map((account) => (
-              <li key={`${account.provider}-${account.accountName}`}>
-                {account.provider} · {account.accountName} ·{" "}
-                {account.active ? t("peoplePage.states.Active") : t("peoplePage.states.Offboarded")}
-              </li>
-            ))}
-          </ul>
-          <h3>{t("peoplePage.checklist")}</h3>
-          {(["Onboarding", "Offboarding"] as const).map((kind) => (
-            <div key={kind}>
-              <div className="m">
-                {t(`peoplePage.${kind === "Onboarding" ? "onboarding" : "offboarding"}`)}
+          {drawerTab === "details" && (
+            <>
+              <div className="kv">
+                <div>
+                  <small>{t("peoplePage.mfa")}</small>
+                  {detail.mfaEnrolled ? t("peoplePage.enrolled") : t("peoplePage.missingMfa")}
+                </div>
+                <div>
+                  <small>{t("peoplePage.background")}</small>
+                  {t(`peoplePage.backgrounds.${detail.background ?? "NotStarted"}`)}
+                  {detail.backgroundOn ? ` · ${formatDate(detail.backgroundOn)}` : ""}
+                  {detail.backgroundProvider ? ` · ${detail.backgroundProvider}` : ""}
+                  {safeHref(detail.backgroundLink) && (
+                    <div className="id">
+                      <a
+                        href={safeHref(detail.backgroundLink) ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {detail.backgroundLink}
+                      </a>
+                    </div>
+                  )}
+                  {detail.backgroundExcluded && detail.backgroundExclusionReason && (
+                    <div className="id">
+                      {t("peoplePage.exclusion")}: {detail.backgroundExclusionReason}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <small>{t("peoplePage.device")}</small>
+                  {t(`peoplePage.devices.${detail.device ?? "Missing"}`)}
+                </div>
+                <div>
+                  <small>{t("peoplePage.training")}</small>
+                  {t(`peoplePage.trainingStates.${detail.training}`)}
+                  {detail.trainingCompletedOn ? ` · ${formatDate(detail.trainingCompletedOn)}` : ""}
+                </div>
+                <div>
+                  <small>{t("peoplePage.hired")}</small>
+                  {detail.hireOn ? formatDate(detail.hireOn) : "—"}
+                </div>
+                <div>
+                  <small>{t("peoplePage.left")}</small>
+                  {detail.leftOn ? formatDate(detail.leftOn) : "—"}
+                </div>
               </div>
-              {detail.tasks
-                .filter((task) => task.kind === kind)
-                .map((task) => (
-                  <label key={task.taskCode} className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      disabled={!workspace?.canWrite}
-                      onChange={(event) => void toggle(task.taskCode, event.target.checked)}
-                    />
-                    {t(`peoplePage.tasks.${task.taskCode}`)}
-                  </label>
+              {detail.statusReason && (
+                <p className="m">
+                  {t("peoplePage.reason")}: {detail.statusReason}
+                </p>
+              )}
+              {tenantId && workspace?.canWrite && (
+                <BackgroundForm
+                  key={`${detail.id}-background`}
+                  person={detail}
+                  tenantId={tenantId}
+                  onSaved={async () => {
+                    setNotice(t("peoplePage.savedBackground"));
+                    await open(detail.id);
+                    load();
+                  }}
+                />
+              )}
+              {tenantId && (
+                <StatusOverride
+                  key={detail.id}
+                  person={detail}
+                  tenantId={tenantId}
+                  canWrite={Boolean(workspace?.canWrite)}
+                  onSaved={async () => {
+                    setNotice(t("peoplePage.savedStatus"));
+                    await open(detail.id);
+                    load();
+                  }}
+                />
+              )}
+              {detail.leaverStillHasAccess && (
+                <div className="error" role="status">
+                  {t("peoplePage.leaver")}
+                </div>
+              )}
+              <h3>{t("peoplePage.access")}</h3>
+              <ul>
+                {detail.accounts.map((account) => (
+                  <li key={`${account.provider}-${account.accountName}`}>
+                    {account.provider} · {account.accountName} ·{" "}
+                    {account.active
+                      ? t("peoplePage.states.Active")
+                      : t("peoplePage.states.Offboarded")}
+                  </li>
                 ))}
-            </div>
-          ))}
-          <h3>{t("peoplePage.acknowledgements")}</h3>
-          {detail.acknowledgements.length === 0 ? (
-            <div className="empty">{t("peoplePage.waiting")}</div>
-          ) : (
-            <ul>
-              {detail.acknowledgements.map((item) => (
-                <li key={`${item.policyCode}-${item.dueOn}`}>
-                  {item.policyCode} {item.policyTitle} ·{" "}
-                  {item.acknowledgedAt ? t("peoplePage.acknowledged") : t("peoplePage.waiting")}
-                </li>
+              </ul>
+              <h3>{t("peoplePage.checklist")}</h3>
+              {(["Onboarding", "Offboarding"] as const).map((kind) => (
+                <div key={kind}>
+                  <div className="m">
+                    {t(`peoplePage.${kind === "Onboarding" ? "onboarding" : "offboarding"}`)}
+                  </div>
+                  {detail.tasks
+                    .filter((task) => task.kind === kind)
+                    .map((task) => (
+                      <label key={task.taskCode} className="check-row">
+                        <input
+                          type="checkbox"
+                          checked={task.done}
+                          disabled={!workspace?.canWrite}
+                          onChange={(event) => void toggle(task.taskCode, event.target.checked)}
+                        />
+                        {t(`peoplePage.tasks.${task.taskCode}`)}
+                      </label>
+                    ))}
+                </div>
               ))}
-            </ul>
+              <h3>{t("peoplePage.acknowledgements")}</h3>
+              {detail.acknowledgements.length === 0 ? (
+                <div className="empty">{t("peoplePage.waiting")}</div>
+              ) : (
+                <ul>
+                  {detail.acknowledgements.map((item) => (
+                    <li key={`${item.policyCode}-${item.dueOn}`}>
+                      {item.policyCode} {item.policyTitle} ·{" "}
+                      {item.acknowledgedAt ? t("peoplePage.acknowledged") : t("peoplePage.waiting")}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </div>
       )}

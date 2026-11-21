@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useOutletContext } from "react-router-dom";
 import { ApiError, api, type Workspace } from "../../shared/api/client";
 import { formatDate, Pill } from "../../shared/ui/ui";
+import { MyOnboarding } from "../people/LifecycleParts";
 import type { MeCard } from "./types";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null };
@@ -67,6 +68,7 @@ export function MePage() {
           {message}
         </div>
       )}
+      <MyOnboarding tenantId={tenantId} />
       <div className="cardgrid">
         {(cards ?? []).map((card) => (
           <article className="card" key={card.kind}>
