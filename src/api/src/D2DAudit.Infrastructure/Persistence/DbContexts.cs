@@ -369,6 +369,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<VendorReviewDocument> VendorReviewDocuments => Set<VendorReviewDocument>();
 
+    public DbSet<DeviceEnrollmentToken> DeviceEnrollmentTokens => Set<DeviceEnrollmentToken>();
+
+    public DbSet<DeviceCredential> DeviceCredentials => Set<DeviceCredential>();
+
+    public DbSet<DevicePostureSnapshot> DevicePostureSnapshots => Set<DevicePostureSnapshot>();
+
+    public DbSet<AcademyProgress> AcademyProgress => Set<AcademyProgress>();
+
+    public DbSet<AcademyAssignment> AcademyAssignments => Set<AcademyAssignment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         AssuranceModel.Configure(modelBuilder);
@@ -1128,6 +1138,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         schedule.Property(x => x.Recipients).HasMaxLength(2000).IsRequired();
         schedule.Property(x => x.LastDeliveryId).HasMaxLength(200);
         schedule.HasIndex(x => x.ReportKey).IsUnique();
+
+        AgentAcademyModel.Configure(modelBuilder);
     }
 }
 

@@ -1,0 +1,7 @@
+[Unit]
+Description=D2D Audit device agent check-in
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=__EXEC__

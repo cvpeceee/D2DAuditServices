@@ -167,6 +167,8 @@ public static class DependencyInjection
         services.AddHttpClient<MdmImport>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddScoped<IMdmImport>(provider => provider.GetRequiredService<MdmImport>());
         services.AddScoped<IDeviceFleet, DeviceFleet>();
+        services.AddScoped<IDeviceAgent, DeviceAgentService>();
+        services.AddScoped<IAcademy, AcademyService>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<ICustomTestPortal, Assurance.CustomTestPortal>();

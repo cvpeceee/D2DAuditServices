@@ -146,7 +146,7 @@ internal static class ProgramExample
         Add(db, "GitHub", "Saas", "github", "Dev Patel", "dev.patel@" + domain, "production", "Confidential", true, seen, "saas:github");
         Add(db, ClientSeed.Company.Name, "Saas", "manual", "Chandra Vell", "chandra.vell@" + domain, "production", "Restricted", true, seen, "saas:product");
 
-        foreach (var device in db.Devices.Local)
+        foreach (var device in db.Devices.Local.ToList())
         {
             var when = new DateTimeOffset(device.LastSeenOn.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
             Add(db, device.OwnerName + " " + device.Platform, "Laptop", "agent", device.OwnerName, device.OwnerEmail, "production", "Internal", true, when, "laptop:" + device.Serial);
