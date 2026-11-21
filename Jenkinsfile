@@ -135,6 +135,9 @@ pipeline {
                                         echo "No TEST_POSTGRES and no Docker: running the non-database subset."
                                         FILTER="FullyQualifiedName~ArchitectureTests|FullyQualifiedName~SchemaParityTests|FullyQualifiedName~CloudInventoryTests|FullyQualifiedName~Framework_content_matches_the_public_structure|FullyQualifiedName~ApiPipelineSecurityTests"
                                     fi
+                                    if [ -n "${TEST_POSTGRES:-}" ] && ! echo "$TEST_POSTGRES" | grep -qi 'Timeout='; then
+                                        export TEST_POSTGRES="${TEST_POSTGRES%;};Timeout=60;Command Timeout=300"
+                                    fi
                                     ARGS=(src/api/tests/D2DAudit.Tests/D2DAudit.Tests.csproj --configuration Release --no-build
                                         --results-directory test-results --logger "trx;LogFileName=integration-tests.trx"
                                         --logger "junit;LogFilePath=$WORKSPACE/test-results/integration-tests.xml")
@@ -159,6 +162,10 @@ pipeline {
                                         try { $reachable = $client.ConnectAsync($hostName, $port).Wait(3000) } catch { $reachable = $false } finally { $client.Dispose() }
                                         if ($reachable) {
                                             Write-Output "Postgres reachable at ${hostName}:${port}: running the full integration suite."
+                                            # The suite creates a database per test class while the web stages load the agent; allow slow connects.
+                                            if ($env:TEST_POSTGRES -notmatch '(?i)(^|;)\\s*Timeout=') {
+                                                $env:TEST_POSTGRES = $env:TEST_POSTGRES.TrimEnd(';') + ';Timeout=60;Command Timeout=300'
+                                            }
                                         } else {
                                             Write-Output "Postgres at ${hostName}:${port} is not reachable: running the non-database subset."
                                             $filter = $subset
