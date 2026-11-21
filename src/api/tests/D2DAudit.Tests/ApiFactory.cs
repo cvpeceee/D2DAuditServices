@@ -42,6 +42,11 @@ public sealed class ApiFactory : Microsoft.AspNetCore.Mvc.Testing.WebApplication
         builder.UseSetting("ConnectionStrings:ControlPlane", ControlConnection);
         builder.UseSetting("Storage:Root", StorageRoot);
         builder.UseSetting(WebHostDefaults.EnvironmentKey, _environment);
+        builder.UseDefaultServiceProvider(options =>
+        {
+            options.ValidateScopes = true;
+            options.ValidateOnBuild = true;
+        });
     }
 
     public override async ValueTask DisposeAsync()
