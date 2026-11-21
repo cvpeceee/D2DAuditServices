@@ -76,7 +76,8 @@ pipeline {
                             Exec { git reset -q --hard HEAD }
                         ''')
                     }
-                }                runStep('Show toolchain', '''
+                }
+                runStep('Show toolchain', '''
                     git log -1 --oneline
                     dotnet --version
                     node --version
