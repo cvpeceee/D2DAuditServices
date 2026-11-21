@@ -21,7 +21,7 @@ public sealed class InsightsEngine(
     TimeProvider time,
     ILogger<InsightsEngine> logger)
 {
-    public static readonly IReadOnlyList<string> ReportKeys = ["executive", "framework", "risk", "vendor", "personnel"];
+    public static readonly IReadOnlyList<string> ReportKeys = ["board", "framework", "risk", "vendor", "personnel"];
 
     public async Task<(PostureSnapshot Snapshot, IReadOnlyList<Guid> NewlyFailing)> SnapshotAsync(TenantDbContext db, CancellationToken cancellationToken)
     {
@@ -228,20 +228,20 @@ public sealed class InsightsEngine(
         var summary = new List<string>();
         switch (key)
         {
-            case "executive":
+            case "board":
             case "framework":
             {
                 var input = await PostureInputAsync(db, cancellationToken);
                 var snapshot = PostureRules.Compute(input, today, DateTimeOffset.UtcNow);
                 var frameworks = PostureRules.Frameworks(snapshot)
-                    .Where(item => key == "executive" || string.IsNullOrWhiteSpace(frameworkKey) || item.Key == frameworkKey)
+                    .Where(item => key == "board" || string.IsNullOrWhiteSpace(frameworkKey) || item.Key == frameworkKey)
                     .ToArray();
                 if (key == "framework" && frameworks.Length == 0)
                 {
                     return null;
                 }
 
-                title = key == "executive" ? "Board and executive report" : "Framework readiness report";
+                title = key == "board" ? "Board and executive report" : "Framework readiness report";
                 summary.Add("Overall readiness " + Num(PostureRules.Percent(snapshot.ControlsPassing, snapshot.ControlsTotal)) + "%  (" + Num(snapshot.ControlsPassing) + "/" + Num(snapshot.ControlsTotal) + " controls passing)");
                 summary.Add("Failing tests " + Num(snapshot.FailingTests) + "  Open tasks " + Num(snapshot.OpenTasks) + "  Overdue items " + Num(snapshot.OverdueItems));
                 summary.Add("Open vulnerabilities critical " + Num(snapshot.VulnCritical) + "  high " + Num(snapshot.VulnHigh) + "  medium " + Num(snapshot.VulnMedium) + "  low " + Num(snapshot.VulnLow));

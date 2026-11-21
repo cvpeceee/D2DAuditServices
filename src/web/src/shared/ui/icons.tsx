@@ -254,6 +254,15 @@ export function Icon({ name, size = 16, className = "", ...rest }: IconProps) {
         </svg>
       );
 
+    case "reports":
+      return (
+        <svg {...commonProps}>
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-4 3 3 5-6" />
+        </svg>
+      );
+
+    case "notifications":
     case "bell":
       return (
         <svg {...commonProps}>

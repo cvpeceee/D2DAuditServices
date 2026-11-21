@@ -38,7 +38,9 @@
     "audit": "Audit",
     "auditor": "Auditor portal",
     "integrations": "Integrations",
-    "activity": "Activity"
+    "activity": "Activity",
+    "reports": "Reports",
+    "notifications": "Notifications"
   },
   "theme": {
     "light": "Light",
@@ -71,7 +73,9 @@
     "notifications": "Notifications",
     "notificationsEmpty": "No notifications.",
     "example": "Example data",
-    "notConnected": "Not connected"
+    "notConnected": "Not connected",
+    "breadcrumb": "Breadcrumb",
+    "navigation": "Main navigation"
   },
   "login": {
     "title": "Sign in",
@@ -100,8 +104,8 @@
     "verify": "Verify",
     "passkey": "Use a passkey",
     "passkeyNote": "Passkey verification stays with WorkOS. This screen completes authenticator-app codes. Enable an authenticator factor if that is the only option you have.",
-    "working": "Signing in\u2026",
-    "checking": "Checking the sign-in result\u2026",
+    "working": "Signing in…",
+    "checking": "Checking the sign-in result…",
     "resetSent": "If this account can reset a password, WorkOS will email you.",
     "resetUnavailable": "Password reset is available when WorkOS is configured.",
     "errors": {
@@ -269,7 +273,19 @@
   },
   "palette": {
     "placeholder": "Search actions and pages",
-    "empty": "No matching actions."
+    "empty": "No matching actions.",
+    "page": "Page",
+    "searching": "Searching?",
+    "kinds": {
+      "control": "Control",
+      "test": "Test",
+      "evidence": "Evidence",
+      "policy": "Policy",
+      "risk": "Risk",
+      "vendor": "Vendor",
+      "person": "Person",
+      "framework": "Framework"
+    }
   },
   "auditor": {
     "banner": "Auditor view · read-only",
@@ -1282,5 +1298,120 @@
   "errors": {
     "load": "The page could not be loaded.",
     "forbidden": "You do not have access to this workspace."
+  },
+  "states": {
+    "loading": "Loading",
+    "retry": "Try again"
+  },
+  "insights": {
+    "title": "Compliance trends",
+    "range": "Time range",
+    "days": "{{count}} days",
+    "day": "Day",
+    "empty": "No posture history yet. A snapshot is recorded after each collection and once a day.",
+    "showTable": "Show data table",
+    "controlHealth": "Control health",
+    "controlHealthDesc": "Percentage of controls passing over {{count}} days, from {{from}}% to {{to}}%.",
+    "passingPercent": "Controls passing",
+    "readiness": "Framework readiness over time",
+    "readinessDesc": "Readiness percentage for each framework over {{count}} days.",
+    "failing": "Failing tests and overdue work",
+    "failingDesc": "Failing automated tests went from {{from}} to {{to}}; overdue items and critical or high vulnerabilities are shown alongside.",
+    "failingTests": "Failing tests",
+    "overdue": "Overdue items",
+    "criticalVulns": "Critical + high vulns"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Events that need your attention, and how you want to hear about them.",
+    "inbox": "Inbox",
+    "bellUnread_one": "Notifications, {{count}} unread",
+    "bellUnread_other": "Notifications, {{count}} unread",
+    "unread": "Unread:",
+    "markRead": "Mark read",
+    "markAll": "Mark all read",
+    "viewAll": "View all notifications",
+    "preferences": "Preferences",
+    "preferencesHint": "Choose a channel for each event. Email arrives as a daily digest; Slack posts to the workspace webhook. Both are mocked until configured.",
+    "event": "Event",
+    "inApp": "In-app",
+    "email": "Email digest",
+    "slack": "Slack",
+    "savePreferences": "Save preferences",
+    "saved": "Preferences saved.",
+    "sendDigest": "Send digest now",
+    "digestSent_one": "Digest sent to {{recipients}} people covering {{count}} notification.",
+    "digestSent_other": "Digest sent to {{recipients}} people covering {{count}} notifications.",
+    "kinds": {
+      "test_failing": "Test started failing",
+      "task_assigned": "Task assigned to you",
+      "policy_ack": "Policy needs acknowledgment",
+      "review_due": "Review due",
+      "auditor_request": "Auditor request",
+      "vendor_overdue": "Vendor review overdue"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Board-ready summaries of your compliance program. Export as CSV or PDF, or schedule delivery.",
+    "keys": {
+      "board": "Board and executive report",
+      "framework": "Framework readiness report",
+      "risk": "Risk report",
+      "vendor": "Vendor report",
+      "personnel": "Personnel compliance report"
+    },
+    "descriptions": {
+      "board": "Overall readiness, framework progress, failing tests, open vulnerabilities and overdue work.",
+      "framework": "Per-framework controls passing, with each control's status and owner.",
+      "risk": "Risk register with inherent and residual scores, treatment and review dates.",
+      "vendor": "Vendors by criticality, data access, review state and due dates.",
+      "personnel": "Employees with training, policy acknowledgment and onboarding status."
+    },
+    "framework": "Framework",
+    "allFrameworks": "All frameworks",
+    "export": {
+      "csv": "Export CSV",
+      "pdf": "Export PDF"
+    },
+    "schedules": "Scheduled delivery",
+    "schedulesHint": "Reports are emailed to recipients on the chosen cadence by the daily job. Delivery is mocked until email is configured.",
+    "report": "Report",
+    "enabled": "Enabled",
+    "frequency": "Frequency",
+    "frequencies": {
+      "Daily": "Daily",
+      "Weekly": "Weekly",
+      "Monthly": "Monthly"
+    },
+    "format": "Format",
+    "recipients": "Recipients",
+    "nextRun": "Next run",
+    "lastSent": "Last sent {{when}}",
+    "actions": "Actions",
+    "save": "Save",
+    "sendNow": "Send now",
+    "scheduleSaved": "Schedule saved.",
+    "scheduleInvalid": "Check the recipients (up to 20 email addresses) and try again.",
+    "sent": "Report sent. Delivery {{id}}."
+  },
+  "reset": {
+    "title": "Choose a new password",
+    "sub": "Use at least {{count}} characters. A passphrase works well.",
+    "password": "New password",
+    "confirm": "Confirm new password",
+    "hint": "At least {{count}} characters.",
+    "submit": "Set new password",
+    "done": "Your password has been reset. You can sign in now.",
+    "signIn": "Sign in",
+    "back": "Back to sign in",
+    "errors": {
+      "weak_password": "Use at least {{count}} characters.",
+      "mismatch": "The passwords do not match.",
+      "invalid_token": "This reset link is invalid or has expired. Request a new one from the sign-in page.",
+      "unavailable": "Password reset is not available for this sign-in method.",
+      "identity_provider_error": "The identity provider could not be reached. Try again shortly.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }

@@ -36,7 +36,7 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | Route | What it does | Key actions | Who |
 | --- | --- | --- | --- |
 | `/login` | Email and password, or the start of a WorkOS redirect. | Sign in. | Everyone |
-| `/` | Counts for controls, failing tests, and the signed-in person's work. | Open a failing area. | All workspace roles |
+| `/` | Counts for controls, failing tests, the signed-in person's work, and 30/90/180-day SVG trends for control health, framework readiness, and failing tests (with table fallback). | Open a failing area, change the trend range. | All workspace roles (trends hidden for Auditor) |
 | `/frameworks` | 13 embedded frameworks (`soc2`, `iso27001`, `iso27017`, `iso27018`, `hipaa`, `gdpr`, `pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`), custom CSV framework upload, and What-If Gap Simulator with 1-click gap adoption. | Open a framework, run What-If simulation, adopt gap controls, upload custom framework CSV. | Auditor sees granted frameworks; simulator and custom upload are for workspace members/writers |
 | `/frameworks/:key` | Requirement tree with mapped controls. | Jump to a control. | Same as frameworks |
 | `/controls` | Control list, owner, status, mappings, tests. | Assign an owner, create a control, import CSV. | Write: Admin, Control owner, Editor |
@@ -72,6 +72,11 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/governance-hub` | Multi-entity rollup, GDPR Art. 30/35 RoPA & DPIA, ISO 42001/EU AI Act model registry, Checkr & KnowBe4 phishing sync, SCIM 2.0 deprovisioning, external ASM, 1-Click Remediation PRs signed into `EvidenceChain`, Audit Time Machine, and Verified Auditor Network. | Add legal entities, log RoPA/DPIA & AI models, sync Checkr/KnowBe4, run SCIM 2.0 deprovision, generate Remediation PRs, diff Audit Time Machine dates, invite auditor firms. | Workspace members (Write roles mutate) |
 | `/tutorial` | 100% Super-App Completion Dashboard, embedded 1080p MP4 video + spoken English voiceover tutorial with 8 clickable chapters and WebVTT captions, and interactive animated architecture simulator. | Watch/download MP4, jump chapters, simulate packet-flow pipelines, open live modules. | All workspace roles |
 | `/activity` | Sign-in and product actions, including auditor access. | Read. | Admin |
+| `/notifications` | Inbox for failing tests, assigned tasks, policy acknowledgments, due reviews, auditor requests, and overdue vendor reviews; per-event in-app, email, and Slack preferences. The shell bell shows the unread count. Email digest and Slack are mocked until configured. | Mark read, mark all read, save preferences, send the digest (Admin). | All workspace roles |
+| `/reports` | Board, framework readiness, risk, vendor, and personnel reports. Scheduled delivery is mocked until a notifier is configured. | Export CSV or PDF, schedule delivery, send now. | Export: Admin, Control owner, Editor, Viewer. Schedule: Admin |
+| `/reset-password` | Confirm a password reset link through WorkOS (local mode logs the link). | Set a new password. | Anyone with the link |
+
+Ctrl/Cmd+K opens a command palette that searches pages, actions, and the workspace records the role can see. Every screen shows breadcrumbs, and on narrow screens the navigation is a drawer.
 
 ## Background checks
 
