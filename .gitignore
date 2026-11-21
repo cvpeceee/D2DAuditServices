@@ -15,3 +15,8 @@ coverage/
 data/
 .DS_Store
 src/api/**/appsettings.*.local.json
+
+# Tutorial pipeline scratch & Python caches
+.tutorial-build/
+__pycache__/
+*.py[cod]

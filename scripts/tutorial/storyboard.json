@@ -1,0 +1,338 @@
+{
+  "$comment": "D2D Audit product-tour storyboard. Edit narration/actions here and re-run scripts/tutorial/build_tutorial.py. Scenes marked optional are probed first and skipped (logged) when their route/text is not in the build yet. Action 'at' = narration cue word (first match after the previous cue); 'after' = extra seconds.",
+  "title": "D2D Audit in 3 minutes",
+  "voice": { "name": "en-US-AndrewMultilingualNeural", "rate": "+5%", "pitch": "+0Hz" },
+  "video": { "width": 1920, "height": 1080, "fps": 30, "lead": 0.5, "tail": 0.8, "fade": 0.45, "chapterTransition": "smoothleft", "sceneTransition": "fade" },
+  "music": { "enabled": true, "levelDb": -27, "duckDb": -9 },
+  "demo": {
+    "base": "/D2DAuditServices/app/",
+    "liveUrl": "https://d2d-audit-web.onrender.com/",
+    "tutorialsSite": "https://cvpeceee.github.io/D2DAudit-Tutorials/",
+    "loginButton": "Sign in as chandra.vell@harborline.example"
+  },
+  "chapters": [
+    { "id": "welcome", "title": "Audit-ready in minutes", "shortTitle": "Welcome", "summary": "The audit pain, and a dashboard that tracks every framework in one place." },
+    { "id": "controls", "title": "Map once, comply everywhere", "shortTitle": "Controls & evidence", "summary": "One control satisfies many frameworks; tests and tamper-evident evidence keep it proven." },
+    { "id": "risk", "title": "See risk like an attacker", "shortTitle": "Cloud risk", "summary": "Exposure scanning with ready-to-paste fixes, and attack paths that show what really matters." },
+    { "id": "audit", "title": "Audit day, minus the panic", "shortTitle": "Audit day", "summary": "A dedicated auditor portal and an assistant that answers in plain English." },
+    { "id": "trust", "title": "Earn trust, faster", "shortTitle": "Trust & governance", "summary": "A public trust center buyers can verify, plus enterprise governance." },
+    { "id": "next", "title": "Try it yourself", "shortTitle": "Get started", "summary": "Open the live demo and explore." }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "feature": "Intro",
+      "chapter": "welcome",
+      "type": "stage",
+      "narration": "SOC 2 audit coming up? That usually means weeks of screenshots… spreadsheets… and chasing people for proof. What if the evidence just collected itself? Meet D2D Audit.",
+      "actions": [
+        { "do": "js", "at": "SOC", "js": "stage.word('SOC 2 audit coming up?')" },
+        { "do": "js", "at": "screenshots", "js": "stage.word('Screenshots', 'small strike')" },
+        { "do": "js", "at": "spreadsheets", "js": "stage.word('Spreadsheets', 'small strike')" },
+        { "do": "js", "at": "chasing", "js": "stage.word('Chasing people for proof', 'small strike')" },
+        { "do": "js", "at": "What", "js": "stage.clearWords()" },
+        { "do": "js", "at": "What", "after": 0.45, "js": "stage.word('What if the evidence', 'grad'); setTimeout(() => stage.word('collected itself?', 'grad'), 700)" },
+        { "do": "js", "at": "Meet", "js": "stage.brand('Compliance on autopilot.')" }
+      ]
+    },
+    {
+      "id": "sign-in",
+      "feature": "Sign in",
+      "chapter": "welcome",
+      "route": "/login",
+      "setup": [{ "do": "logout" }],
+      "narration": "Sign in, and your whole compliance program lives on one screen.",
+      "actions": [
+        { "do": "move", "target": { "role": "button", "name": "@loginButton" }, "ms": 900 },
+        { "do": "highlight", "target": { "role": "button", "name": "@loginButton" }, "label": "Demo admin" },
+        { "do": "click", "at": "Sign", "after": 0.3, "target": { "role": "button", "name": "@loginButton" } },
+        { "do": "waitFor", "target": { "css": "h1" } }
+      ]
+    },
+    {
+      "id": "dashboard",
+      "feature": "Compliance dashboard",
+      "chapter": "welcome",
+      "route": "/",
+      "narration": "Thirteen frameworks. SOC 2, ISO, HIPAA, GDPR, even the EU AI Act, each with a live readiness score. And right below, the failing tests that need you today.",
+      "actions": [
+        { "do": "highlight", "at": "Thirteen", "target": { "css": ".card", "hasText": "Framework readiness" }, "label": "13 frameworks, one view" },
+        { "do": "clear", "at": "SOC" },
+        { "do": "zoom", "at": "SOC", "target": { "css": ".card", "hasText": "Framework readiness" }, "scale": 1.45 },
+        { "do": "move", "at": "HIPAA", "target": { "role": "link", "name": "HIPAA Security Rule" }, "ms": 700 },
+        { "do": "move", "at": "AI", "target": { "role": "link", "name": "EU AI Act" }, "ms": 700 },
+        { "do": "unzoom", "at": "below" },
+        { "do": "scrollTo", "at": "below", "after": 0.5, "target": { "css": ".card", "hasText": "Failing tests needing attention" } },
+        { "do": "highlight", "at": "failing", "target": { "css": ".card", "hasText": "Failing tests needing attention" }, "label": "Fix these first" }
+      ]
+    },
+    {
+      "id": "onboarding",
+      "chapter": "welcome",
+      "optional": true,
+      "feature": "Self-serve signup & guided onboarding",
+      "routes": ["/onboarding", "/get-started", "/signup", "/setup"],
+      "narration": "Starting fresh? A guided setup picks your frameworks and connects your tools in minutes, not weeks.",
+      "actions": [
+        { "do": "highlight", "at": "guided", "target": { "css": "h1" }, "label": "Guided setup" },
+        { "do": "spotlight", "at": "frameworks", "target": { "css": "main .card, #main .card, .card" } }
+      ]
+    },
+    {
+      "id": "controls",
+      "feature": "Controls mapped across frameworks",
+      "chapter": "controls",
+      "route": "/controls",
+      "narration": "Here's the clever part. Write a control once, and D2D maps it everywhere. This one, MFA, covers requirements in ten frameworks. And automated tests check it around the clock.",
+      "actions": [
+        { "do": "click", "at": "Write", "target": { "role": "button", "name": "MFA required for all workforce accounts" } },
+        { "do": "waitFor", "target": { "css": "aside.drawer" } },
+        { "do": "highlight", "at": "covers", "target": { "css": "aside.drawer", "text": "Mapped requirements", "up": 1 }, "label": "10 frameworks, 1 control", "n": 1 },
+        { "do": "zoom", "at": "covers", "after": 0.4, "target": { "css": "aside.drawer", "text": "Mapped requirements", "up": 1 }, "scale": 1.3 },
+        { "do": "unzoom", "at": "automated" },
+        { "do": "highlight", "at": "automated", "after": 0.4, "target": { "css": "aside.drawer", "text": "Tests", "exact": true, "up": 1 }, "label": "Checked continuously", "n": 2 }
+      ]
+    },
+    {
+      "id": "what-if",
+      "feature": "Framework what-if analysis",
+      "chapter": "controls",
+      "route": "/frameworks",
+      "narration": "Eyeing a new framework? Run a what-if. Pick GDPR: you already cover eighty-two percent. Just two gaps left, and one click adopts them.",
+      "actions": [
+        { "do": "highlight", "at": "what", "target": { "css": ".card", "hasText": "what-if gap simulator" }, "label": "What-if simulator" },
+        { "do": "move", "at": "Pick", "target": { "css": "select" }, "ms": 600 },
+        { "do": "select", "at": "GDPR", "target": { "css": "select" }, "label": "GDPR (2016)" },
+        { "do": "clear", "at": "GDPR", "after": 0.2 },
+        { "do": "zoom", "at": "cover", "target": { "css": ".card", "hasText": "what-if gap simulator" }, "scale": 1.35 },
+        { "do": "highlight", "at": "eighty", "target": { "css": ".kpi", "hasText": "Control overlap" }, "label": "Already covered", "n": 1 },
+        { "do": "highlight", "at": "gaps", "target": { "css": ".kpi", "hasText": "Unmapped gaps" }, "label": "Gaps", "n": 2 },
+        { "do": "move", "at": "click", "target": { "role": "button", "name": "Adopt all" }, "ms": 700 },
+        { "do": "highlight", "at": "click", "target": { "role": "button", "name": "Adopt all" }, "label": "One click", "n": 3 }
+      ]
+    },
+    {
+      "id": "custom-tests",
+      "chapter": "controls",
+      "optional": true,
+      "feature": "Custom tests builder",
+      "routes": ["/tests/custom", "/custom-tests", "/tests/new", "/tests"],
+      "requiresText": "custom test",
+      "narration": "Need a check that's unique to you? Build a custom test in plain language, and it runs right alongside the built-in ones.",
+      "actions": [
+        { "do": "highlight", "at": "custom", "target": { "text": "custom test", "up": 1 }, "label": "Custom test" }
+      ]
+    },
+    {
+      "id": "integrations",
+      "feature": "Cloud integrations & evidence collection",
+      "chapter": "controls",
+      "route": "/integrations",
+      "narration": "Evidence flows in on its own. Connect AWS, Azure, Google Cloud, GitHub and Microsoft 365, then hit collect.",
+      "actions": [
+        { "do": "highlight", "at": "Connect", "target": { "css": ".card", "hasText": "Amazon Web Services" }, "label": "AWS", "n": 1 },
+        { "do": "highlight", "at": "Azure", "target": { "css": ".card", "hasText": "Microsoft Azure" }, "label": "Azure", "n": 2 },
+        { "do": "highlight", "at": "GitHub", "target": { "css": ".card", "hasText": "GitHub" }, "label": "GitHub", "n": 3 },
+        { "do": "clear", "at": "hit" },
+        { "do": "click", "at": "collect", "target": { "role": "button", "name": "Collect now" } }
+      ]
+    },
+    {
+      "id": "integrations-catalog",
+      "chapter": "controls",
+      "optional": true,
+      "feature": "Integrations catalog",
+      "routes": ["/integrations/catalog", "/catalog", "/integrations"],
+      "requiresText": "catalog|marketplace",
+      "narration": "And the integrations catalog keeps growing. Search it, pick a tool, and you're connected.",
+      "actions": [
+        { "do": "highlight", "at": "catalog", "target": { "text": "catalog", "up": 1 }, "label": "Integrations catalog" }
+      ]
+    },
+    {
+      "id": "device-agent",
+      "chapter": "controls",
+      "optional": true,
+      "feature": "Device agent",
+      "routes": ["/devices", "/device-agent", "/agents", "/people/computers"],
+      "requiresText": "install (the )?agent|download (the )?agent|enrol(l)?ment token",
+      "narration": "Laptops too. A lightweight device agent reports disk encryption, screen lock and antivirus, automatically.",
+      "actions": [
+        { "do": "highlight", "at": "agent", "target": { "text": "agent", "up": 1 }, "label": "Device agent" }
+      ]
+    },
+    {
+      "id": "evidence",
+      "feature": "Tamper-evident evidence chain",
+      "chapter": "controls",
+      "route": "/evidence",
+      "narration": "Every file gets a fingerprint, chained to the one before it. So nobody can quietly rewrite history. One click checks the entire chain.",
+      "actions": [
+        { "do": "highlight", "at": "fingerprint", "target": { "text": "SHA-256 verified", "nth": 0 }, "label": "Fingerprinted" },
+        { "do": "highlight", "at": "chained", "target": { "text": "SHA-256 verified", "nth": 1 } },
+        { "do": "highlight", "at": "chained", "after": 0.3, "target": { "text": "SHA-256 verified", "nth": 2 } },
+        { "do": "clear", "at": "click" },
+        { "do": "click", "at": "click", "target": { "role": "button", "name": "Verify chain" } },
+        { "do": "highlight", "at": "chain", "after": 0.6, "target": { "text": "links checked", "up": 1 }, "label": "Tamper-evident", "below": true }
+      ]
+    },
+    {
+      "id": "exposure",
+      "feature": "Exposure scanning & fixes",
+      "chapter": "risk",
+      "route": "/exposure",
+      "narration": "Now, risk. D2D scans your cloud for open doors, like a database exposed to the internet. Then it hands you the exact fix, ready to paste.",
+      "actions": [
+        { "do": "highlight", "at": "open", "target": { "css": "tbody tr", "nth": 0 }, "label": "Exposed database" },
+        { "do": "clear", "at": "Then" },
+        { "do": "scrollTo", "at": "Then", "target": { "css": ".card", "hasText": "remediation" } },
+        { "do": "zoom", "at": "exact", "target": { "css": ".card", "hasText": "remediation" }, "scale": 1.3 },
+        { "do": "highlight", "at": "paste", "target": { "css": "pre", "nth": 0 }, "label": "Terraform fix" },
+        { "do": "move", "at": "paste", "target": { "role": "button", "name": "Copy" }, "ms": 600 }
+      ]
+    },
+    {
+      "id": "attack-paths",
+      "feature": "Attack paths",
+      "chapter": "risk",
+      "route": "/attack-paths",
+      "narration": "Then it connects the dots. An open port. A leaked secret. A user without MFA. Together, that's a straight line to your crown jewels. Fix one link, and the whole path breaks.",
+      "actions": [
+        { "do": "zoom", "at": "connects", "target": { "css": "section.card", "nth": 0 }, "scale": 1.25 },
+        { "do": "highlight", "at": "port", "target": { "text": "1. Entry", "nth": 0 }, "label": "Entry", "n": 1 },
+        { "do": "highlight", "at": "secret", "target": { "text": "2. Credential", "nth": 0 }, "label": "Credential", "n": 2 },
+        { "do": "highlight", "at": "user", "target": { "text": "3. Identity", "nth": 0 }, "label": "Identity", "n": 3 },
+        { "do": "highlight", "at": "crown", "target": { "text": "4. Crown Jewel", "nth": 0 }, "label": "Crown jewel", "n": 4, "color": "#ff4d6d" },
+        { "do": "clear", "at": "Fix" },
+        { "do": "unzoom", "at": "Fix" },
+        { "do": "spotlight", "at": "Fix", "after": 0.6, "target": { "css": "section.card", "nth": 0 } }
+      ]
+    },
+    {
+      "id": "auditor",
+      "feature": "Auditor portal",
+      "chapter": "audit",
+      "route": "/auditor",
+      "narration": "When audit day comes, your auditor gets their own portal. Sampling requests, findings, responses, and the full audit package in one click.",
+      "actions": [
+        { "do": "highlight", "at": "Sampling", "target": { "css": ".card", "hasText": "Sampling requests" }, "label": "Sampling", "n": 1 },
+        { "do": "highlight", "at": "findings", "target": { "css": ".card", "hasText": "Findings" }, "label": "Findings", "n": 2 },
+        { "do": "move", "at": "package", "target": { "role": "button", "name": "Download audit package" }, "ms": 700 },
+        { "do": "highlight", "at": "package", "target": { "role": "button", "name": "Download audit package" }, "label": "One click", "n": 3 }
+      ]
+    },
+    {
+      "id": "assistant",
+      "feature": "AI assistant",
+      "chapter": "audit",
+      "route": "/",
+      "narration": "Got a question? Just ask. The built-in assistant answers in plain English, and shows you exactly where the answer came from.",
+      "actions": [
+        { "do": "click", "at": "Got", "target": { "role": "button", "name": "Open assistant" } },
+        { "do": "click", "at": "ask", "target": { "role": "button", "name": "What controls or tests are failing?" } },
+        { "do": "spotlight", "at": "plain", "after": 0.4, "target": { "css": "aside.assist" } },
+        { "do": "wait", "seconds": 0.2 }
+      ],
+      "teardown": [{ "do": "click", "target": { "css": "aside.assist button[aria-label=Close]" } }]
+    },
+    {
+      "id": "reports",
+      "chapter": "audit",
+      "optional": true,
+      "feature": "Reports",
+      "routes": ["/reports", "/insights"],
+      "narration": "Need a board update? Generate a polished report in seconds, not a weekend.",
+      "actions": [{ "do": "highlight", "at": "report", "target": { "css": "h1" }, "label": "Reports" }]
+    },
+    {
+      "id": "notifications",
+      "chapter": "audit",
+      "optional": true,
+      "feature": "Notifications",
+      "routes": ["/notifications", "/settings/notifications"],
+      "narration": "And smart notifications tell the right person the moment something drifts.",
+      "actions": [{ "do": "highlight", "at": "notifications", "target": { "css": "h1" }, "label": "Notifications" }]
+    },
+    {
+      "id": "trust-center",
+      "feature": "Public trust center",
+      "chapter": "trust",
+      "route": "/trust/harborline",
+      "narration": "Customers want proof too. Your public trust center shows what you're certified for, and anyone can verify the report's fingerprint, right in their browser.",
+      "actions": [
+        { "do": "highlight", "at": "certified", "target": { "css": ".card", "hasText": "Frameworks" }, "label": "What you're certified for" },
+        { "do": "clear", "at": "verify" },
+        { "do": "click", "at": "verify", "target": { "role": "button", "name": "Verify SHA-256 in browser" } },
+        { "do": "highlight", "at": "browser", "target": { "text": "matches canonical payload" }, "label": "Verified in the browser", "below": true }
+      ]
+    },
+    {
+      "id": "trust-qa",
+      "feature": "Trust center Q&A",
+      "chapter": "trust",
+      "route": "/trust/harborline",
+      "narration": "Buyers can even ask security questions, and get instant answers from content you've approved.",
+      "actions": [
+        { "do": "scrollTo", "target": { "css": ".card", "hasText": "security Q&A" } },
+        { "do": "type", "at": "ask", "target": { "css": "input[placeholder*='SOC 2']" }, "text": "Are you SOC 2 compliant?" },
+        { "do": "click", "at": "instant", "target": { "role": "button", "name": "Ask" } },
+        { "do": "highlight", "at": "approved", "after": 0.2, "target": { "css": ".card", "hasText": "security Q&A" }, "label": "Instant, approved answers" }
+      ]
+    },
+    {
+      "id": "vendor-portal",
+      "chapter": "trust",
+      "optional": true,
+      "feature": "Vendor portal",
+      "routes": ["/vendor-portal", "/vendors/portal", "/portal"],
+      "narration": "Your vendors get a portal too, so security reviews happen in one place instead of endless email threads.",
+      "actions": [{ "do": "highlight", "at": "portal", "target": { "css": "h1" }, "label": "Vendor portal" }]
+    },
+    {
+      "id": "training",
+      "chapter": "trust",
+      "optional": true,
+      "feature": "Security training",
+      "routes": ["/training"],
+      "requiresText": "quiz|lesson|academy|course",
+      "narration": "Security training is built in, with short lessons and quizzes, and completion tracked for your auditor.",
+      "actions": [{ "do": "highlight", "at": "training", "target": { "css": "h1" }, "label": "Training" }]
+    },
+    {
+      "id": "lifecycle",
+      "chapter": "trust",
+      "optional": true,
+      "feature": "Workforce lifecycle",
+      "routes": ["/people/lifecycle"],
+      "narration": "From day-one onboarding checklists to offboarding access revocation, every workforce transition stays tracked for auditors.",
+      "actions": [{ "do": "highlight", "at": "onboarding", "target": { "css": "h1" }, "label": "Workforce lifecycle" }]
+    },
+    {
+      "id": "governance",
+      "feature": "Multi-entity governance",
+      "chapter": "trust",
+      "route": "/governance-hub",
+      "narration": "Growing fast? Roll up every legal entity, manage privacy and AI governance, and even rewind your posture to any point in time.",
+      "actions": [
+        { "do": "highlight", "at": "Roll", "target": { "role": "tab", "name": "Multi-Entity Rollup" }, "label": "Entities", "n": 1 },
+        { "do": "highlight", "at": "privacy", "target": { "role": "tab", "name": "Privacy (RoPA & DPIA)" }, "label": "Privacy", "n": 2 },
+        { "do": "highlight", "at": "AI", "target": { "role": "tab", "name": "AI Governance Registry" }, "label": "AI", "n": 3 },
+        { "do": "clear", "at": "rewind" },
+        { "do": "click", "at": "rewind", "target": { "role": "tab", "name": "Time Machine & Auditors" } },
+        { "do": "click", "at": "point", "target": { "role": "button", "name": "Compare point-in-time posture" } },
+        { "do": "spotlight", "at": "time", "after": 0.6, "target": { "css": ".card", "hasText": "point-in-time", "nth": -1 } }
+      ]
+    },
+    {
+      "id": "outro",
+      "feature": "Try the live demo",
+      "chapter": "next",
+      "type": "stage",
+      "narration": "That's D2D Audit. Less chasing, more proving. Try the live demo today. The link is right below.",
+      "actions": [
+        { "do": "js", "at": "That", "js": "stage.brand('Less chasing. More proving.')" },
+        { "do": "js", "at": "Try", "js": "stage.outro({ demo: 'd2d-audit-web.onrender.com', site: 'cvpeceee.github.io/D2DAudit-Tutorials' })" }
+      ]
+    }
+  ]
+}

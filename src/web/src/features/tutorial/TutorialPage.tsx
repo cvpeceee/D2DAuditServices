@@ -28,6 +28,19 @@ export type TutorialChapter = {
   bullets: string[];
 };
 
+/** Chapter row from the v2 manifest written by scripts/tutorial/build_tutorial.py. */
+export type VideoChapter = {
+  number: number;
+  id: string;
+  title: string;
+  shortTitle: string;
+  summary?: string;
+  route?: string | null;
+  startTime: number;
+  endTime: number;
+  duration: number;
+};
+
 export type PacketFlowPreset = {
   id: string;
   title: string;
@@ -91,6 +104,14 @@ export const SUPER_APP_MILESTONES = [
     percent: 100,
     status: "Completed",
     route: "/governance-hub",
+  },
+  {
+    code: "M11",
+    title:
+      "Real-App Video+Audio Tutorial Pipeline, Custom Tests, Workforce Lifecycle & Vendor Portal, Onboarding, Device Agent/Academy & Connector Catalog",
+    percent: 100,
+    status: "Completed",
+    route: "/tutorial",
   },
 ] as const;
 
@@ -538,19 +559,20 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
       {
         stage: "Cloud Collector",
         detail: "Parquet & Artifact Byte Capture",
-        payload: "EvidenceWriter.WriteAsync -> S3 / Local Artifact Store",
+        payload: "EvidenceWriter.AppendAsync -> S3 / Local Artifact Store",
         invariant: "Per-tenant SemaphoreSlim guarantees monotonic sequence numbers",
       },
       {
         stage: "SHA-256 Hash Link",
         detail: "Chained to Previous Sequence Hash",
-        payload: "EvidenceChain.ComputeEntryHash(seq, prevHash, contentSha256)",
+        payload: "EvidenceChain.NextHead(previousHead, contentHash, canonical)",
         invariant: "Any mutated byte invalidates the entry hash and all subsequent links",
       },
       {
         stage: "S3 Object Lock",
         detail: "Immutable WORM Retention Storage",
-        payload: "infra/terraform/main.tf -> S3 Object Lock GOVERNANCE mode",
+        payload:
+          "infra/terraform/s3_object_lock.tf -> S3 Object Lock COMPLIANCE (configurable to GOVERNANCE)",
         invariant: "Enforces multi-year audit retention across US and EU regions",
       },
       {
@@ -632,7 +654,7 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
     badge:
       "MULTI-ENTITY ROLLUP | GDPR ROPA & DPIA | AI MODEL REGISTRY | CHECKR + KNOWBE4 + SCIM 2.0",
     codeSnippet:
-      "GET /api/v1/governance-hub/board -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
+      "GET /api/v1/governance/overview -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
     narration:
       "Chapter Seven tours workforce security and the Enterprise Governance Hub. D2D integrates Jamf, Intune, Kandji, and endpoint device agent check-ins alongside Checkr background checks, KnowBe4 phishing simulations, and SCIM 2.0 directory sync. The Governance Hub adds parent-child Multi-Entity Rollups, GDPR Record of Processing Activities and DPIA assessments, and an AI Model Governance Registry mapped to ISO 42001 and the EU AI Act.",
     nodes: [
@@ -646,20 +668,20 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
       {
         stage: "Privacy RoPA & DPIA",
         detail: "GDPR Article 30 & Impact Scoring",
-        payload: "ProcessingActivity (RoPA) + DPIA Risk & Safeguard Register",
+        payload: "PrivacyAssessment (RoPA & DPIA Register)",
         invariant: "Links lawful basis, data subjects, international transfers, and DPIA sign-off",
       },
       {
         stage: "AI Model Registry",
         detail: "EU AI Act Tiering & Guardrails",
-        payload: "AiSystemRecord -> Risk Tier, Bias/Hallucination Tests & Oversight",
+        payload: "AiModelRecord -> Risk Tier, Bias/Hallucination Tests & Oversight",
         invariant:
           "Maps production LLMs and ML models directly to ISO 42001 and EU AI Act controls",
       },
       {
         stage: "Multi-Entity Rollup",
         detail: "Parent / Subsidiary Consolidated Score",
-        payload: "EntityUnit Rollup -> Harborline US, EU, APAC & Federal Subsidiaries",
+        payload: "LegalEntityRecord Rollup -> Harborline US, EU & Federal Subsidiaries",
         invariant: "Computes weighted consolidated readiness and surfaces subsidiary control gaps",
       },
     ],
@@ -754,6 +776,8 @@ export function TutorialPage() {
   const [narrationEnabled, setNarrationEnabled] = useState<boolean>(false);
   const [speechStatus, setSpeechStatus] = useState<string>("Ready");
   const [gapFilter, setGapFilter] = useState<"ALL" | "P0" | "P1" | "P2" | "P3">("ALL");
+  const [videoChapters, setVideoChapters] = useState<VideoChapter[] | null>(null);
+  const [activeVideoIdx, setActiveVideoIdx] = useState<number>(0);
 
   const baseUrl = import.meta.env.BASE_URL || "/";
   const videoSrc = `${baseUrl}tutorial/d2d-super-app-tutorial.mp4`;
@@ -774,8 +798,14 @@ export function TutorialPage() {
       .then(
         (
           data: {
+            version?: number;
             chapters?: Array<{
               number: number;
+              id?: string;
+              title?: string;
+              shortTitle?: string;
+              summary?: string;
+              route?: string | null;
               startTime: number;
               endTime: number;
               duration: number;
@@ -783,6 +813,24 @@ export function TutorialPage() {
           } | null,
         ) => {
           if (cancelled || !data?.chapters?.length) return;
+          if ((data.version ?? 1) >= 2) {
+            // v2 videos are storyboard-driven; their chapters are independent of the simulator chapters.
+            setVideoChapters(
+              data.chapters.map((c) => ({
+                number: c.number,
+                id: c.id ?? `chapter-${c.number}`,
+                title: c.title ?? `Chapter ${c.number}`,
+                shortTitle: c.shortTitle ?? c.title ?? `Chapter ${c.number}`,
+                summary: c.summary,
+                route: c.route,
+                startTime: c.startTime,
+                endTime: c.endTime,
+                duration: c.duration,
+              })),
+            );
+            setActiveVideoIdx(0);
+            return;
+          }
           const timingByNumber = new Map(
             data.chapters.map((c) => [
               c.number,
@@ -868,6 +916,53 @@ export function TutorialPage() {
     }
   }
 
+  function selectVideoChapter(index: number) {
+    const target = videoChapters?.[index];
+    if (!target) return;
+    setActiveVideoIdx(index);
+    if (videoRef.current) {
+      try {
+        videoRef.current.currentTime = target.startTime;
+      } catch {
+        // Ignore media seek errors in headless test environments
+      }
+    }
+  }
+
+  const jumpList = videoChapters
+    ? videoChapters.map((ch, idx) => ({
+        key: ch.id,
+        number: ch.number,
+        shortTitle: ch.shortTitle,
+        startTime: ch.startTime,
+        selected: idx === activeVideoIdx,
+        onSelect: () => selectVideoChapter(idx),
+      }))
+    : chapters.map((ch, idx) => ({
+        key: ch.id,
+        number: ch.number,
+        shortTitle: ch.shortTitle,
+        startTime: ch.startTime,
+        selected: idx === activeChapterIdx,
+        onSelect: () => selectChapter(idx, true),
+      }));
+  const activeVideoChapter = videoChapters?.[activeVideoIdx] ?? null;
+  const videoPanel = activeVideoChapter
+    ? {
+        number: activeVideoChapter.number,
+        title: activeVideoChapter.title,
+        startTime: activeVideoChapter.startTime,
+        endTime: activeVideoChapter.endTime,
+        text: activeVideoChapter.summary ?? "",
+      }
+    : {
+        number: currentChapter.number,
+        title: currentChapter.title,
+        startTime: currentChapter.startTime,
+        endTime: currentChapter.endTime,
+        text: currentChapter.narration,
+      };
+
   function toggleNarration() {
     setNarrationEnabled((prev) => {
       const next = !prev;
@@ -894,8 +989,8 @@ export function TutorialPage() {
         <div>
           <h1>Interactive Product Tour & 1080p Video + Audio Tutorial Center</h1>
           <div className="sub">
-            End-to-end 8-chapter video & spoken voiceover walkthrough, live animated packet-flow
-            simulator, and 100% Super-App completion dashboard across Milestones M1–M10.
+            End-to-end video & spoken voiceover walkthrough, live animated packet-flow simulator,
+            and 100% Super-App completion dashboard across Milestones M1–M11.
           </div>
         </div>
         <div className="act">
@@ -929,14 +1024,14 @@ export function TutorialPage() {
               Super-App Completion Progress Dashboard (Vanta + Drata + VRINDA All-in-One)
             </h3>
             <div className="sub">
-              All 18 Gap Tracker capabilities (#1–#18) and all M1–M10 engineering milestones are
+              All 18 Gap Tracker capabilities (#1–#18) and all M1–M11 engineering milestones are
               100% built, verified, and live.
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <Pill status="passing">100% Super-App Complete</Pill>
             <Pill status="passing">18 / 18 Gap Tracker Items Done</Pill>
-            <Pill status="passing">M1–M10 Milestones Verified</Pill>
+            <Pill status="passing">M1–M11 Milestones Verified</Pill>
           </div>
         </div>
 
@@ -1083,13 +1178,15 @@ export function TutorialPage() {
           }}
         >
           <div>
-            <h3 style={{ margin: 0 }}>1080p MP4 Video + Spoken Audio Walkthrough (8 Chapters)</h3>
+            <h3 style={{ margin: 0 }}>
+              1080p MP4 Video + Spoken Audio Walkthrough ({jumpList.length} Chapters)
+            </h3>
             <div className="sub">
               Click any chapter jump button below to seek the H.264 + AAC video player directly to
               that chapter&apos;s exact timestamp and synchronize the interactive simulator.
             </div>
           </div>
-          <Pill status="info">{`Active: Chapter ${currentChapter.number} (${formatTimestamp(currentChapter.startTime)})`}</Pill>
+          <Pill status="info">{`Active: Chapter ${videoPanel.number} (${formatTimestamp(videoPanel.startTime)})`}</Pill>
         </div>
 
         <div
@@ -1106,6 +1203,13 @@ export function TutorialPage() {
               controls
               preload="metadata"
               src={videoSrc}
+              onTimeUpdate={() => {
+                const t = videoRef.current?.currentTime ?? 0;
+                if (videoChapters) {
+                  const idx = videoChapters.findIndex((c) => t >= c.startTime && t < c.endTime);
+                  if (idx >= 0 && idx !== activeVideoIdx) setActiveVideoIdx(idx);
+                }
+              }}
               aria-label="D2D Audit Services Super App 1080p Video Tutorial"
               style={{
                 width: "100%",
@@ -1137,14 +1241,13 @@ export function TutorialPage() {
                   marginBottom: 6,
                 }}
               >
-                <b>{currentChapter.title}</b>
+                <b>{videoPanel.title}</b>
                 <span className="kbd">
-                  {formatTimestamp(currentChapter.startTime)} –{" "}
-                  {formatTimestamp(currentChapter.endTime)}
+                  {formatTimestamp(videoPanel.startTime)} – {formatTimestamp(videoPanel.endTime)}
                 </span>
               </div>
               <p className="sub" style={{ margin: 0, lineHeight: 1.5 }}>
-                {currentChapter.narration}
+                {videoPanel.text}
               </p>
             </div>
           </div>
@@ -1152,13 +1255,13 @@ export function TutorialPage() {
           {/* Chapter Jump List */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <b>Jump to Video Chapter Timestamp</b>
-            {chapters.map((ch, idx) => {
-              const isSelected = idx === activeChapterIdx;
+            {jumpList.map((ch) => {
+              const isSelected = ch.selected;
               return (
                 <button
-                  key={ch.id}
+                  key={ch.key}
                   type="button"
-                  onClick={() => selectChapter(idx, true)}
+                  onClick={ch.onSelect}
                   aria-pressed={isSelected}
                   style={{
                     display: "flex",

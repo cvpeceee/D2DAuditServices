@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D2D Audit — Step-by-step walkthrough</title>
+    <link rel="stylesheet" href="assets/site.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./"><span class="logo">D2D</span> Audit <small>Tutorials</small></a>
+      <nav>
+        <a href="./">Video</a>
+        <a href="walkthrough.html" aria-current="page">Step-by-step</a>
+        <a class="cta" href="https://d2d-audit-web.onrender.com/" target="_blank" rel="noopener">Open live demo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1>Step-by-step walkthrough</h1>
+        <p class="lede">Follow along at your own pace. Each step shows what you'll see, what it means, and a button that opens the same screen in the live demo.</p>
+        <div class="progress" aria-label="Walkthrough progress"><div id="progress-bar"></div></div>
+      </section>
+
+      <section class="walk">
+        <nav class="steps" id="steps" aria-label="Steps"></nav>
+        <article class="step" id="step" aria-live="polite"></article>
+      </section>
+
+      <section class="callout">
+        <h2>Tip</h2>
+        <p>Open the live demo in a second tab and sign in as the demo admin first; the "Open this screen" buttons then jump straight to each feature.</p>
+      </section>
+    </main>
+
+    <footer><span>Use ← and → to move between steps.</span></footer>
+
+    <script src="assets/site.js"></script>
+    <script>
+      D2DTutorials.renderWalkthrough();
+    </script>
+  </body>
+</html>

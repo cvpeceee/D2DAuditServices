@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D2D Audit — Product Tutorials</title>
+    <meta name="description" content="Watch D2D Audit in about three minutes: automated SOC 2 / ISO 27001 compliance, evidence, cloud risk, audit day and a public trust center." />
+    <meta property="og:title" content="D2D Audit — Product Tutorials" />
+    <meta property="og:image" content="media/poster.jpg" />
+    <link rel="stylesheet" href="assets/site.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./"><span class="logo">D2D</span> Audit <small>Tutorials</small></a>
+      <nav>
+        <a href="./" aria-current="page">Video</a>
+        <a href="walkthrough.html">Step-by-step</a>
+        <a class="cta" id="demo-link" href="https://d2d-audit-web.onrender.com/" target="_blank" rel="noopener">Open live demo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h1 id="title">D2D Audit in 3 minutes</h1>
+        <p class="lede">Compliance on autopilot: map a control once, collect evidence automatically, see risk like an attacker, and prove it to customers.</p>
+      </section>
+
+      <section class="player">
+        <div class="video-wrap">
+          <video id="video" controls preload="metadata" poster="media/poster.jpg" playsinline>
+            <source src="media/d2d-super-app-tutorial.mp4" type="video/mp4" />
+            <track kind="captions" src="media/d2d-super-app-tutorial.vtt" srclang="en" label="English" default />
+            <track kind="chapters" src="media/chapters.vtt" srclang="en" label="Chapters" />
+            Your browser does not support HTML5 video. <a href="media/d2d-super-app-tutorial.mp4">Download the MP4</a>.
+          </video>
+        </div>
+        <aside class="chapters">
+          <h2>Chapters</h2>
+          <ol id="chapter-list"></ol>
+          <p class="meta" id="meta"></p>
+        </aside>
+      </section>
+
+      <section>
+        <h2>Feature clips</h2>
+        <p class="sub">Short, focused clips, one per chapter. Great for sharing.</p>
+        <div class="grid" id="clips"></div>
+      </section>
+
+      <section class="callout">
+        <h2>Try it yourself</h2>
+        <p>The live demo runs entirely in your browser with example data, no sign-up needed. Click <b>Sign in</b> as the demo admin.</p>
+        <p>
+          <a class="cta" href="https://d2d-audit-web.onrender.com/" target="_blank" rel="noopener">Open the live demo</a>
+          <a class="ghost" href="walkthrough.html">Read the step-by-step walkthrough</a>
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <span>Narration: Microsoft neural voice. Music: procedurally generated. Footage recorded from the D2D Audit demo build with example data.</span>
+    </footer>
+
+    <script src="assets/site.js"></script>
+    <script>
+      D2DTutorials.renderPlayer();
+    </script>
+  </body>
+</html>

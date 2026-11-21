@@ -1,48 +1,68 @@
 # D2D Audit Services — 1080p Video + Spoken Audio Tutorial & Interactive Product Tour
 
-This directory documents the **1080p H.264 + AAC Video & Spoken Audio Tutorial** and the **Interactive Animated Architecture & Workflow Simulator (`/tutorial`)** for the **D2D Audit Services** Super App (Vanta + Drata + VRINDA all-in-one platform).
+This directory documents the **Real-App 1080p H.264 + AAC Video & Spoken Audio Tutorial pipeline (`scripts/tutorial/`)**, the **Interactive Animated Architecture & Workflow Simulator (`/tutorial`)**, and the standalone tutorials microsite (`scripts/tutorial/site/`) for the **D2D Audit Services** Super App (Milestones M1–M11).
 
 ---
 
-## 1. Generated Media Artifacts
+## 1. Real-App Video + Spoken Audio Pipeline (v2 — `scripts/tutorial/`)
 
-| Artifact | Path | Format & Specification |
-| --- | --- | --- |
-| **1080p Video + Spoken Audio Tutorial** | `src/web/public/tutorial/d2d-super-app-tutorial.mp4` | `1920x1080` Full HD, H.264 (`libx264`, `yuv420p`, `10 fps`) + Spoken English Voiceover (`AAC`, `128 kbps`, `44.1 kHz`), `228.00s` (`3m 48s`) total duration, `9.85 MiB` (`10,323,734 bytes`) |
-| **Synced WebVTT Closed Captions** | `src/web/public/tutorial/d2d-super-app-tutorial.vtt` | Standard `WEBVTT` closed captions track synchronized to each chapter's exact start and end timestamp |
-| **Chapter Manifest & Timestamps** | `src/web/public/tutorial/tutorial-chapters.json` | Machine-readable JSON manifest containing exact `startTime`, `endTime`, `duration`, `moduleRoute`, `codeSnippet`, `nodes`, and `narration` for all 8 chapters |
-| **Reproducible Generator Script** | `scripts/generate_tutorial_video.py` | Synthesizes spoken English `.wav` narration via Windows `System.Speech.Synthesis.SpeechSynthesizer`, renders multi-frame animated 1080p slides with `Pillow`, and muxes H.264 + AAC via `imageio-ffmpeg` |
+The v2 pipeline records the actual Vite demo build (`vite build --mode demo`) in headless Chromium via Playwright + Chrome DevTools Protocol (CDP) screencast, synchronizes cursor movement, highlights, spotlights, zooms, and lower-third chapter banners against neural TTS word boundaries (`edge-tts`), mixes narration with procedurally generated ducked ambient music and UI sound effects, normalizes loudness to `-16 LUFS`, and muxes 1080p H.264 + AAC via `imageio-ffmpeg`.
+
+### Key Files
+
+| File | Purpose |
+| --- | --- |
+| `scripts/tutorial/build_tutorial.py` | End-to-end orchestrator: builds demo bundle, probes routes (auto-skipping unmerged optional scenes), synthesizes TTS, records scenes, composes transitions/audio/captions, cuts per-chapter clips & stills, and writes `src/web/public/tutorial/*` + `.tutorial-build/dist/*` |
+| `scripts/tutorial/storyboard.json` | Declarative storyboard (chapters, scenes, narration text, cue-word-synced actions, and `optional: true` M11 scene probes) |
+| `scripts/tutorial/recorder.py` | Playwright + CDP screencast recorder with action scheduling against TTS word boundaries and automatic route/text probing |
+| `scripts/tutorial/tts.py` | Neural TTS via `edge-tts` (`en-US-AndrewMultilingualNeural`) with hash-based caching and WebVTT caption cue grouping |
+| `scripts/tutorial/compose.py` | FFmpeg clip assembly (`xfade` transitions), procedural ambient music with voice-sidechain ducking, click/whoosh SFX, EBU R128 loudnorm (`-16 LUFS`), MP4 muxing, per-chapter clip cutting, and still extraction |
+| `scripts/tutorial/overlay.js` | Motion-graphics overlay injected outside `#root` (animated cursor, click ripples, numbered callout boxes, spotlights, smooth zoom, lower-third chapter banners) |
+| `scripts/tutorial/stage.html` | Animated kinetic-typography intro, brand reveal, outro CTA, and poster frame |
+| `scripts/tutorial/serve.py` | Local static HTTP server for `src/web/dist` under `/D2DAuditServices/app/` |
+| `scripts/tutorial/site/` | Standalone static tutorials site (`index.html`, `walkthrough.html`, `assets/site.{js,css}`, `.devcontainer/`) consuming `media/tutorial-chapters.json` |
+
+### Recording the Full M1–M11 Video
+
+```powershell
+pip install --quiet playwright edge-tts imageio-ffmpeg numpy
+python -m playwright install chromium
+python scripts/tutorial/build_tutorial.py
+```
+
+Useful incremental flags:
+
+- `python scripts/tutorial/build_tutorial.py --skip-build` — reuse an existing `src/web/dist` demo build.
+- `python scripts/tutorial/build_tutorial.py --only evidence,exposure` — re-record selected scene IDs and reuse cached takes from `.tutorial-build/frames/`.
+- `python scripts/tutorial/build_tutorial.py --no-clips --no-app-copy` — fast smoke run writing only to `.tutorial-build/dist/` without overwriting `src/web/public/tutorial/`.
+
+### Outputs
+
+- **In-app tutorial (`/tutorial`)**: `src/web/public/tutorial/d2d-super-app-tutorial.mp4`, `d2d-super-app-tutorial.vtt`, and `tutorial-chapters.json` (v2 manifest automatically recognized by `TutorialPage.tsx`).
+- **Standalone tutorials site bundle (scratch, gitignored)**: `.tutorial-build/dist/` (full MP4, WebVTT captions, `chapters.vtt`, `poster.jpg`, per-chapter `clips/*.mp4`, per-scene `shots/*.jpg`, and `tutorial-chapters.json`).
 
 ---
 
-## 2. Regenerating the Video & Audio Tutorial
+## 2. Offline Animated Slide Generator (v1 Fallback — `scripts/generate_tutorial_video.py`)
 
-To regenerate `d2d-super-app-tutorial.mp4`, `d2d-super-app-tutorial.vtt`, and `tutorial-chapters.json` locally:
+For environments without Playwright or network access for `edge-tts`, `scripts/generate_tutorial_video.py` generates an 8-chapter 1080p animated architecture walkthrough (`10 fps` Pillow frames + Windows `System.Speech` voiceover):
 
 ```powershell
 pip install --quiet pillow imageio imageio-ffmpeg
 python scripts/generate_tutorial_video.py
 ```
 
-The script automatically verifies that the resulting `.mp4` contains both an H.264 video stream and an AAC audio stream and exceeds 60 seconds in duration.
-
 ---
 
-## 3. 8-Chapter Walkthrough Structure
+## 3. Verified Technical References in `/tutorial`
 
-1. **Chapter 1: Executive Overview — The Vanta + Drata + VRINDA All-in-One Super App & Database-per-Tenant Architecture**
-   - Physical PostgreSQL database-per-tenant isolation (`TenantDbContext`), `ProviderClaim` cross-tenant uniqueness, and 100% completion across Milestones M1–M10 and all 18 Gap Tracker capabilities.
-2. **Chapter 2: Multi-Cloud CSPM (AWS, Azure, GCP) & 13 Compliance Frameworks + What-If Gap Simulator**
-   - 16 automated cross-cloud checks mapped across 13 embedded catalogs (`soc2`, `iso27001`, `iso27017`, `iso27018`, `hipaa`, `gdpr`, `pci-dss`, `nist-csf`, `dora`, `iso42001`, `nist-ai-rmf`, `eu-ai-act`, `iec62443`), custom CSV framework upload, and 1-click What-If Gap Simulator control adoption.
-3. **Chapter 3: Cloud Security Intelligence — Public Exposure, 1-Click Terraform/CLI Remediation & Blast-Radius Attack Paths**
-   - Internet-open security groups/NSGs/firewalls and public buckets with copy-ready Terraform HCL & CLI lockdown snippets, correlated into multi-hop blast-radius attack graphs (`Internet Exposure -> Leaked Secret -> Identity Gap -> PII Store`).
-4. **Chapter 4: Container CVEs, OSS Licenses, Baked-in Secrets (SARIF 2.1.0), DSPM PII Discovery & FinOps × Compliance**
-   - Automatic secret redaction on SARIF 2.1.0 ingestion (`SarifParser.RedactSnippet`), DSPM PII/PHI/PCI data store classification, and FinOps cost recommendations linked directly to failing compliance controls (`CFG-01`, `CR-02`, `BC-01`).
-5. **Chapter 5: Tamper-Evident Evidence Chain (Parquet + SHA-256 + S3 Object Lock) & Audit Time Machine**
-   - Per-tenant serialized `EvidenceWriter`, chained `SHA-256` entry hashes stored with S3 Object Lock WORM retention, client-side Web Crypto byte verification, and historical posture comparison in the Audit Time Machine.
-6. **Chapter 6: Trust Center v2 — Clickwrap NDA (`X-Trust-Token`), Buyer-Verifiable Cryptographic Receipts & Trust AI Q&A**
-   - Full-chain continuity verification (`genesis -> head`), browser-verifiable Cryptographic Trust Receipts, constant-time `X-Trust-Token` header NDA downloads, and public Trust Center AI Q&A.
-7. **Chapter 7: Workforce, Checkr, KnowBe4, MDM/Endpoint Agent, RoPA/DPIA, AI Model Registry & Multi-Entity Rollup**
-   - Jamf/Intune/Kandji + device agent check-ins, Checkr background checks, KnowBe4 phishing simulations, SCIM 2.0 provisioning, GDPR RoPA/DPIA registers, AI Model Governance Registry, and parent/subsidiary Multi-Entity Rollup in `/governance-hub`.
-8. **Chapter 8: Auditor Workspace, Grounded AI Assistant, Developer API Keys (`Bearer d2d_api_...`), Signed Webhooks & Open-Source Jenkins CI**
-   - Framework- and storage-prefix-isolated external Auditor Portal, role-scoped Grounded AI Assistant side panel, runtime SHA-256 `Bearer d2d_api_...` authentication, SSRF/DNS-rebinding-hardened `HMAC-SHA256` outbound webhooks, open-source Jenkins CI, and AWS/EU Terraform + Render Blueprint deployment.
+All architecture diagrams, code snippets, and packet-flow presets inside `src/web/src/features/tutorial/TutorialPage.tsx` map directly to committed code:
+
+1. **Evidence Chain (`EvidenceChain.cs`, `EvidenceWriter.cs`, `s3_object_lock.tf`)**:
+   - `EvidenceWriter.AppendAsync` (per-tenant `SemaphoreSlim`) -> `EvidenceChain.NextHead(previousHead, contentHash, canonical)` (`SHA256(PreviousHead\nContentHash\nCanonical)`), backed by `infra/terraform/s3_object_lock.tf` (`COMPLIANCE` default, configurable to `GOVERNANCE`).
+2. **Trust Center v2 (`EnterpriseEndpoints.cs`, `TrustReceiptBuilder`, `TrustPublicPage.tsx`)**:
+   - `GET /api/v1/public/trust/{slug}/receipt` verified in-browser via Web Crypto SHA-256; NDA-gated downloads authenticated via constant-time `X-Trust-Token` header.
+3. **Enterprise Governance Hub (`GovernanceHubEndpoints.cs`, `GovernanceHub.cs`)**:
+   - `GET /api/v1/governance/overview`, `LegalEntityRecord` multi-entity rollup, `PrivacyAssessment` (RoPA & DPIA), `AiModelRecord`, Checkr/KnowBe4/SCIM 2.0, 1-click Remediation PRs, and Audit Time Machine (`GET /api/v1/governance/time-machine`).
+4. **Cloud Security Intelligence (`CloudSecurity.cs`, `CloudSecurityEndpoints.cs`)**:
+   - `ExposureAnalyzer`, `SarifParser.RedactSnippet`, `DspmScorer`, `FinOpsAnalyzer`, and `AttackPathAnalyzer`.

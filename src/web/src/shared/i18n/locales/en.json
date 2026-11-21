@@ -369,6 +369,8 @@
     "file": "File",
     "titleLabel": "Title",
     "download": "Download evidence",
+    "preview": "Preview",
+    "previewTitle": "Preview of {{title}}",
     "checked": "{{count}} links checked",
     "verified": "SHA-256 verified",
     "notStored": "Not stored",

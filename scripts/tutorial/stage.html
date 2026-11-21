@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>D2D Audit tutorial stage</title>
+    <style>
+      :root {
+        --ink: #f5f3ff;
+        --violet: #7c5cff;
+        --cyan: #22d3ee;
+        --amber: #ffb020;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b0920;
+        color: var(--ink);
+        font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      }
+      .bg {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(900px 600px at 15% 20%, rgba(124, 92, 255, 0.35), transparent 60%),
+          radial-gradient(800px 600px at 85% 80%, rgba(34, 211, 238, 0.25), transparent 60%),
+          linear-gradient(160deg, #0b0920, #140f3a 55%, #0b0920);
+      }
+      .grid {
+        position: fixed;
+        inset: -200px;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 64px 64px;
+        animation: drift 30s linear infinite;
+        mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
+      }
+      @keyframes drift {
+        to {
+          transform: translate(64px, 64px);
+        }
+      }
+      .blob {
+        position: fixed;
+        width: 520px;
+        height: 520px;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.5;
+        animation: float 14s ease-in-out infinite alternate;
+      }
+      .b1 {
+        background: var(--violet);
+        left: -120px;
+        top: 520px;
+      }
+      .b2 {
+        background: var(--cyan);
+        right: -160px;
+        top: -140px;
+        animation-delay: -6s;
+      }
+      @keyframes float {
+        to {
+          transform: translate(120px, -80px) scale(1.15);
+        }
+      }
+      #kinetic {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 18px;
+        transition: opacity 400ms ease, transform 600ms ease;
+      }
+      #kinetic.out {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+      .w {
+        font-size: 104px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        opacity: 0;
+        transform: translateY(40px) scale(0.92);
+        filter: blur(14px);
+        animation: pop 650ms cubic-bezier(0.2, 0.9, 0.3, 1.15) forwards;
+        text-align: center;
+      }
+      .w.small {
+        font-size: 64px;
+        font-weight: 600;
+        color: #c9c3ff;
+      }
+      .w.strike {
+        position: relative;
+        color: #b9b4d6;
+      }
+      .w.strike::after {
+        content: "";
+        position: absolute;
+        left: -8px;
+        right: -8px;
+        top: 55%;
+        height: 10px;
+        border-radius: 6px;
+        background: #ff4d6d;
+        transform: scaleX(0);
+        transform-origin: left;
+        animation: strike 450ms 500ms ease-out forwards;
+      }
+      @keyframes strike {
+        to {
+          transform: scaleX(1);
+        }
+      }
+      .w.grad {
+        background: linear-gradient(90deg, #fff, #c4b5fd 40%, var(--cyan));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      @keyframes pop {
+        to {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+      }
+      #brand {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #brand.on {
+        opacity: 1;
+      }
+      .brandrow {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+      }
+      .mark {
+        width: 190px;
+        height: 190px;
+        transform: scale(0.3) rotate(-30deg);
+        opacity: 0;
+        transition: all 900ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+      }
+      #brand.on .mark {
+        transform: none;
+        opacity: 1;
+      }
+      .mark .check {
+        stroke-dasharray: 120;
+        stroke-dashoffset: 120;
+        transition: stroke-dashoffset 700ms 600ms ease-out;
+      }
+      #brand.on .mark .check {
+        stroke-dashoffset: 0;
+      }
+      .name {
+        font-size: 150px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        clip-path: inset(0 100% 0 0);
+        transition: clip-path 900ms 250ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      #brand.on .name {
+        clip-path: inset(0 0 0 0);
+      }
+      .name span {
+        background: linear-gradient(90deg, #a78bfa, var(--cyan));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .tag {
+        margin-top: 26px;
+        text-align: center;
+        font-size: 44px;
+        color: #cfc9ff;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 700ms 900ms ease;
+      }
+      #brand.on .tag {
+        opacity: 1;
+        transform: none;
+      }
+      #outro {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        transition: opacity 600ms ease;
+      }
+      #outro.on {
+        opacity: 1;
+      }
+      .cta {
+        text-align: center;
+      }
+      .cta h1 {
+        font-size: 112px;
+        margin: 0 0 18px;
+        letter-spacing: -0.02em;
+      }
+      .cta p {
+        font-size: 40px;
+        color: #cfc9ff;
+        margin: 0 0 54px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 22px;
+        padding: 26px 48px;
+        border-radius: 999px;
+        font-size: 44px;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--violet), #4f46e5);
+        box-shadow: 0 20px 60px rgba(124, 92, 255, 0.5);
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          transform: scale(1.04);
+          box-shadow: 0 26px 80px rgba(124, 92, 255, 0.7);
+        }
+      }
+      .links {
+        margin-top: 46px;
+        font-size: 30px;
+        color: #a9a0ff;
+        display: flex;
+        gap: 60px;
+        justify-content: center;
+      }
+      .item {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 700ms cubic-bezier(0.2, 0.9, 0.3, 1);
+      }
+      #outro.on .item {
+        opacity: 1;
+        transform: none;
+      }
+      #outro.on .item:nth-child(2) {
+        transition-delay: 200ms;
+      }
+      #outro.on .item:nth-child(3) {
+        transition-delay: 500ms;
+      }
+      #outro.on .item:nth-child(4) {
+        transition-delay: 800ms;
+      }
+      #poster {
+        display: none;
+      }
+      body.poster #poster {
+        display: block;
+      }
+      body.poster #kinetic {
+        display: none;
+      }
+      .ptitle {
+        position: fixed;
+        left: 120px;
+        top: 300px;
+        width: 1100px;
+      }
+      .ptitle .k {
+        font-size: 34px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--cyan);
+        font-weight: 700;
+      }
+      .ptitle h1 {
+        font-size: 120px;
+        line-height: 1.02;
+        margin: 20px 0;
+        letter-spacing: -0.03em;
+      }
+      .ptitle p {
+        font-size: 40px;
+        color: #cfc9ff;
+      }
+      .play {
+        position: fixed;
+        right: 260px;
+        top: 360px;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        border: 4px solid rgba(255, 255, 255, 0.5);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 30px 90px rgba(124, 92, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg"></div>
+    <div class="grid"></div>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div id="kinetic"></div>
+
+    <div id="brand">
+      <div>
+        <div class="brandrow">
+          <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#7c5cff" />
+                <stop offset="1" stop-color="#22d3ee" />
+              </linearGradient>
+            </defs>
+            <path d="M50 6 L88 20 V48 C88 72 71 88 50 95 C29 88 12 72 12 48 V20 Z" fill="url(#g)" />
+            <path class="check" d="M32 51 L45 64 L70 37" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="name">D2D <span>Audit</span></div>
+        </div>
+        <div class="tag" id="tagline">Compliance on autopilot.</div>
+      </div>
+    </div>
+
+    <div id="outro">
+      <div class="cta">
+        <h1 class="item">Audit-ready. Always.</h1>
+        <p class="item" id="outro-sub">Frameworks, evidence, risk and trust in one place.</p>
+        <div class="item"><span class="pill">&#9654;&nbsp; Try the live demo</span></div>
+        <div class="item links">
+          <span id="demo-url">d2d-audit-web.onrender.com</span>
+          <span id="tut-url">cvpeceee.github.io/D2DAudit-Tutorials</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="poster">
+      <div class="ptitle">
+        <div class="k">Product tour &middot; 3 minutes</div>
+        <h1>Audit-ready in minutes, not months.</h1>
+        <p>See D2D Audit automate SOC 2, ISO 27001 and more.</p>
+      </div>
+      <div class="play">
+        <svg width="120" height="120" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#fff" /></svg>
+      </div>
+    </div>
+
+    <script>
+      const k = document.getElementById("kinetic");
+      window.stage = {
+        word(text, cls = "") {
+          k.classList.remove("out");
+          const d = document.createElement("div");
+          d.className = "w " + cls;
+          d.textContent = text;
+          k.appendChild(d);
+        },
+        clearWords() {
+          k.classList.add("out");
+          setTimeout(() => {
+            k.innerHTML = "";
+            k.classList.remove("out");
+          }, 420);
+        },
+        brand(tagline) {
+          stage.clearWords();
+          if (tagline) document.getElementById("tagline").textContent = tagline;
+          setTimeout(() => document.getElementById("brand").classList.add("on"), 300);
+        },
+        hideBrand() {
+          document.getElementById("brand").classList.remove("on");
+        },
+        outro(opts = {}) {
+          stage.clearWords();
+          stage.hideBrand();
+          if (opts.demo) document.getElementById("demo-url").textContent = opts.demo;
+          if (opts.site) document.getElementById("tut-url").textContent = opts.site;
+          if (opts.sub) document.getElementById("outro-sub").textContent = opts.sub;
+          setTimeout(() => document.getElementById("outro").classList.add("on"), 200);
+        },
+        poster() {
+          document.body.classList.add("poster");
+        },
+      };
+      if (location.search.includes("poster")) stage.poster();
+    </script>
+  </body>
+</html>
