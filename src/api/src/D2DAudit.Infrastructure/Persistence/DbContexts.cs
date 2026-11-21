@@ -243,6 +243,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RemediationPullRequest> RemediationPullRequests => Set<RemediationPullRequest>();
 
+    public DbSet<PostureSnapshot> PostureSnapshots => Set<PostureSnapshot>();
+
+    public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
+
+    public DbSet<NotificationReceipt> NotificationReceipts => Set<NotificationReceipt>();
+
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+
+    public DbSet<ReportSchedule> ReportSchedules => Set<ReportSchedule>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -943,6 +953,48 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         pr.Property(x => x.Status).HasMaxLength(32).IsRequired();
         pr.Property(x => x.EvidenceSha256).HasMaxLength(64).IsRequired();
         pr.HasIndex(x => x.ControlCode);
+
+        var posture = modelBuilder.Entity<PostureSnapshot>();
+        posture.ToTable("posture_snapshots");
+        posture.HasKey(x => x.Id);
+        posture.Property(x => x.FrameworksJson).HasMaxLength(8000).IsRequired();
+        posture.Property(x => x.FailingTestIdsJson).HasMaxLength(20000).IsRequired();
+        posture.HasIndex(x => x.Day).IsUnique();
+
+        var userNote = modelBuilder.Entity<UserNotification>();
+        userNote.ToTable("user_notifications");
+        userNote.HasKey(x => x.Id);
+        userNote.Property(x => x.RecipientEmail).HasMaxLength(320);
+        userNote.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        userNote.Property(x => x.Title).HasMaxLength(200).IsRequired();
+        userNote.Property(x => x.Body).HasMaxLength(1000).IsRequired();
+        userNote.Property(x => x.Href).HasMaxLength(200).IsRequired();
+        userNote.Property(x => x.DedupeKey).HasMaxLength(300).IsRequired();
+        userNote.HasIndex(x => x.DedupeKey).IsUnique();
+        userNote.HasIndex(x => new { x.RecipientEmail, x.At });
+
+        var receipt = modelBuilder.Entity<NotificationReceipt>();
+        receipt.ToTable("notification_receipts");
+        receipt.HasKey(x => x.Id);
+        receipt.Property(x => x.Email).HasMaxLength(320).IsRequired();
+        receipt.HasIndex(x => new { x.NotificationId, x.Email }).IsUnique();
+
+        var preference = modelBuilder.Entity<NotificationPreference>();
+        preference.ToTable("notification_preferences");
+        preference.HasKey(x => x.Id);
+        preference.Property(x => x.Email).HasMaxLength(320).IsRequired();
+        preference.Property(x => x.Kind).HasMaxLength(32).IsRequired();
+        preference.HasIndex(x => new { x.Email, x.Kind }).IsUnique();
+
+        var schedule = modelBuilder.Entity<ReportSchedule>();
+        schedule.ToTable("report_schedules");
+        schedule.HasKey(x => x.Id);
+        schedule.Property(x => x.ReportKey).HasMaxLength(32).IsRequired();
+        schedule.Property(x => x.Frequency).HasMaxLength(16).IsRequired();
+        schedule.Property(x => x.Format).HasMaxLength(8).IsRequired();
+        schedule.Property(x => x.Recipients).HasMaxLength(2000).IsRequired();
+        schedule.Property(x => x.LastDeliveryId).HasMaxLength(200);
+        schedule.HasIndex(x => x.ReportKey).IsUnique();
     }
 }
 

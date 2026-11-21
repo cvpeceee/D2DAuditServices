@@ -40,6 +40,9 @@ import { TrustAdminPage } from "./features/trust/TrustAdminPage";
 import { TrustPublicPage } from "./features/trust/TrustPublicPage";
 import { GovernanceHubPage } from "./features/governance/GovernanceHubPage";
 import { TutorialPage } from "./features/tutorial/TutorialPage";
+import { ResetPasswordPage } from "./features/auth/ResetPasswordPage";
+import { NotificationsPage } from "./features/notifications/NotificationsPage";
+import { ReportsPage } from "./features/reports/ReportsPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -85,6 +88,7 @@ export function App() {
         }
       />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/trust/:slug" element={<TrustPublicPage />} />
       <Route
         element={
@@ -128,6 +132,8 @@ export function App() {
         <Route path="integrations" element={<IntegrationsPage />} />
         <Route path="governance-hub" element={<GovernanceHubPage />} />
         <Route path="tutorial" element={<TutorialPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

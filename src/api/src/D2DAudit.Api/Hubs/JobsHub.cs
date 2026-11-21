@@ -69,3 +69,9 @@ public sealed class SignalRJobNotifier(IHubContext<JobsHub> hub) : IJobNotifier
         return hub.Clients.Group(JobsHub.Group(job.TenantId.Value)).SendAsync("job", dto, cancellationToken);
     }
 }
+
+public sealed class SignalRNotificationPush(IHubContext<JobsHub> hub) : INotificationPush
+{
+    public Task NotifyAsync(Guid tenantId, int created, CancellationToken cancellationToken) =>
+        hub.Clients.Group(JobsHub.Group(tenantId)).SendAsync("notification", new { created }, cancellationToken);
+}

@@ -5,6 +5,7 @@ import { ApiError, api, download, type Dashboard, type Integration } from "../..
 import { useAuth } from "../auth/AuthContext";
 import type { WorkTask } from "../program/types";
 import { daysUntil, formatDate, Pill, Ring, Skeleton } from "../../shared/ui/ui";
+import { TrendsPanel } from "../insights/TrendChart";
 
 function IntegrationHealth({ tenantId }: { tenantId: string | null }) {
   const { t } = useTranslation();
@@ -116,7 +117,8 @@ function ringTone(percent: number) {
 
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { tenantId } = useAuth();
+  const { tenantId, tenants } = useAuth();
+  const role = tenants.find((item) => item.tenantId === tenantId)?.role;
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -313,6 +315,7 @@ export function DashboardPage() {
         </div>
       </div>
       <MyWork tenantId={tenantId} />
+      {role !== "Auditor" && <TrendsPanel tenantId={tenantId} />}
       <div className="card" style={{ marginTop: 14 }}>
         <h3>{t("dashboard.dueTitle")}</h3>
         {data.dueItems.length === 0 ? (

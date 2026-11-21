@@ -125,6 +125,15 @@ An engagement has a scope, a period, and a framework. Auditors request samples (
 
 Download builds a zip in the background and reports the step over the same jobs hub as collection. The zip holds in-scope evidence, a hashes manifest, an integrity report for the full chain, and a control matrix as CSV and PDF. A broken chain still produces a package whose report says so. The job is the record of that check.
 
+## Insights, notifications, and reports
+
+- Posture snapshots: one row per workspace per day (controls passing and total per framework, failing tests, open vulnerabilities by severity, open tasks, overdue items). A snapshot is written after each collection and by an in-process daily job. `GET /api/v1/insights/trends?days=` reads the history and `POST /api/v1/insights/snapshot` records today.
+- Notifications: generated from current state for a failing test, a task assigned to you, a policy waiting for your acknowledgment, a risk or vendor review that is due or overdue, and an open auditor request. Each person can choose in-app, email, or Slack per event type (`/notifications`). Live updates go over the jobs hub. The daily email digest uses the existing notifier (`ConfigurableNotifier`), so it is mocked until Resend, SMTP, or Slack is configured.
+- Search: `GET /api/v1/search?q=` returns controls, policies, risks, vendors, people, evidence, tests, and frameworks the caller can see. Auditors see only granted frameworks and their controls, policies, tests, and evidence. Employees see frameworks and policies. Ctrl/Cmd+K opens the palette.
+- Reports (`/reports`): board, framework readiness, risk, vendor, and personnel reports as CSV or one-page PDF (`GET /api/v1/reports/{key}?format=csv|pdf`). Admins can schedule delivery (daily, weekly, monthly) to a recipient list. Delivery uses the same notifier and is mocked until configured. Auditors and employees cannot export reports.
+
+No new configuration keys are needed.
+
 ## Tests
 
 ```bash
@@ -165,9 +174,9 @@ Browser smoke test of the demo build (not part of `npm test`): `cd src/web && np
 - Example workspaces show fixture integration results. Other workspaces stay empty until someone connects them. Computers in the example workspace come from the MDM fixture plus manual rows. The installed device agent is still later.
 - Framework content is JSON embedded in the API and loaded into each tenant database. Descriptions are short paraphrases. ISO/IEC 27001 clauses 4–10 are not seeded; Annex A is.
 - An auditor's control mappings are limited to frameworks on the grant.
-- The control-health chart from the mockup is not drawn. The dashboard shows current counts.
+- The dashboard draws control-health, framework-readiness, and failing-test trends as plain SVG from daily posture snapshots. Each chart has a title, description, and a data-table fallback. Auditors do not see the trend panel.
 - The mockup's "Production" label is "Example data" on the example tenants.
-- Password reset calls WorkOS and always shows a generic result. The confirm-reset page is not in this milestone.
+- Password reset calls WorkOS and always shows a generic result. The link opens `/reset-password?token=`, which confirms through WorkOS (`/user_management/password_reset/confirm`). Set the WorkOS password reset URL to `<web origin>/reset-password`. In local identity mode the signed 30-minute link is written to the development log instead of sent. New passwords need at least 12 characters.
 - TLS terminates at the edge later. Local HTTP is development only.
 - The development signing key, the example password, and `d2d_dev_password` are well known. They are refused as a production identity configuration.
 - The HTTP edge is ASP.NET Core minimal APIs, one `MapGroup` per feature. Progress is SignalR on `/hubs/jobs`.

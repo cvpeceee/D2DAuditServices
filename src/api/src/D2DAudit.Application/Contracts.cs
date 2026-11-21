@@ -98,6 +98,10 @@ public interface IIdentityProvider
 
     /// <summary>True when the provider accepted the request. False when this mode has no reset.</summary>
     Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
+
+    /// <summary>Sets a new password from a reset token. Returns "reset", "invalid_token", "weak_password", or "unavailable".</summary>
+    Task<string> ConfirmPasswordResetAsync(string token, string newPassword, CancellationToken cancellationToken) =>
+        Task.FromResult("unavailable");
 }
 
 public static class IdentityModeResolver
@@ -289,6 +293,8 @@ public interface IAuthService
     Task<AuthSession> RefreshAsync(string refreshToken, string? ip, string? userAgent, CancellationToken cancellationToken);
 
     Task<string> RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
+
+    Task<string> ConfirmPasswordResetAsync(string token, string newPassword, CancellationToken cancellationToken);
 
     Task<AuthSession?> CurrentAsync(string subject, CancellationToken cancellationToken);
 

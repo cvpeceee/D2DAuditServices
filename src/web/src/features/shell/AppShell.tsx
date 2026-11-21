@@ -2,17 +2,14 @@ import { HubConnectionBuilder } from "@microsoft/signalr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  api,
-  type Device,
-  type Job,
-  type Notification,
-  type Workspace,
-} from "../../shared/api/client";
+import { api, type Device, type Job, type Workspace } from "../../shared/api/client";
 import { useAuth } from "../auth/AuthContext";
 import { initials } from "../../shared/ui/ui";
 import { useTheme, type ThemeChoice } from "../../shared/theme/ThemeProvider";
 import { Icon } from "../../shared/ui/icons";
+import { NotificationBell, notificationEvent } from "../notifications/NotificationBell";
+import { Breadcrumbs } from "./Breadcrumbs";
+import { searchKindIcon, useGlobalSearch } from "./globalSearch";
 
 const links = [
   { to: "/", key: "dashboard", end: true },
@@ -73,8 +70,6 @@ export function AppShell() {
       citations?: { kind: string; code: string; title: string; href: string }[];
     }[]
   >([]);
-  const [notes, setNotes] = useState<Notification[]>([]);
-  const [notesOpen, setNotesOpen] = useState(false);
   const [deviceCount, setDeviceCount] = useState(0);
   const paletteSearch = useRef<HTMLInputElement>(null);
   const location = useLocation();
@@ -89,13 +84,6 @@ export function AppShell() {
     void api<Job[]>("/api/v1/jobs", { tenantId }).then((value) => {
       if (!cancelled) setJobs(value);
     });
-    void api<Notification[]>("/api/v1/notifications", { tenantId })
-      .then((value) => {
-        if (!cancelled) setNotes(value);
-      })
-      .catch(() => {
-        if (!cancelled) setNotes([]);
-      });
     void api<Device[]>("/api/v1/devices", { tenantId })
       .then((value) => {
         if (!cancelled) setDeviceCount(value.length);
@@ -122,6 +110,9 @@ export function AppShell() {
       .build();
     connection.on("job", (job: Job) => {
       pushJob(job);
+    });
+    connection.on("notification", () => {
+      window.dispatchEvent(new Event(notificationEvent));
     });
     // Delay the handshake so a strict-mode remount does not abort it mid-negotiate.
     const start = window.setTimeout(() => {
@@ -189,6 +180,14 @@ export function AppShell() {
       );
     }
     items.push({ id: "tutorial", label: t("nav.tutorial"), run: () => navigate("/tutorial") });
+    items.push({
+      id: "notifications",
+      label: t("nav.notifications"),
+      run: () => navigate("/notifications"),
+    });
+    if (workspace && workspace.role !== "Auditor" && workspace.role !== "Employee") {
+      items.push({ id: "reports", label: t("nav.reports"), run: () => navigate("/reports") });
+    }
     if (workspace?.canWrite) {
       items.push({ id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") });
     }
@@ -202,11 +201,28 @@ export function AppShell() {
       });
     });
     return items;
-  }, [navigate, setChoice, t, workspace?.canWrite, workspace?.role]);
+  }, [navigate, setChoice, t, workspace]);
 
-  const filtered = actions.filter((action) =>
-    action.label.toLowerCase().includes(query.trim().toLowerCase()),
-  );
+  const { results: searchResults, loading: searching } = useGlobalSearch(query, tenantId, palette);
+  const filtered = [
+    ...actions
+      .filter((action) => action.label.toLowerCase().includes(query.trim().toLowerCase()))
+      .slice(0, query.trim() ? 6 : actions.length)
+      .map((action) => ({
+        ...action,
+        icon: action.id.startsWith("theme-") ? "settings" : action.id,
+        sub: t("palette.page"),
+      })),
+    ...searchResults.map((result) => ({
+      id: `${result.kind}-${result.key}`,
+      label: result.title,
+      icon: searchKindIcon[result.kind] ?? result.kind,
+      sub: `${t(`palette.kinds.${result.kind}`, { defaultValue: result.kind })}${
+        result.subtitle ? ` · ${result.subtitle}` : ""
+      }`,
+      run: () => navigate(result.href),
+    })),
+  ];
 
   useEffect(() => {
     if (palette) paletteSearch.current?.focus();
@@ -223,6 +239,7 @@ export function AppShell() {
         setPalette(false);
         setTray(false);
         setAccount(false);
+        setMenuOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -230,18 +247,6 @@ export function AppShell() {
   }, []);
 
   const tenant = tenants.find((item) => item.tenantId === tenantId) ?? tenants[0];
-  const parts = location.pathname.split("/").filter(Boolean);
-  const crumbKey =
-    parts[0] === "people" && parts[1] === "computers"
-      ? "computers"
-      : parts[0] === "trust-center"
-        ? "trust"
-        : parts[0] === "attack-paths"
-          ? "attackPaths"
-          : parts[0] === "governance-hub"
-            ? "governanceHub"
-            : parts[0] || "dashboard";
-  const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>
       job.status === "Running" ||
@@ -294,7 +299,11 @@ export function AppShell() {
           onClick={() => setMenuOpen(false)}
         />
       )}
-      <aside className={`side ${menuOpen ? "open" : ""}`}>
+      <aside
+        id="side-nav"
+        className={`side ${menuOpen ? "open" : ""}`}
+        aria-label={t("shell.navigation")}
+      >
         <div className="logo">
           <div className="mark">D2D</div>
           {t("productShort")}
@@ -398,6 +407,24 @@ export function AppShell() {
           <Icon name="auditor" />
           <span>{t("nav.auditor")}</span>
         </NavLink>
+        {workspace && workspace.role !== "Auditor" && workspace.role !== "Employee" && (
+          <NavLink
+            to="/reports"
+            className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Icon name="reports" />
+            <span>{t("nav.reports")}</span>
+          </NavLink>
+        )}
+        <NavLink
+          to="/notifications"
+          className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Icon name="notifications" />
+          <span>{t("nav.notifications")}</span>
+        </NavLink>
         {workspace?.canWrite && (
           <NavLink
             to="/trust-center"
@@ -455,13 +482,13 @@ export function AppShell() {
             className="btn icon-btn menu-btn"
             type="button"
             aria-label={t("shell.menu")}
+            aria-expanded={menuOpen}
+            aria-controls="side-nav"
             onClick={() => setMenuOpen(true)}
           >
             ☰
           </button>
-          <div className="crumb">
-            {tenant?.name} / <b>{crumb}</b>
-          </div>
+          <Breadcrumbs tenant={tenant?.name} pathname={location.pathname} />
           <button
             className="search"
             type="button"
@@ -487,52 +514,7 @@ export function AppShell() {
               </button>
             ))}
           </div>
-          <div className="note-wrap">
-            <button
-              className="btn icon-btn"
-              type="button"
-              aria-label={t("shell.notifications")}
-              onClick={() => setNotesOpen((open) => !open)}
-              style={{ position: "relative" }}
-            >
-              <Icon name="bell" size={16} />
-              {notes.length > 0 && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 6,
-                    right: 6,
-                    width: 7,
-                    height: 7,
-                    borderRadius: "50%",
-                    background: "var(--accent)",
-                  }}
-                />
-              )}
-            </button>
-            {notesOpen && (
-              <div className="note-pop" role="dialog" aria-label={t("shell.notifications")}>
-                {notes.length === 0 ? (
-                  <div className="m">{t("shell.notificationsEmpty")}</div>
-                ) : (
-                  notes.map((note) => (
-                    <button
-                      key={`${note.at}-${note.title}`}
-                      className="note-item"
-                      type="button"
-                      onClick={() => {
-                        setNotesOpen(false);
-                        void navigate(note.href);
-                      }}
-                    >
-                      <b>{note.title}</b>
-                      <span>{note.body}</span>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+          <NotificationBell tenantId={tenantId} />
           <button
             className="btn icon-btn"
             type="button"
@@ -719,8 +701,8 @@ export function AppShell() {
               }}
             />
             {filtered.length === 0 && (
-              <div className="empty" style={{ padding: 16 }}>
-                {t("palette.empty")}
+              <div className="empty" style={{ padding: 16 }} role="status">
+                {searching ? t("palette.searching") : t("palette.empty")}
               </div>
             )}
             {filtered.map((action, index) => (
@@ -733,12 +715,9 @@ export function AppShell() {
                   setPalette(false);
                 }}
               >
-                <Icon
-                  name={action.id.startsWith("theme-") ? "settings" : action.id}
-                  size={15}
-                  style={{ opacity: 0.7 }}
-                />
+                <Icon name={action.icon} size={15} style={{ opacity: 0.7 }} />
                 <span>{action.label}</span>
+                <small className="m palette-sub">{action.sub}</small>
               </button>
             ))}
           </div>

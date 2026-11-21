@@ -18,6 +18,7 @@ import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
+import { handleDemoReset, handleInsights } from "./insights";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -149,6 +150,8 @@ async function route(
     throw new DemoError(400, "local_identity_mode");
   }
   if (path === "/api/v1/auth/forgot" && method === "POST") return json({ result: "sent" });
+  const reset = handleDemoReset(method, path, body);
+  if (reset) return reset;
   if (path === "/api/v1/me" && method === "GET") {
     if (!session) return json({ errorCode: "unauthorized" }, 401);
     return json(authBody());
@@ -179,6 +182,8 @@ async function route(
   if (enterprise) return enterprise;
   const governanceHub = await handleGovernanceHub(method, path, query, body, data, actor);
   if (governanceHub) return governanceHub;
+  const insights = handleInsights(method, path, query, body, data, actor);
+  if (insights) return insights;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
