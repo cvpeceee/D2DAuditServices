@@ -35,6 +35,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         tenant.Property(x => x.DatabaseName).HasMaxLength(63);
         tenant.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
         tenant.HasIndex(x => x.Slug).IsUnique();
+        tenant.Property<uint>("Version").IsRowVersion();
 
         var user = modelBuilder.Entity<UserAccount>();
         user.ToTable("users");
@@ -61,6 +62,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         grant.Property(x => x.AuditName).HasMaxLength(200).IsRequired();
         grant.Property(x => x.FirmName).HasMaxLength(200).IsRequired();
         grant.HasIndex(x => new { x.UserId, x.TenantId });
+        grant.HasIndex(x => x.TenantId);
 
         var grantFramework = modelBuilder.Entity<AuditorGrantFramework>();
         grantFramework.ToTable("auditor_grant_frameworks");
@@ -90,7 +92,7 @@ public sealed class ControlPlaneDbContext(DbContextOptions<ControlPlaneDbContext
         job.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
         job.Property(x => x.CurrentStep).HasMaxLength(200).IsRequired();
         job.Property(x => x.Error).HasMaxLength(500);
-        job.HasIndex(x => x.TenantId);
+        job.HasIndex(x => new { x.TenantId, x.UpdatedAt });
 
         var activity = modelBuilder.Entity<ActivityEvent>();
         activity.ToTable("activity_events");
@@ -305,7 +307,8 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         evidence.Property(x => x.PreviousHead).HasMaxLength(64);
         evidence.Property(x => x.ChainHead).HasMaxLength(64);
         evidence.Property(x => x.Integrity).HasConversion<string>().HasMaxLength(32);
-        evidence.HasOne<Control>().WithMany(x => x.Evidence).HasForeignKey(x => x.ControlId).OnDelete(DeleteBehavior.Cascade);
+        evidence.HasIndex(x => x.CollectedAt);
+        evidence.HasOne<Control>().WithMany(x => x.Evidence).HasForeignKey(x => x.ControlId).OnDelete(DeleteBehavior.Restrict);
 
         var integration = modelBuilder.Entity<IntegrationConnection>();
         integration.ToTable("integration_connections");
@@ -341,8 +344,9 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         snapshot.Property(x => x.Kind).HasMaxLength(32).IsRequired();
         snapshot.Property(x => x.ExternalId).HasMaxLength(200).IsRequired();
         snapshot.Property(x => x.Name).HasMaxLength(300).IsRequired();
-        snapshot.Property(x => x.AttributesJson).HasMaxLength(4000).IsRequired();
+        snapshot.Property(x => x.AttributesJson).HasColumnType("jsonb").IsRequired();
         snapshot.HasIndex(x => new { x.Provider, x.Kind, x.ExternalId }).IsUnique();
+        snapshot.HasIndex(x => x.Kind);
 
         var audit = modelBuilder.Entity<AuditEngagement>();
         audit.ToTable("audit_engagements");
@@ -412,6 +416,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         finding.Property(x => x.ResponseByName).HasMaxLength(200);
         finding.Property(x => x.Severity).HasConversion<string>().HasMaxLength(32);
         finding.HasIndex(x => x.Code).IsUnique();
+        finding.Property<uint>("Version").IsRowVersion();
 
         var risk = modelBuilder.Entity<RiskItem>();
         risk.ToTable("risks");
@@ -427,6 +432,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         risk.Property(x => x.LibraryCode).HasMaxLength(32).HasDefaultValue("");
         risk.Property(x => x.Approved).HasDefaultValue(false);
         risk.HasIndex(x => x.Code).IsUnique();
+        risk.Property<uint>("Version").IsRowVersion();
 
         var riskControl = modelBuilder.Entity<RiskControlLink>();
         riskControl.ToTable("risk_controls");
@@ -534,6 +540,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         note.Property(x => x.Title).HasMaxLength(200).IsRequired();
         note.Property(x => x.Body).HasMaxLength(1000).IsRequired();
         note.Property(x => x.Href).HasMaxLength(200).IsRequired();
+        note.HasIndex(x => x.At);
 
         var device = modelBuilder.Entity<EnrolledDevice>();
         device.ToTable("devices");
@@ -613,6 +620,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         vulnerability.Property(x => x.Source).HasMaxLength(40).IsRequired();
         vulnerability.Property(x => x.IgnoreReason).HasMaxLength(500).HasDefaultValue("");
         vulnerability.HasIndex(x => new { x.Cve, x.AssetName }).IsUnique();
+        vulnerability.HasIndex(x => x.Source);
 
         var slaPolicy = modelBuilder.Entity<VulnerabilityPolicy>();
         slaPolicy.ToTable("vulnerability_policies");
@@ -625,6 +633,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         sla.Property(x => x.AssetName).HasMaxLength(200).IsRequired();
         sla.Property(x => x.EventKind).HasMaxLength(32).IsRequired();
         sla.Property(x => x.Detail).HasMaxLength(500).IsRequired();
+        sla.HasIndex(x => x.At);
 
         var trust = modelBuilder.Entity<TrustProfile>();
         trust.ToTable("trust_profiles");
@@ -671,6 +680,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         delivery.Property(x => x.Target).HasMaxLength(200).IsRequired();
         delivery.Property(x => x.Summary).HasMaxLength(300).IsRequired();
         delivery.Property(x => x.ExternalId).HasMaxLength(80).IsRequired();
+        delivery.HasIndex(x => x.At);
 
         var incident = modelBuilder.Entity<SecurityIncident>();
         incident.ToTable("incidents");
@@ -708,6 +718,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         change.Property(x => x.DeployRef).HasMaxLength(80).HasDefaultValue("");
         change.HasIndex(x => x.Code).IsUnique();
         change.HasIndex(x => new { x.Source, x.ExternalKey });
+        change.HasIndex(x => x.OpenedAt);
 
         var questionnaire = modelBuilder.Entity<SecurityQuestionnaire>();
         questionnaire.ToTable("questionnaires");

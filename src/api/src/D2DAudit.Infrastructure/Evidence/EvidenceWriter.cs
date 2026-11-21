@@ -73,7 +73,7 @@ public sealed class EvidenceWriter(IStorageProvider storage, TimeProvider time, 
 
     public async Task<VerifyReport> VerifyAsync(TenantDbContext db, Guid tenantId, CancellationToken cancellationToken)
     {
-        var entries = await db.Chain.OrderBy(entry => entry.Sequence).ToListAsync(cancellationToken);
+        var entries = await db.Chain.AsNoTracking().OrderBy(entry => entry.Sequence).ToListAsync(cancellationToken);
         string? previous = null;
         var checkedCount = 0;
         foreach (var entry in entries)

@@ -371,15 +371,14 @@ public sealed class IntegrationQuery(
     public async Task<Result<EvidenceDownload>> DownloadAsync(Guid id, CancellationToken cancellationToken)
     {
         await using var db = databases.Create(Database());
-        var controls = await db.Controls.AsNoTracking()
-            .Include(item => item.Evidence)
-            .Include(item => item.Mappings).ThenInclude(mapping => mapping.Requirement!).ThenInclude(requirement => requirement.Framework)
-            .AsSplitQuery()
-            .ToListAsync(cancellationToken);
-        var match = controls
-            .Where(InScope)
-            .SelectMany(controlItem => controlItem.Evidence.Select(item => (Control: controlItem, Item: item)))
-            .FirstOrDefault(pair => pair.Item.Id == id);
+        var evidenceItem = await db.Evidence.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        var controlItem = evidenceItem is null
+            ? null
+            : await db.Controls.AsNoTracking()
+                .Include(item => item.Mappings).ThenInclude(mapping => mapping.Requirement!).ThenInclude(requirement => requirement.Framework)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(item => item.Id == evidenceItem.ControlId, cancellationToken);
+        var match = (Control: controlItem!, Item: controlItem is not null && InScope(controlItem) ? evidenceItem : null);
         if (match.Item is null || string.IsNullOrWhiteSpace(match.Item.ObjectKey))
         {
             return Result<EvidenceDownload>.Fail("not_found");

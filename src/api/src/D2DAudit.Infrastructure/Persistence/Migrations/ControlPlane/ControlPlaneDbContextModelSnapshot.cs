@@ -95,6 +95,8 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.ControlPlane
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId");
+
                     b.HasIndex("UserId", "TenantId");
 
                     b.ToTable("auditor_grants", (string)null);
@@ -159,7 +161,7 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.ControlPlane
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("TenantId", "UpdatedAt");
 
                     b.ToTable("jobs", (string)null);
                 });
@@ -269,6 +271,12 @@ namespace D2DAudit.Infrastructure.Persistence.Migrations.ControlPlane
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

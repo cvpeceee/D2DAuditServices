@@ -103,12 +103,13 @@ app.UseExceptionHandler(handler => handler.Run(async context =>
 {
     var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
     var environment = context.RequestServices.GetRequiredService<IHostEnvironment>();
-    const int status = StatusCodes.Status500InternalServerError;
+    var concurrency = error is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException;
+    var status = concurrency ? StatusCodes.Status409Conflict : StatusCodes.Status500InternalServerError;
     context.Response.StatusCode = status;
     await context.Response.WriteAsJsonAsync(
         new
         {
-            title = "Something went wrong.",
+            title = concurrency ? "This record was changed by someone else. Reload and try again." : "Something went wrong.",
             status,
             detail = environment.IsDevelopment() || environment.IsEnvironment("Testing") ? error?.Message : null,
         },

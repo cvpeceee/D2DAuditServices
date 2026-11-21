@@ -64,7 +64,8 @@ public static class DependencyInjection
             }
         }
 
-        services.AddDbContext<ControlPlaneDbContext>(options => options.UseNpgsql(connectionString));
+        var databaseSettings = DatabaseSettings.From(configuration);
+        services.AddDbContext<ControlPlaneDbContext>(options => options.UseNpgsql(connectionString, databaseSettings.Apply));
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<PasswordHasher<UserAccount>>();
         services.AddSingleton<LocalDummyPasswordHash>();
@@ -123,6 +124,10 @@ public static class DependencyInjection
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+        services.AddSingleton<WebhookSecretProtector>();
+        services.AddScoped<IApiKeyAuthenticator, ApiKeyAuthenticator>();
+        services.AddHttpClient<IWebhookDispatcher, WebhookDispatcher>(client => client.Timeout = TimeSpan.FromSeconds(15))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();
         services.AddHttpClient<IGovernanceHub, GovernanceHubPortal>(client => client.Timeout = TimeSpan.FromSeconds(25));
         services.AddSingleton<AwsInspectorFeed>();

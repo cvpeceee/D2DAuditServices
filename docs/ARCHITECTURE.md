@@ -163,6 +163,7 @@ A control-plane database holds tenants, users, memberships, auditor grants, exte
 
 Retention is at least three years and can only grow. HIPAA tenants are expected to keep required documentation for at least six years. That floor is a product rule. The check constraint on the tenant row enforces the three-year minimum.
 
+The database design is covered in [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md): ER diagrams, isolation layers, the indexing strategy, append-only triggers, `xmin` concurrency, retention and partitioning, backup and DR, and the M11 review findings.
 ## Auth and WorkOS
 
 `IIdentityProvider` is the boundary. Production and Staging require WorkOS. Development and Testing can use local identity, which signs tokens with a well-known development key and does not pretend to be Google, Microsoft, SSO, or MFA.

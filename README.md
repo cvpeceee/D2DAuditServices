@@ -1,6 +1,6 @@
 # D2D Audit Services
 
-D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with HIPAA and GDPR catalogs on the same core. Manufacturing and IoT/OT frameworks come later. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md). The system shape is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Each screen is in [docs/FEATURES.md](docs/FEATURES.md).
+D2D Audit Services is a compliance automation platform for companies undergoing audit, in the same category as Vanta and Drata. The first release covers IT frameworks, starting with ISO 27001 and SOC 2, with HIPAA and GDPR catalogs on the same core. Manufacturing and IoT/OT frameworks come later. Locked decisions are in [DECISIONS.md](DECISIONS.md). The milestone plan is in [docs/ROADMAP.md](docs/ROADMAP.md). Engineering rules are in [docs/ENGINEERING.md](docs/ENGINEERING.md). The system shape is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The database design, indexing, integrity, and review findings are in [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md). Each screen is in [docs/FEATURES.md](docs/FEATURES.md).
 
 A public clickable demo of the example workspace is at [https://cvpeceee.github.io/D2DAuditServices/app/](https://cvpeceee.github.io/D2DAuditServices/app/). It runs in the browser with example data only. Sign in as `chandra.vell@harborline.example` or `auditor@northgate.example`. The example password is on the login screen.
 
@@ -148,6 +148,7 @@ Integration tests start Postgres with Testcontainers. Set `TEST_POSTGRES` to an 
 - Tenant provisioning runs in-process and records a job. Collection uses Temporal when `TEMPORAL_ADDRESS` is set, and the same runner in-process when it is not. Production and Staging require Temporal.
 - The browser session is an httpOnly cookie (`d2d_session`, Lax, path `/`) plus a refresh cookie (Strict, path `/api/v1/auth`). Mutating requests send `X-D2D-Request: 1`. The active tenant is `X-Tenant-Id`.
 - Local identity is Development and Testing only, signs tokens with a well-known development key, and does not simulate MFA.
+- Database resiliency is configurable: `Database:CommandTimeoutSeconds` (default 30), `Database:MaxRetryCount` (default 3, `0` disables retries), and `Database:TenantMaxPoolSize` (default 20, the Npgsql pool cap for each tenant database). See [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md).
 - High contrast is a fourth theme, next to light, dark, and system. System follows `prefers-color-scheme` and `prefers-contrast`.
 - The assistant panel is a reserved shell. It does not call a model.
 - Evidence is a Parquet object (or the original upload bytes) plus a SHA-256 hash chain. Object Lock is required in Production and Staging. Development can use a local folder or MinIO.
