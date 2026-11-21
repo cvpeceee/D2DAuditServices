@@ -149,6 +149,8 @@ app.MapEnterpriseEndpoints();
 app.MapGovernanceHubEndpoints();
 app.MapInsightsEndpoints();
 app.MapAssuranceEndpoints();
+app.MapLifecycleEndpoints();
+app.MapVendorRiskEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs").DisableRequestTimeout();
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {

@@ -18,6 +18,9 @@ import { PeoplePage } from "./features/people/PeoplePage";
 import { RisksPage } from "./features/risks/RisksPage";
 import { SoaPage } from "./features/soa/SoaPage";
 import { VendorsPage } from "./features/vendors/VendorsPage";
+import { VendorDetailPage } from "./features/vendors/VendorDetailPage";
+import { VendorPortalPage } from "./features/vendorPortal/VendorPortalPage";
+import { LifecyclePage } from "./features/people/LifecyclePage";
 import { TestsPage } from "./features/tests/TestsPage";
 import { AppShell } from "./features/shell/AppShell";
 import { AssetsPage } from "./features/program/AssetsPage";
@@ -90,6 +93,7 @@ export function App() {
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/trust/:slug" element={<TrustPublicPage />} />
+      <Route path="/vendor-portal/:token" element={<VendorPortalPage />} />
       <Route
         element={
           <RequireAuth>
@@ -109,8 +113,10 @@ export function App() {
         <Route path="risks" element={<RisksPage />} />
         <Route path="soa" element={<SoaPage />} />
         <Route path="vendors" element={<VendorsPage />} />
+        <Route path="vendors/:id" element={<VendorDetailPage />} />
         <Route path="people" element={<PeoplePage />} />
         <Route path="people/computers" element={<ComputersPage />} />
+        <Route path="people/lifecycle" element={<LifecyclePage />} />
         <Route path="vulnerabilities" element={<VulnerabilitiesPage />} />
         <Route path="incidents" element={<IncidentsPage />} />
         <Route path="changes" element={<ChangesPage />} />

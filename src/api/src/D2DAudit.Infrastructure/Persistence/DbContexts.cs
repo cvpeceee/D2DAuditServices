@@ -271,9 +271,30 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<PolicyAttestation> PolicyAttestations => Set<PolicyAttestation>();
 
+    public DbSet<EmployeeGroup> EmployeeGroups => Set<EmployeeGroup>();
+
+    public DbSet<LifecycleTemplateStep> LifecycleTemplateSteps => Set<LifecycleTemplateStep>();
+
+    public DbSet<LifecycleSettings> LifecycleSettings => Set<LifecycleSettings>();
+
+    public DbSet<LifecycleChecklist> LifecycleChecklists => Set<LifecycleChecklist>();
+
+    public DbSet<LifecycleStep> LifecycleSteps => Set<LifecycleStep>();
+
+    public DbSet<VendorProfile> VendorProfiles => Set<VendorProfile>();
+
+    public DbSet<VendorDiscoverySuggestion> VendorDiscoverySuggestions => Set<VendorDiscoverySuggestion>();
+
+    public DbSet<VendorAssessment> VendorAssessments => Set<VendorAssessment>();
+
+    public DbSet<VendorAssessmentAnswer> VendorAssessmentAnswers => Set<VendorAssessmentAnswer>();
+
+    public DbSet<VendorReviewDocument> VendorReviewDocuments => Set<VendorReviewDocument>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         AssuranceModel.Configure(modelBuilder);
+        LifecycleModel.Configure(modelBuilder);
         var framework = modelBuilder.Entity<FrameworkRecord>();
         framework.ToTable("frameworks");
         framework.HasKey(x => x.Id);
