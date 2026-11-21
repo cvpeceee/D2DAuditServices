@@ -163,7 +163,7 @@ CHAPTERS: list[dict[str, Any]] = [
         "moduleLabel": "Open Evidence Chain & Verifier",
         "accent": "#f59e0b",
         "badge": "PARQUET SNAPSHOTS | SHA-256 HASH CHAIN | S3 OBJECT LOCK | AUDIT TIME MACHINE",
-        "codeSnippet": "ChainHash = SHA256(Seq:PrevHash:ContentSha256) | S3 GOVERNANCE Object Lock | Web Crypto Verify",
+        "codeSnippet": "Head = SHA256(PreviousHead\\nContentHash\\nCanonical) | S3 COMPLIANCE Object Lock | Web Crypto Verify",
         "narration": (
             "Chapter Five showcases our tamper-evident Evidence Chain and the Audit Time Machine. "
             "Every collector snapshot and uploaded artifact is serialized to Parquet or raw bytes, hashed with "

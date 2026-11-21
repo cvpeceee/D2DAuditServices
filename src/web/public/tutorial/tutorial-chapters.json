@@ -165,7 +165,7 @@
       "moduleRoute": "/evidence",
       "moduleLabel": "Open Evidence Chain & Verifier",
       "badge": "PARQUET SNAPSHOTS | SHA-256 HASH CHAIN | S3 OBJECT LOCK | AUDIT TIME MACHINE",
-      "codeSnippet": "ChainHash = SHA256(Seq:PrevHash:ContentSha256) | S3 GOVERNANCE Object Lock | Web Crypto Verify",
+      "codeSnippet": "Head = SHA256(PreviousHead\\nContentHash\\nCanonical) | S3 COMPLIANCE Object Lock | Web Crypto Verify",
       "narration": "Chapter Five showcases our tamper-evident Evidence Chain and the Audit Time Machine. Every collector snapshot and uploaded artifact is serialized to Parquet or raw bytes, hashed with SHA-256, and chained to the previous entry hash in S3 Object Lock compatible storage. Users can verify byte integrity locally in their browser via Web Crypto and diff historical posture snapshots across any two dates in the Audit Time Machine.",
       "nodes": [
         {

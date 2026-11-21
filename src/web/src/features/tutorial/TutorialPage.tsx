@@ -246,9 +246,9 @@ export const PACKET_FLOW_PRESETS: PacketFlowPreset[] = [
       {
         step: "2. Parquet + SHA-256 Chain",
         actor: "EvidenceChain + S3 Object Lock",
-        protocol: "SHA256(Sequence : PreviousHash : ContentSha256)",
+        protocol: "Head = SHA256(PreviousHead \\n ContentHash \\n Canonical)",
         detail:
-          "Appends tamper-evident ChainEntry linking ContentSha256 to PreviousHash with WORM retention under S3 GOVERNANCE Object Lock.",
+          "Appends tamper-evident ChainEntry linking ContentHash to PreviousHead with WORM retention under S3 COMPLIANCE-mode Object Lock.",
         verification: "EnterprisePortal.VerifyChainContinuity walks genesis -> head",
       },
       {
@@ -531,7 +531,7 @@ export const TUTORIAL_CHAPTERS: TutorialChapter[] = [
     secondaryLabel: "Open Audit Time Machine",
     badge: "PARQUET SNAPSHOTS | SHA-256 HASH CHAIN | S3 OBJECT LOCK | AUDIT TIME MACHINE",
     codeSnippet:
-      "ChainHash = SHA256(Seq:PrevHash:ContentSha256) | S3 GOVERNANCE Object Lock | Web Crypto Verify",
+      "Head = SHA256(PreviousHead\\nContentHash\\nCanonical) | S3 COMPLIANCE Object Lock | Web Crypto Verify",
     narration:
       "Chapter Five showcases our tamper-evident Evidence Chain and the Audit Time Machine. Every collector snapshot and uploaded artifact is serialized to Parquet or raw bytes, hashed with SHA-256, and chained to the previous entry hash in S3 Object Lock compatible storage. Users can verify byte integrity locally in their browser via Web Crypto and diff historical posture snapshots across any two dates in the Audit Time Machine.",
     nodes: [
