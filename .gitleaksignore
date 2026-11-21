@@ -1,0 +1,4 @@
+# Fake fixture values in tests (gitleaks generic-api-key false positives). Format: commit:file:rule:line
+8406a4e6a5bb0bb46ce996fd3f789a75dc221754:src/api/tests/D2DAudit.UnitTests/SecurityHardeningTests.cs:generic-api-key:188
+e80b131b4197dbd837e5a70ac7fbc4f365324b66:src/api/tests/D2DAudit.UnitTests/CloudSecurityTests.cs:generic-api-key:96
+e80b131b4197dbd837e5a70ac7fbc4f365324b66:src/web/src/demo/security.test.ts:generic-api-key:57

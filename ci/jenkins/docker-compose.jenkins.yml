@@ -29,6 +29,9 @@ services:
       JENKINS_ADMIN_USER: "${JENKINS_ADMIN_USER:-admin}"
       JENKINS_ADMIN_PASSWORD: "${JENKINS_ADMIN_PASSWORD:?Set JENKINS_ADMIN_PASSWORD before starting Jenkins}"
       JENKINS_URL: "${JENKINS_URL:-http://localhost:8085/}"
+      CASC_GITHUB_USER: "${CASC_GITHUB_USER:-cvpeceee}"
+      CASC_GITHUB_TOKEN: "${CASC_GITHUB_TOKEN:?Set CASC_GITHUB_TOKEN (GitHub token for the private repo)}"
+      CASC_RENDER_DEPLOY_HOOK_URL: "${CASC_RENDER_DEPLOY_HOOK_URL:-unset}"
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       TEST_POSTGRES: "Host=jenkins-postgres;Port=5432;Database=postgres;Username=d2d;Password=${JENKINS_POSTGRES_PASSWORD:-d2d_ci_password}"
     volumes:

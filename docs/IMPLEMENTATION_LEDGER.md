@@ -125,3 +125,16 @@ Living architectural and engineering ledger tracking completed milestones, secur
   - Added `render.yaml`, `docs/RENDER_DEPLOY.md`, `infra/terraform/*.tf`, `infra/terraform/README.md`, `scripts/generate_tutorial_video.py`, and `docs/tutorial/README.md`.
 - **Tests & Docs**:
   - Added `GovernanceHubTests.cs` (99 unit tests in `D2DAudit.UnitTests`), expanded `SchemaParityTests.cs` and `ApiPipelineSecurityTests.cs` (34 tests in `D2DAudit.Tests`), added `governanceHub.test.ts` + `TutorialPage.test.tsx` (30 Vitest tests across 12 suites), and updated `FEATURES.md` (18/18 Done, 100% Built), `ARCHITECTURE.md`, `CLASS_DIAGRAMS.md`, `ROADMAP.md`, and `IMPLEMENTATION_LEDGER.md`.
+
+## M11 — Jenkins as the Only CI/CD (native Windows + Docker)
+
+1. **GitHub Actions removed:** deleted `.github/workflows/ci.yml` and `pages.yml`, so no Actions minutes are used. `pull_request_template.md` is kept.
+2. **Native Windows Jenkins:** `ci/jenkins/windows/start-jenkins.ps1` and `stop-jenkins.ps1` download a portable Temurin JDK 21, the Jenkins LTS war, and the plugin manager into `tools\jenkins` outside the repo. They install `plugins.txt` and start Jenkins on http://localhost:8085, configured by `ci/jenkins/casc.windows.yaml`. The admin password is generated into `tools\jenkins\admin-password.txt`. The GitHub token comes from Git Credential Manager and is passed only as an environment variable.
+3. **Cross-platform `Jenkinsfile`:** each step runs `sh` or PowerShell, and the Windows checkout is normalized to LF. The pipeline runs these stages:
+   - .NET build, unit tests, and Postgres integration tests (when `TEST_POSTGRES` is reachable), with JUnit XML via `JunitXml.TestLogger`
+   - NuGet vulnerability audit
+   - web `npm ci`, lint, format, Vitest (JUnit), tsc, build, demo build, and `npm audit`
+   - Gitleaks, with `.gitleaksignore` for fixture secrets
+   - review-site packaging
+   - CD on `main` only: Render hook and health poll, `gh-pages` publish with the Pages API switch, and tutorial publishing
+4. **Docker stack aligned:** `ci/jenkins/casc.yaml` and `docker-compose.jenkins.yml` use the same GitHub branch source, credentials from the environment, and the 2-minute scan.

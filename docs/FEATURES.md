@@ -170,7 +170,7 @@ The manifest, integrity report, control matrix, and evidence files are unchanged
 | Live AWS, Azure (`AzureCloudProvider`), and GCP (`GcpCloudProvider`) collectors + 16 cross-cloud checks | Built |
 | Role-scoped Grounded AI Assistant (`IAssistantProvider` / `ConfigurableAssistantProvider` + live side panel) | Built |
 | WorkOS sign-in | Built behind `IIdentityProvider`. Local identity in dev. |
-| Self-hosted open-source Jenkins CI/CD (`Jenkinsfile` + `ci/jenkins/`) with zero GitHub Actions auto-triggers | Built |
+| Self-hosted open-source Jenkins CI/CD (`Jenkinsfile` + `ci/jenkins/`) native on Windows or via Docker Compose; GitHub Actions workflows removed | Built |
 | SCIM 2.0 user deprovisioning (`POST /api/v1/scim/v2/Users/{email}/deprovision`), Checkr background-check sync, and KnowBe4 training & phishing sync | Built |
 | Production AWS Terraform (ECS Fargate, Multi-AZ RDS PostgreSQL 16, WORM S3 Object Lock, KMS, EU `eu-central-1` residency) & Render.com Blueprint (`render.yaml`) | Built |
 | Multi-entity legal subsidiary rollup (`organization_entities`), GDPR RoPA/DPIA, ISO 42001/EU AI Act model registry, external ASM, and Verified Auditor Network (`/governance-hub`) | Built |

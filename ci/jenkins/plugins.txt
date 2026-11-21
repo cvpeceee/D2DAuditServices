@@ -9,3 +9,4 @@ ws-cleanup
 junit
 credentials-binding
 pipeline-graph-view
+pipeline-rest-api
