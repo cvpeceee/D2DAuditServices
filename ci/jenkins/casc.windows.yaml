@@ -1,0 +1,90 @@
+# Jenkins Configuration as Code for the native Windows controller started by
+# ci/jenkins/windows/start-jenkins.ps1. Secrets come from environment variables injected by that script
+# at startup (never stored in this repository):
+#   JENKINS_ADMIN_PASSWORD       generated once into <tools>\jenkins\admin-password.txt
+#   CASC_GITHUB_USER/TOKEN       read from Git Credential Manager (git credential fill)
+#   CASC_RENDER_DEPLOY_HOOK_URL  optional Render deploy hook ("unset" when not configured)
+jenkins:
+  systemMessage: "D2D Audit Services - native Windows open-source Jenkins CI/CD (zero GitHub Actions minutes)"
+  numExecutors: 2
+  labelString: "windows built-in"
+  mode: NORMAL
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USER:-admin}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-cvpeceee"
+              description: "GitHub cvpeceee (token from Git Credential Manager)"
+              username: "${CASC_GITHUB_USER:-cvpeceee}"
+              password: "${CASC_GITHUB_TOKEN}"
+          - string:
+              scope: GLOBAL
+              id: "render-deploy-hook-url"
+              description: "Render deploy hook URL ('unset' = rely on Render auto-deploy)"
+              secret: "${CASC_RENDER_DEPLOY_HOOK_URL:-unset}"
+
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://localhost:8085/}"
+  timestamper:
+    allPipelines: true
+
+jobs:
+  - script: >
+      multibranchPipelineJob('D2DAuditServices') {
+        displayName('D2D Audit Services')
+        description('main, branches and pull requests of the private cvpeceee/D2DAuditServices repo. Scanned (polled) every 2 minutes because no public webhook endpoint exists.')
+        branchSources {
+          branchSource {
+            source {
+              github {
+                id('d2daudit-github')
+                repoOwner('cvpeceee')
+                repository('D2DAuditServices')
+                repositoryUrl('https://github.com/cvpeceee/D2DAuditServices')
+                configuredByUrl(true)
+                credentialsId('github-cvpeceee')
+                traits {
+                  gitHubBranchDiscovery {
+                    strategyId(3)
+                  }
+                  gitHubPullRequestDiscovery {
+                    strategyId(1)
+                  }
+                }
+              }
+            }
+          }
+        }
+        factory {
+          workflowBranchProjectFactory {
+            scriptPath('Jenkinsfile')
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('2m')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(10)
+          }
+        }
+      }
