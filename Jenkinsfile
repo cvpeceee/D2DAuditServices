@@ -67,7 +67,16 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                runStep('Show toolchain', '''
+                script {
+                    if (!isUnix()) {
+                        // Git for Windows defaults to core.autocrlf=true; the repo (and Prettier) expects LF.
+                        powershell(label: 'Normalize line endings (LF)', script: psPrelude() + '''
+                            Exec { git config core.autocrlf false }
+                            Exec { git rm -r -q --cached . }
+                            Exec { git reset -q --hard HEAD }
+                        ''')
+                    }
+                }                runStep('Show toolchain', '''
                     git log -1 --oneline
                     dotnet --version
                     node --version
@@ -136,7 +145,7 @@ pipeline {
                                     if ($env:RUN_INTEGRATION_TESTS -ne 'true') {
                                         $filter = $subset
                                     } elseif (-not $env:TEST_POSTGRES) {
-                                        Write-Host 'TEST_POSTGRES is not set: running the non-database subset.'
+                                        Write-Output 'TEST_POSTGRES is not set: running the non-database subset.'
                                         $filter = $subset
                                     } else {
                                         $hostName = 'localhost'; $port = 5432
@@ -148,9 +157,9 @@ pipeline {
                                         $client = New-Object Net.Sockets.TcpClient
                                         try { $reachable = $client.ConnectAsync($hostName, $port).Wait(3000) } catch { $reachable = $false } finally { $client.Dispose() }
                                         if ($reachable) {
-                                            Write-Host "Postgres reachable at ${hostName}:${port}: running the full integration suite."
+                                            Write-Output "Postgres reachable at ${hostName}:${port}: running the full integration suite."
                                         } else {
-                                            Write-Host "Postgres at ${hostName}:${port} is not reachable: running the non-database subset."
+                                            Write-Output "Postgres at ${hostName}:${port} is not reachable: running the non-database subset."
                                             $filter = $subset
                                         }
                                     }
@@ -242,7 +251,7 @@ pipeline {
                                         exit 1
                                     ''', '''
                                         for ($attempt = 1; $attempt -le 3; $attempt++) {
-                                            try { Exec { npm.cmd audit --audit-level=high }; return } catch { Write-Host "npm audit attempt $attempt failed: $_" }
+                                            try { Exec { npm.cmd audit --audit-level=high }; return } catch { Write-Output "npm audit attempt $attempt failed: $_" }
                                             Start-Sleep -Seconds (15 * $attempt)
                                         }
                                         throw 'npm audit reported high or critical vulnerabilities.'
@@ -343,9 +352,9 @@ pipeline {
                             ''', '''
                                 if ($env:RENDER_DEPLOY_HOOK_URL -and $env:RENDER_DEPLOY_HOOK_URL -ne 'unset') {
                                     Invoke-RestMethod -Method Post -Uri $env:RENDER_DEPLOY_HOOK_URL | Out-Null
-                                    Write-Host 'Render deploy hook triggered.'
+                                    Write-Output 'Render deploy hook triggered.'
                                 } else {
-                                    Write-Host 'No Render deploy hook configured; relying on Render auto-deploy.'
+                                    Write-Output 'No Render deploy hook configured; relying on Render auto-deploy.'
                                 }
                             ''')
                         }
@@ -364,9 +373,9 @@ pipeline {
                     for ($attempt = 1; $attempt -le 60; $attempt++) {
                         try {
                             $r = Invoke-WebRequest -UseBasicParsing -Uri $env:RENDER_SITE_URL -TimeoutSec 30
-                            if ($r.StatusCode -eq 200) { Write-Host 'Render site is up (HTTP 200).'; return }
-                            Write-Host "Attempt ${attempt}: HTTP $($r.StatusCode)"
-                        } catch { Write-Host "Attempt ${attempt}: $($_.Exception.Message)" }
+                            if ($r.StatusCode -eq 200) { Write-Output 'Render site is up (HTTP 200).'; return }
+                            Write-Output "Attempt ${attempt}: HTTP $($r.StatusCode)"
+                        } catch { Write-Output "Attempt ${attempt}: $($_.Exception.Message)" }
                         Start-Sleep -Seconds 15
                     }
                     throw "Render site $env:RENDER_SITE_URL did not return HTTP 200."
@@ -434,7 +443,7 @@ pipeline {
                         $method = if ($exists) { 'Put' } else { 'Post' }
                         Invoke-RestMethod -Method $method -Headers $headers -Uri $api -Body $body -ContentType 'application/json' | Out-Null
                         $pages = Invoke-RestMethod -Headers $headers -Uri $api
-                        Write-Host "GitHub Pages: $($pages.html_url) (build_type=$($pages.build_type), source=$($pages.source.branch)$($pages.source.path))"
+                        Write-Output "GitHub Pages: $($pages.html_url) (build_type=$($pages.build_type), source=$($pages.source.branch)$($pages.source.path))"
                     ''')
                 }
             }
