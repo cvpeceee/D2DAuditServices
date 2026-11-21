@@ -149,6 +149,8 @@ app.MapDeviceFleetEndpoints();
 app.MapCloudSecurityEndpoints();
 app.MapEnterpriseEndpoints();
 app.MapGovernanceHubEndpoints();
+app.MapAgentEndpoints();
+app.MapAcademyEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

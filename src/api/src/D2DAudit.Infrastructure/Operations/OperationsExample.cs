@@ -41,7 +41,7 @@ internal static class OperationsExample
     private static void AddComputers(TenantDbContext db, DateTimeOffset now)
     {
         var index = 0;
-        foreach (var device in db.Devices.Local)
+        foreach (var device in db.Devices.Local.ToList())
         {
             var miss = index % 7;
             db.Computers.Add(Computer(device.Serial, Os(device.Platform), device.OwnerName, device.OwnerEmail, miss != 1, miss != 2, miss != 3, miss != 4, miss != 5, new DateTimeOffset(device.LastSeenOn.ToDateTime(new TimeOnly(9, 0)), TimeSpan.Zero), "Mdm"));

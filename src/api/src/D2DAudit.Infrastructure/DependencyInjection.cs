@@ -123,6 +123,10 @@ public static class DependencyInjection
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
+        services.AddSingleton<WebhookSecretProtector>();
+        services.AddScoped<IApiKeyAuthenticator, ApiKeyAuthenticator>();
+        services.AddHttpClient<IWebhookDispatcher, WebhookDispatcher>(client => client.Timeout = TimeSpan.FromSeconds(15))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();
         services.AddHttpClient<IGovernanceHub, GovernanceHubPortal>(client => client.Timeout = TimeSpan.FromSeconds(25));
         services.AddSingleton<AwsInspectorFeed>();
@@ -130,6 +134,8 @@ public static class DependencyInjection
         services.AddHttpClient<MdmImport>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddScoped<IMdmImport>(provider => provider.GetRequiredService<MdmImport>());
         services.AddScoped<IDeviceFleet, DeviceFleet>();
+        services.AddScoped<IDeviceAgent, DeviceAgentService>();
+        services.AddScoped<IAcademy, AcademyService>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
         services.AddScoped<AuditPackageRunner>();

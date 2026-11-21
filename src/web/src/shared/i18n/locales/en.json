@@ -718,7 +718,7 @@
   },
   "trainingPage": {
     "title": "Security training",
-    "sub": "The annual module and the external course. Completion is stored as evidence.",
+    "sub": "Interactive security awareness academy, audience assignments, and external LMS courses. Completions are cryptographically stored under HR-06.",
     "module": "Module",
     "type": "Type",
     "group": "Assigned group",
@@ -735,6 +735,57 @@
     "types": {
       "BuiltIn": "Built-in",
       "External": "External LMS"
+    },
+    "tabs": {
+      "academy": "Security Academy",
+      "assignments": "Audience assignments",
+      "legacy": "Annual & External LMS"
+    },
+    "academy": {
+      "requiredCompleted": "Required completed",
+      "passMark": "Pass mark",
+      "renewal": "Renewal cycle",
+      "months": "{{count}} months",
+      "minutes": "{{count}} min",
+      "required": "Required",
+      "optional": "Optional",
+      "framework": "Framework track",
+      "sectionsProgress": "{{done}} / {{total}} sections",
+      "start": "Start course",
+      "continue": "Continue course",
+      "review": "Review & certificate",
+      "close": "Back to catalog",
+      "markSection": "Mark section complete",
+      "sectionDone": "Section completed",
+      "quizHeading": "Knowledge check ({{count}} questions · pass {{passMark}}+)",
+      "submitQuiz": "Submit academy quiz",
+      "downloadCert": "Download PDF certificate",
+      "certNumber": "Certificate",
+      "expires": "Renews by",
+      "passedNotice": "Passed ({{correct}}/{{total}}). Certificate {{cert}} stored under HR-06.",
+      "failedNotice": "Score {{correct}}/{{total}} (need {{passMark}}). Review the explanations below and retry.",
+      "filters": {
+        "all": "All tracks",
+        "required": "Required",
+        "Passed": "Passed",
+        "InProgress": "In progress",
+        "NotStarted": "Not started"
+      },
+      "statuses": {
+        "Passed": "Passed",
+        "InProgress": "In progress",
+        "Expired": "Expired",
+        "NotStarted": "Not started"
+      },
+      "assignmentsTitle": "Audience assignment rules",
+      "assignmentsHelp": "Assign each course to Everyone, Department:<Name>, or Role:<Role> (comma-separated).",
+      "audiences": "Audiences",
+      "completion": "Completion",
+      "available": "Availability",
+      "active": "Active",
+      "gated": "Requires framework",
+      "saveAudiences": "Save",
+      "savedAudiences": "Updated audiences for {{module}}."
     }
   },
   "assetsPage": {
@@ -1035,6 +1086,52 @@
       "Mdm": "MDM",
       "Manual": "Manual",
       "Agent": "Agent"
+    },
+    "tabs": {
+      "agent": "Device Agent & Fleet Telemetry",
+      "inventory": "All Computers & MDM"
+    },
+    "agent": {
+      "enrolled": "Enrolled devices",
+      "healthy": "All checks passing",
+      "attention": "Failing checks",
+      "stale": "Stale (>7d)",
+      "activeTokens": "Active tokens",
+      "enrollTitle": "Agent enrollment & OS installers",
+      "enrollSub": "Issue a 72-hour single-use enrollment token and run the read-only installer for Windows, macOS, Linux, or the native .NET agent.",
+      "personEmail": "Assignee email (blank = yourself)",
+      "issueToken": "Issue enrollment token",
+      "tokenIssued": "Token issued — copy now, shown once (expires {{when}}).",
+      "copy": "Copy",
+      "copied": "Copied",
+      "downloadConfig": "Download d2d-agent.json",
+      "installers": {
+        "windows": "Windows (install.ps1)",
+        "macos": "macOS (launchd)",
+        "linux": "Linux (systemd)",
+        "dotnet": ".NET Agent (CLI)"
+      },
+      "tokensTitle": "Enrollment tokens",
+      "tokenHint": "Token",
+      "createdBy": "Issued by",
+      "expires": "Expires",
+      "state": "State",
+      "revoke": "Revoke",
+      "revokedNotice": "Revoked {{target}}.",
+      "fleetTitle": "Enrolled fleet heartbeat telemetry",
+      "fleetEmpty": "No devices are enrolled with the agent yet.",
+      "hostname": "Hostname & OS",
+      "kind": "Agent",
+      "heartbeat": "Last heartbeat",
+      "posture": "Posture",
+      "inspect": "Inspect",
+      "hide": "Hide",
+      "healthyBadge": "Healthy",
+      "staleBadge": "Stale",
+      "revokedBadge": "Revoked",
+      "checksTitle": "Posture checks & remediation for {{serial}}",
+      "historyTitle": "Recent heartbeat snapshots",
+      "noHistory": "No historical check-ins recorded yet."
     }
   },
   "vulnPage": {

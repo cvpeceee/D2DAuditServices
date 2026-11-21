@@ -30,6 +30,12 @@ public sealed class DeviceFleet(
         }
 
         await using var db = Open();
+        if (await db.DeviceCredentials.AnyAsync(item => item.Serial == serial && item.RevokedAt == null, cancellationToken))
+        {
+            // Enrolled devices only accept signed check-ins from their own agent credential.
+            return Result<ComputerItem>.Fail("device_enrolled");
+        }
+
         var row = await db.Computers.FirstOrDefaultAsync(item => item.Serial == serial, cancellationToken);
         if (row is null)
         {
@@ -48,6 +54,19 @@ public sealed class DeviceFleet(
         row.AutoUpdate = request.AutoUpdate;
         row.LastCheckIn = now;
         row.Source = "Agent";
+        var checks = DevicePosture.FromComputer(row);
+        db.DevicePostureSnapshots.Add(new DevicePostureSnapshot
+        {
+            Id = Guid.NewGuid(),
+            Serial = serial,
+            At = now,
+            AgentKind = "legacy",
+            AgentVersion = "",
+            Platform = "",
+            Passing = checks.Count(item => item.Pass),
+            Failing = checks.Count(item => !item.Pass),
+            ChecksJson = DevicePosture.Serialize(checks),
+        });
         await db.SaveChangesAsync(cancellationToken);
         await activity.WriteAsync(tenant.UserId, tenant.TenantId, "computer.checkin", "ok", serial, null, cancellationToken);
         return Result<ComputerItem>.Ok(ToItem(row));

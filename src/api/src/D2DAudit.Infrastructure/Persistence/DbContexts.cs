@@ -241,6 +241,16 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<RemediationPullRequest> RemediationPullRequests => Set<RemediationPullRequest>();
 
+    public DbSet<DeviceEnrollmentToken> DeviceEnrollmentTokens => Set<DeviceEnrollmentToken>();
+
+    public DbSet<DeviceCredential> DeviceCredentials => Set<DeviceCredential>();
+
+    public DbSet<DevicePostureSnapshot> DevicePostureSnapshots => Set<DevicePostureSnapshot>();
+
+    public DbSet<AcademyProgress> AcademyProgress => Set<AcademyProgress>();
+
+    public DbSet<AcademyAssignment> AcademyAssignments => Set<AcademyAssignment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -932,6 +942,7 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         pr.Property(x => x.Status).HasMaxLength(32).IsRequired();
         pr.Property(x => x.EvidenceSha256).HasMaxLength(64).IsRequired();
         pr.HasIndex(x => x.ControlCode);
+        AgentAcademyModel.Configure(modelBuilder);
     }
 }
 

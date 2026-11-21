@@ -18,6 +18,7 @@ import { handleContinuity } from "./continuity";
 import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
+import { handleAgentAcademy, handleAnonymousAgent } from "./agentAcademy";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -153,6 +154,11 @@ async function route(
     if (!session) return json({ errorCode: "unauthorized" }, 401);
     return json(authBody());
   }
+  if (path === "/api/v1/agent/enroll" && method === "POST") {
+    const data = await world();
+    const anon = await handleAnonymousAgent(method, path, body, data);
+    if (anon) return anon;
+  }
 
   const actor = requireUser();
   const data = await world();
@@ -179,6 +185,16 @@ async function route(
   if (enterprise) return enterprise;
   const governanceHub = await handleGovernanceHub(method, path, query, body, data, actor);
   if (governanceHub) return governanceHub;
+  const agentAcademy = await handleAgentAcademy(
+    method,
+    path,
+    query,
+    body,
+    data,
+    actor,
+    (action, detail) => record(actor, action, "ok", detail),
+  );
+  if (agentAcademy) return agentAcademy;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));
