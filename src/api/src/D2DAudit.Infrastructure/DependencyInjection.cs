@@ -78,6 +78,21 @@ public static class DependencyInjection
         services.AddScoped<IControlPlaneDirectory, ControlPlaneDirectory>();
         services.AddScoped<ITenantProvisioner, TenantProvisioner>();
         services.AddScoped<IDemoSeeder, DemoSeeder>();
+        var redis = First(configuration["Redis:ConnectionString"], Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING"));
+        if (string.IsNullOrWhiteSpace(redis))
+        {
+            services.AddDistributedMemoryCache();
+        }
+        else
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redis;
+                options.InstanceName = "d2d:";
+            });
+        }
+
+        services.TryAddSingleton<ISessionGuard, DistributedSessionGuard>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IWorkspaceQuery, WorkspaceQuery>();
         services.AddScoped<IClientRead, ClientPortal>();

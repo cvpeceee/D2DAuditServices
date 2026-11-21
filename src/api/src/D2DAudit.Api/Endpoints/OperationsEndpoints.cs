@@ -16,7 +16,7 @@ public static class OperationsEndpoints
             EndpointResults.FromResult(await portal.RequestTrustAccessAsync(slug, body, cancellationToken)))
             .RequireRateLimiting("public_trust");
 
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/computers", (IOperations portal, CancellationToken cancellationToken) => portal.ComputersAsync(cancellationToken)).RequireAuthorization("WorkspaceMember").Produces<IReadOnlyList<ComputerItem>>();
         group.MapPost("/computers", SaveComputer).RequireAuthorization("TenantWrite").Produces<ComputerItem>();
         group.MapPost("/computers/{id:guid}/screenshot", UploadScreenshot).RequireAuthorization("TenantWrite").Produces<ComputerItem>();

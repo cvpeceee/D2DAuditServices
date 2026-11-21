@@ -41,14 +41,14 @@ public static class EnterpriseEndpoints
 
         app.MapPost("/api/v1/public/trust/{slug}/ask", async (string slug, AssistantAskRequest body, IEnterprisePortal portal, CancellationToken cancellationToken) =>
             EndpointResults.FromResult(await portal.AskTrustPublicAsync(slug, body, cancellationToken)))
-            .RequireRateLimiting("public_trust");
+            .RequireRateLimiting("public_assistant");
 
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/frameworks/{key}/simulator", SimulateFramework)
             .RequireAuthorization("WorkspaceMember");
         group.MapPost("/frameworks/{key}/simulator/adopt", AdoptFrameworkGaps).RequireAuthorization("TenantWrite");
         group.MapPost("/frameworks/custom", CreateCustomFramework).RequireAuthorization("TenantWrite");
-        group.MapPost("/assistant/ask", AskWorkspace);
+        group.MapPost("/assistant/ask", AskWorkspace).RequireAuthorization("WorkspaceMember").RequireRateLimiting("assistant");
 
         group.MapGet("/developer/keys", (IEnterprisePortal portal, CancellationToken cancellationToken) => portal.ListApiKeysAsync(cancellationToken))
             .RequireAuthorization("TenantAdmin")

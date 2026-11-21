@@ -42,6 +42,12 @@ public static class LocalTokenConstants
     public const string Issuer = "d2d-local";
 
     public const string Audience = "d2d-api";
+
+    public const string RefreshAudience = "d2d-refresh";
+
+    public static readonly TimeSpan AccessLifetime = TimeSpan.FromMinutes(15);
+
+    public static readonly TimeSpan RefreshLifetime = TimeSpan.FromDays(7);
 }
 
 public static class SignedTokenValidator
@@ -91,13 +97,18 @@ public static class SignedTokenValidator
             return null;
         }
 
-        return new AccessTokenIdentity(subject, new DateTimeOffset(DateTime.SpecifyKind(expires, DateTimeKind.Utc)));
+        var issued = result.SecurityToken?.ValidFrom ?? DateTime.MinValue;
+        return new AccessTokenIdentity(
+            subject,
+            new DateTimeOffset(DateTime.SpecifyKind(expires, DateTimeKind.Utc)),
+            Read(result, "jti"),
+            issued == DateTime.MinValue ? null : new DateTimeOffset(DateTime.SpecifyKind(issued, DateTimeKind.Utc)));
     }
 
-    public static TokenValidationParameters LocalParameters(string signingKey) => new()
+    public static TokenValidationParameters LocalParameters(string signingKey, string audience = LocalTokenConstants.Audience) => new()
     {
         ValidIssuer = LocalTokenConstants.Issuer,
-        ValidAudience = LocalTokenConstants.Audience,
+        ValidAudience = audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
         ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
         ValidateIssuer = true,
@@ -129,13 +140,13 @@ public static class SignedTokenValidator
         };
     }
 
-    public static string CreateLocalToken(string signingKey, string subject, string email, string name, DateTime expiresUtc)
+    public static string CreateLocalToken(string signingKey, string subject, string email, string name, DateTime expiresUtc, string audience = LocalTokenConstants.Audience)
     {
         var handler = new JsonWebTokenHandler();
         return handler.CreateToken(new SecurityTokenDescriptor
         {
             Issuer = LocalTokenConstants.Issuer,
-            Audience = LocalTokenConstants.Audience,
+            Audience = audience,
             Expires = expiresUtc,
             IssuedAt = DateTime.UtcNow,
             SigningCredentials = new SigningCredentials(
@@ -144,6 +155,7 @@ public static class SignedTokenValidator
             Claims = new Dictionary<string, object>
             {
                 ["sub"] = subject,
+                ["jti"] = Guid.NewGuid().ToString("N"),
                 ["email"] = email,
                 ["name"] = name,
             },

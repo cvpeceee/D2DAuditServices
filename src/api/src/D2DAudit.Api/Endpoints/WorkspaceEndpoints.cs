@@ -7,10 +7,10 @@ public static class WorkspaceEndpoints
 {
     public static IEndpointRouteBuilder MapWorkspaceEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
+        var group = app.MapGroup("/api/v1").RequireAuthorization("TenantRead").WithMetadata(new TenantScopedAttribute());
         group.MapGet("/workspace", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.GetAsync(cancellationToken));
         group.MapGet("/dashboard", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.DashboardAsync(cancellationToken));
-        group.MapGet("/reports/executive", ExecutiveReport);
+        group.MapGet("/reports/executive", ExecutiveReport).RequireAuthorization("SensitiveRead").RequireRateLimiting("export").WithRequestTimeout("export");
         group.MapGet("/frameworks", (IWorkspaceQuery query, CancellationToken cancellationToken) => query.FrameworksAsync(cancellationToken));
         group.MapGet("/frameworks/{key}", Framework).Produces<FrameworkDetail>();
         group.MapGet("/controls", Controls);

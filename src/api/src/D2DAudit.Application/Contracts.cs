@@ -10,7 +10,7 @@ public enum IdentityMode
 
 public sealed record IdentityPrincipal(string Subject, string Email, string DisplayName);
 
-public sealed record AccessTokenIdentity(string Subject, DateTimeOffset ExpiresAt);
+public sealed record AccessTokenIdentity(string Subject, DateTimeOffset ExpiresAt, string? TokenId = null, DateTimeOffset? IssuedAt = null);
 
 public sealed record MfaFactor(string Id, string Type);
 
@@ -271,7 +271,8 @@ public sealed record AuthSession(
     IReadOnlyList<MfaFactor>? Factors,
     string? AccessToken,
     string? RefreshToken,
-    DateTimeOffset? ExpiresAt);
+    DateTimeOffset? ExpiresAt,
+    TimeSpan? RetryAfter = null);
 
 public sealed record AuthModeResponse(string Mode, bool LocalBanner, IReadOnlyList<string> ExampleEmails);
 
@@ -290,6 +291,9 @@ public interface IAuthService
     Task<string> RequestPasswordResetAsync(string email, CancellationToken cancellationToken);
 
     Task<AuthSession?> CurrentAsync(string subject, CancellationToken cancellationToken);
+
+    /// <summary>Revokes the presented access token and burns the refresh token so neither can be replayed.</summary>
+    Task LogoutAsync(string? accessToken, string? refreshToken, CancellationToken cancellationToken);
 
     AuthModeResponse Mode();
 }

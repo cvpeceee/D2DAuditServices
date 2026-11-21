@@ -24,46 +24,28 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(SessionAuthenticationHandler.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, SessionAuthenticationHandler>(SessionAuthenticationHandler.SchemeName, _ => { });
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("TenantWrite", policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantWriteRequirement()));
-    options.AddPolicy("TenantAdmin", policy => policy.RequireAuthenticatedUser().AddRequirements(new TenantAdminRequirement()));
-    options.AddPolicy("AuditAct", policy => policy.RequireAuthenticatedUser().AddRequirements(new AuditActRequirement()));
-    options.AddPolicy("WorkspaceMember", policy => policy.RequireAuthenticatedUser().AddRequirements(new WorkspaceMemberRequirement()));
-});
+builder.Services.AddAuthorization(TenantPolicies.Register);
+builder.Services.AddScoped<IAuthorizationHandler, TenantRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, TenantWriteHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, TenantAdminHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AuditActHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, WorkspaceMemberHandler>();
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
+EdgeProtection.AssertProductionSafe(builder.Configuration, builder.Environment);
+builder.Services.AddD2DForwardedHeaders(builder.Configuration);
+builder.Services.AddD2DRateLimiting(builder.Configuration, builder.Environment);
+if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-});
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("auth", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1_000 : 20,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-    options.AddPolicy("public_trust", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1_000 : 10,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-});
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+    });
+}
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.MaxDepth = 32;
 });
 builder.Services.AddOpenApi();
 var otelEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
@@ -97,11 +79,21 @@ builder.Services.AddOpenTelemetry()
 var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
-builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
+builder.WebHost.ConfigureKestrel(options => options.ApplyD2DKestrelLimits(builder.Configuration));
 
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHsts();
+}
+
+if (EdgeProtection.HasWildcardAllowedHosts(app.Configuration) && app.Environment.IsProduction())
+{
+    app.Logger.LogWarning("AllowedHosts is a wildcard; set it to the API host names behind the load balancer.");
+}
+
 app.UseExceptionHandler(handler => handler.Run(async context =>
 {
     var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
@@ -129,8 +121,9 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseCors();
-app.UseRateLimiter();
 app.UseAuthentication();
+app.UseRateLimiter();
+app.UseRequestTimeouts();
 app.UseMiddleware<CsrfMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();
@@ -153,8 +146,11 @@ app.MapDeviceFleetEndpoints();
 app.MapCloudSecurityEndpoints();
 app.MapEnterpriseEndpoints();
 app.MapGovernanceHubEndpoints();
-app.MapHub<JobsHub>("/hubs/jobs");
-app.MapOpenApi();
+app.MapHub<JobsHub>("/hubs/jobs").DisableRequestTimeout();
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
+    app.MapOpenApi();
+}
 
 await app.RunAsync();
 

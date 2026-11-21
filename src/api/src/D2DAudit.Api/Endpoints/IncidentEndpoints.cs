@@ -7,8 +7,8 @@ public static class IncidentEndpoints
 {
     public static IEndpointRouteBuilder MapIncidentEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/incidents", (IIncidents portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).Produces<IReadOnlyList<IncidentItem>>();
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/incidents", (IIncidents portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<IncidentItem>>();
         group.MapPost("/incidents", Report).RequireAuthorization("WorkspaceMember").Produces<IncidentItem>();
         group.MapPost("/incidents/{id:guid}", Update).RequireAuthorization("TenantWrite").Produces<IncidentItem>();
         return app;

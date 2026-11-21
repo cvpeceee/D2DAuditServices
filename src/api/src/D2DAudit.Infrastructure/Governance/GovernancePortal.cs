@@ -112,18 +112,23 @@ public sealed class GovernancePortal(
     public async Task<PersonPage> PeopleAsync(int page, int pageSize, string? search, CancellationToken cancellationToken)
     {
         var size = Math.Clamp(pageSize <= 0 ? 40 : pageSize, 1, 100);
-        var index = Math.Max(page, 1);
+        var index = Math.Clamp(page, 1, 10_000);
         await using var db = Open();
         var query = db.People.AsNoTracking();
         var term = search?.Trim();
+        if (term is { Length: > 100 })
+        {
+            term = term[..100];
+        }
+
         if (!string.IsNullOrEmpty(term))
         {
             var pattern = D2DAudit.Infrastructure.Persistence.DbText.ContainsPattern(term);
             query = query.Where(item =>
-                EF.Functions.ILike(item.Name, pattern)
-                || EF.Functions.ILike(item.Email, pattern)
-                || EF.Functions.ILike(item.Department, pattern)
-                || EF.Functions.ILike(item.Role, pattern));
+                EF.Functions.ILike(item.Name, pattern, "\\")
+                || EF.Functions.ILike(item.Email, pattern, "\\")
+                || EF.Functions.ILike(item.Department, pattern, "\\")
+                || EF.Functions.ILike(item.Role, pattern, "\\"));
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -136,14 +141,26 @@ public sealed class GovernancePortal(
             .Include(item => item.Tasks)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
-        return new PersonPage(people.Select(ToPersonList).ToArray(), total, index, size);
+        var items = people.Select(ToPersonList);
+        if (!PersonPrivacy.CanSeeHrFields(tenant))
+        {
+            items = items.Select(PersonPrivacy.Redact);
+        }
+
+        return new PersonPage(items.ToArray(), total, index, size);
     }
 
     public async Task<Result<PersonDetail>> PersonAsync(Guid id, CancellationToken cancellationToken)
     {
         await using var db = Open();
         var person = await LoadPersonAsync(db, id, cancellationToken);
-        return person is null ? Result<PersonDetail>.Fail("not_found") : Result<PersonDetail>.Ok(await ToDetailAsync(db, person, cancellationToken));
+        if (person is null)
+        {
+            return Result<PersonDetail>.Fail("not_found");
+        }
+
+        var detail = await ToDetailAsync(db, person, cancellationToken);
+        return Result<PersonDetail>.Ok(PersonPrivacy.CanSeeHrFields(tenant) ? detail : PersonPrivacy.Redact(detail));
     }
 
     public async Task<Result<int>> SyncPeopleAsync(CancellationToken cancellationToken)

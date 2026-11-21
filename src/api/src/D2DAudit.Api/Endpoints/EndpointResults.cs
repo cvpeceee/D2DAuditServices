@@ -29,6 +29,13 @@ internal static class EndpointResults
             return Results.Ok(Body(session));
         }
 
+        if (session.ErrorCode == "account_locked")
+        {
+            var seconds = (int)Math.Ceiling(Math.Max(1, session.RetryAfter?.TotalSeconds ?? 60));
+            http.Response.Headers.RetryAfter = seconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return Results.Json(Failed("account_locked"), statusCode: StatusCodes.Status429TooManyRequests);
+        }
+
         if (!session.Ok || session.AccessToken is null || session.ExpiresAt is null || session.User is null)
         {
             return Results.Json(Failed(session.ErrorCode ?? "invalid_credentials"), statusCode: StatusCodes.Status401Unauthorized);

@@ -83,8 +83,11 @@ public static class AuthEndpoints
         return Results.Ok(new { result });
     }
 
-    private static IResult Logout(HttpContext http, IHostEnvironment environment)
+    private static async Task<IResult> Logout(IAuthService auth, HttpContext http, IHostEnvironment environment, CancellationToken cancellationToken)
     {
+        http.Request.Cookies.TryGetValue(SessionCookies.Access, out var access);
+        http.Request.Cookies.TryGetValue(SessionCookies.Refresh, out var refresh);
+        await auth.LogoutAsync(access, refresh, cancellationToken);
         var secure = !environment.IsDevelopment() && !environment.IsEnvironment("Testing");
         SessionCookies.Clear(http, secure);
         return Results.NoContent();

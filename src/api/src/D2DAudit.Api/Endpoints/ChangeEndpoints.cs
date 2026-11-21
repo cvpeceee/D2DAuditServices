@@ -7,8 +7,8 @@ public static class ChangeEndpoints
 {
     public static IEndpointRouteBuilder MapChangeEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1").RequireAuthorization().WithMetadata(new TenantScopedAttribute());
-        group.MapGet("/changes", (IChanges portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).Produces<IReadOnlyList<ChangeItem>>();
+        var group = app.MapGroup("/api/v1").RequireAuthorization("WorkspaceMember").WithMetadata(new TenantScopedAttribute());
+        group.MapGet("/changes", (IChanges portal, CancellationToken cancellationToken) => portal.ListAsync(cancellationToken)).RequireAuthorization("SensitiveRead").Produces<IReadOnlyList<ChangeItem>>();
         group.MapPost("/changes", Record).RequireAuthorization("TenantWrite").Produces<ChangeItem>();
         group.MapPost("/changes/sync", Sync).RequireAuthorization("TenantWrite").Produces<ChangeSyncResult>();
         group.MapPost("/changes/{id:guid}", Update).RequireAuthorization("TenantWrite").Produces<ChangeItem>();

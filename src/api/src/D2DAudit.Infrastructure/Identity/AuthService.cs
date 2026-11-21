@@ -11,6 +11,7 @@ public sealed class AuthService(
     ControlPlaneDbContext db,
     IActivityWriter activity,
     TimeProvider time,
+    ISessionGuard guard,
     ILogger<AuthService> logger) : IAuthService
 {
     public async Task<AuthSession?> CurrentAsync(string subject, CancellationToken cancellationToken)
@@ -37,7 +38,27 @@ public sealed class AuthService(
         string? userAgent,
         CancellationToken cancellationToken)
     {
+        var locked = await guard.LoginLockAsync(email, cancellationToken);
+        if (locked.Locked)
+        {
+            await activity.WriteAsync(null, null, "login_locked", "denied", Sanitize(email), ip, cancellationToken);
+            return Failed("account_locked") with { RetryAfter = locked.RetryAfter };
+        }
+
         var result = await identity.PasswordLoginAsync(email, password, ip, userAgent, cancellationToken);
+        if (result.MfaRequired || result.Succeeded)
+        {
+            await guard.ClearLoginFailuresAsync(email, cancellationToken);
+        }
+        else
+        {
+            var now = await guard.RecordLoginFailureAsync(email, cancellationToken);
+            if (now.Locked)
+            {
+                await activity.WriteAsync(null, null, "login_locked", "denied", Sanitize(email), ip, cancellationToken);
+            }
+        }
+
         return await FinishAsync(result, ip, Sanitize(email), cancellationToken);
     }
 
@@ -69,10 +90,28 @@ public sealed class AuthService(
 
     public async Task<AuthSession> RefreshAsync(string refreshToken, string? ip, string? userAgent, CancellationToken cancellationToken)
     {
+        var ledger = await guard.ConsumeRefreshTokenAsync(refreshToken, cancellationToken);
+        if (ledger.State == RefreshTokenState.Reused)
+        {
+            // A rotated refresh token came back: assume theft and end every session of that subject.
+            if (ledger.Subject is not null)
+            {
+                await guard.RevokeSubjectAsync(ledger.Subject, cancellationToken);
+            }
+
+            await activity.WriteAsync(null, null, "refresh_reuse_detected", "denied", null, ip, cancellationToken);
+            return Failed("invalid_refresh");
+        }
+
         var result = await identity.RefreshAsync(refreshToken, ip, userAgent, cancellationToken);
         if (!result.Succeeded || result.Principal is null || result.AccessToken is null || result.ExpiresAt is null)
         {
             return Failed(result.ErrorCode ?? "invalid_refresh");
+        }
+
+        if (ledger.Subject is not null && !string.Equals(ledger.Subject, result.Principal.Subject, StringComparison.Ordinal))
+        {
+            return Failed("invalid_refresh");
         }
 
         var user = await db.Users.FirstOrDefaultAsync(account => account.Subject == result.Principal.Subject, cancellationToken);
@@ -82,6 +121,7 @@ public sealed class AuthService(
         }
 
         var tenants = await MembershipsAsync(user.Id, cancellationToken);
+        await RegisterRefreshAsync(result, cancellationToken);
         return Success(user, tenants, result);
     }
 
@@ -135,9 +175,32 @@ public sealed class AuthService(
         }
 
         var tenants = await MembershipsAsync(user.Id, cancellationToken);
+        await RegisterRefreshAsync(result, cancellationToken);
         await activity.WriteAsync(user.Id, null, "login_succeeded", "allowed", null, ip, cancellationToken);
         return Success(user, tenants, result);
     }
+
+    public async Task LogoutAsync(string? accessToken, string? refreshToken, CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(accessToken))
+        {
+            var validated = await identity.ValidateAccessTokenAsync(accessToken, cancellationToken);
+            if (validated is not null)
+            {
+                await guard.RevokeAccessTokenAsync(accessToken, validated.ExpiresAt, cancellationToken);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await guard.ConsumeRefreshTokenAsync(refreshToken, cancellationToken);
+        }
+    }
+
+    private Task RegisterRefreshAsync(IdentityLoginResult result, CancellationToken cancellationToken) =>
+        string.IsNullOrEmpty(result.RefreshToken) || result.Principal is null
+            ? Task.CompletedTask
+            : guard.RegisterRefreshTokenAsync(result.RefreshToken, result.Principal.Subject, cancellationToken);
 
     private async Task<UserAccount?> UpsertAsync(IdentityPrincipal principal, CancellationToken cancellationToken)
     {

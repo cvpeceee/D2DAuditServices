@@ -58,11 +58,24 @@ public sealed class LocalIdentityProvider(
             return IdentityLoginResult.Fail("invalid_credentials");
         }
 
-        var expires = time.GetUtcNow().UtcDateTime.AddHours(12);
+        return Issue(user);
+    }
+
+    private IdentityLoginResult Issue(UserAccount user)
+    {
+        var now = time.GetUtcNow().UtcDateTime;
+        var expires = now.Add(LocalTokenConstants.AccessLifetime);
         var token = SignedTokenValidator.CreateLocalToken(_signingKey, user.Subject, user.Email, user.DisplayName, expires);
+        var refresh = SignedTokenValidator.CreateLocalToken(
+            _signingKey,
+            user.Subject,
+            user.Email,
+            user.DisplayName,
+            now.Add(LocalTokenConstants.RefreshLifetime),
+            LocalTokenConstants.RefreshAudience);
         return IdentityLoginResult.Success(
             token,
-            null,
+            refresh,
             new DateTimeOffset(DateTime.SpecifyKind(expires, DateTimeKind.Utc)),
             new IdentityPrincipal(user.Subject, user.Email, user.DisplayName));
     }
@@ -87,8 +100,19 @@ public sealed class LocalIdentityProvider(
         CancellationToken cancellationToken) =>
         Task.FromResult(IdentityLoginResult.Fail("local_identity_mode"));
 
-    public Task<IdentityLoginResult> RefreshAsync(string refreshToken, string? ip, string? userAgent, CancellationToken cancellationToken) =>
-        Task.FromResult(IdentityLoginResult.Fail("refresh_not_supported"));
+    public async Task<IdentityLoginResult> RefreshAsync(string refreshToken, string? ip, string? userAgent, CancellationToken cancellationToken)
+    {
+        var validated = await SignedTokenValidator.ValidateAsync(
+            refreshToken,
+            SignedTokenValidator.LocalParameters(_signingKey, LocalTokenConstants.RefreshAudience));
+        if (validated is null)
+        {
+            return IdentityLoginResult.Fail("invalid_refresh");
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(account => account.Subject == validated.Subject, cancellationToken);
+        return user is null ? IdentityLoginResult.Fail("invalid_refresh") : Issue(user);
+    }
 
     public Task<AccessTokenIdentity?> ValidateAccessTokenAsync(string token, CancellationToken cancellationToken) =>
         SignedTokenValidator.ValidateAsync(token, SignedTokenValidator.LocalParameters(_signingKey));
