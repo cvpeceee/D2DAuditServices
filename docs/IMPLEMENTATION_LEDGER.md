@@ -126,7 +126,7 @@ Living architectural and engineering ledger tracking completed milestones, secur
 - **Tests & Docs**:
   - Added `GovernanceHubTests.cs` (99 unit tests in `D2DAudit.UnitTests`), expanded `SchemaParityTests.cs` and `ApiPipelineSecurityTests.cs` (34 tests in `D2DAudit.Tests`), added `governanceHub.test.ts` + `TutorialPage.test.tsx` (30 Vitest tests across 12 suites), and updated `FEATURES.md` (18/18 Done, 100% Built), `ARCHITECTURE.md`, `CLASS_DIAGRAMS.md`, `ROADMAP.md`, and `IMPLEMENTATION_LEDGER.md`.
 
-## M11 � Jenkins as the Only CI/CD (native Windows + Docker)
+## M11 — Jenkins as the Only CI/CD (native Windows + Docker)
 
 1. **GitHub Actions removed:** deleted `.github/workflows/ci.yml` and `pages.yml`, so no Actions minutes are used. `pull_request_template.md` is kept.
 2. **Native Windows Jenkins:** `ci/jenkins/windows/start-jenkins.ps1` and `stop-jenkins.ps1` download a portable Temurin JDK 21, the Jenkins LTS war, and the plugin manager into `tools\jenkins` outside the repo. They install `plugins.txt` and start Jenkins on http://localhost:8085, configured by `ci/jenkins/casc.windows.yaml`. The admin password is generated into `tools\jenkins\admin-password.txt`. The GitHub token comes from Git Credential Manager and is passed only as an environment variable.
@@ -138,3 +138,26 @@ Living architectural and engineering ledger tracking completed milestones, secur
    - review-site packaging
    - CD on `main` only: Render hook and health poll, `gh-pages` publish with the Pages API switch, and tutorial publishing
 4. **Docker stack aligned:** `ci/jenkins/casc.yaml` and `docker-compose.jenkins.yml` use the same GitHub branch source, credentials from the environment, and the 2-minute scan.
+
+---
+
+## Milestone 11 (M11) — Database Architecture Review & Hardening
+
+### Architectural Decisions
+1. **Database-per-tenant confirmed as the isolation model:** Tenant data lives in `t_<guid>` databases, so global query filters and PostgreSQL RLS do not apply to tenant tables. Per-tenant DB roles and RDS Proxy/PgBouncer are the recommended next isolation and scale steps. Full write-up: `docs/DATABASE_ARCHITECTURE.md`.
+2. **Append-only audit tables are enforced in the database:** The `d2d_append_only()` trigger function rejects UPDATE, DELETE and TRUNCATE on `evidence_chain` (tenant) and `activity_events` (control plane). A retention purge may only delete, and only with `SET LOCAL d2d.allow_purge = 'on'`.
+3. **Resilient, bounded connections:** Both contexts use `EnableRetryOnFailure` and a command timeout. Tenant Npgsql pools are capped (`Database:*` settings in `DatabaseSettings`).
+4. **Optimistic concurrency on human-edited rows:** `xmin` row versions on `tenants`, `risks` and `findings`; `DbUpdateConcurrencyException` maps to `409`.
+
+### Changes Shipped
+- **Correctness:** Exact email matching uses `lower(col) = lower(@p)` instead of `ILIKE`, so `_` and `%` no longer act as wildcards at login. Search terms are LIKE-escaped (`DbText`). The `evidence_items → controls` FK is now `RESTRICT`. `resource_snapshots.AttributesJson` is now `jsonb` (was `varchar(4000)`).
+- **Performance:**
+  - New indexes: `jobs (TenantId, UpdatedAt)`, `auditor_grants (TenantId)`, `evidence_items (CollectedAt)`, `resource_snapshots (Kind)`, `vulnerabilities (Source)`, and `At`/`OpenedAt` on `notifications`, `sla_events`, `automation_deliveries` and `changes`.
+  - `lower()` expression indexes for email lookups.
+  - Evidence download is now a keyed lookup instead of a full scan.
+  - `AsNoTracking` on chain verification; `AsSplitQuery` and deterministic `ThenBy(Id)` paging.
+- **Migrations:** `M11DatabaseHardening` for both the ControlPlane and Tenant contexts, with shared raw SQL in `Persistence/Migrations/HardeningSql.cs`.
+
+### Tests & Docs
+- Added `DatabaseHardeningTests.cs` covering LIKE escaping, settings clamping and the pool cap, append-only triggers on both databases, targeted and cross-tenant evidence download, and the login wildcard regression.
+- Added `docs/DATABASE_ARCHITECTURE.md`: ER diagrams, indexing table, integrity, concurrency, retention and partitioning plan, backup/DR, migrations workflow, scaling roadmap, 20 review findings, and guidelines for new entities. Linked it from `README.md` and `ARCHITECTURE.md`.

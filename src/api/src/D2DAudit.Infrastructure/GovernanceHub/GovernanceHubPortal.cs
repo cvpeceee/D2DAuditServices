@@ -326,7 +326,7 @@ public sealed class GovernanceHubPortal(
 
         var person = await db.People
             .Include(p => p.Accounts)
-            .FirstOrDefaultAsync(p => EF.Functions.ILike(p.Email, email), cancellationToken);
+            .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower(), cancellationToken);
         if (person is null)
         {
             return Result<ScimDeprovisionResultDto>.Fail("not_found");

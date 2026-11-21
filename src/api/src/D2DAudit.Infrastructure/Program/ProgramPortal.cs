@@ -83,7 +83,7 @@ public sealed class ProgramPortal(
         Guid? evidenceId = null;
         if (request.Kind == "Policy")
         {
-            var rows = await db.Acknowledgements.Include(item => item.Version).Where(item => EF.Functions.ILike(item.PersonEmail, person.Email) && item.AcknowledgedAt == null).ToListAsync(cancellationToken);
+            var rows = await db.Acknowledgements.Include(item => item.Version).Where(item => item.PersonEmail.ToLower() == person.Email.ToLower() && item.AcknowledgedAt == null).ToListAsync(cancellationToken);
             foreach (var row in rows)
             {
                 row.AcknowledgedAt = time.GetUtcNow();
@@ -164,7 +164,7 @@ public sealed class ProgramPortal(
         }
 
         var normalizedEmail = tenant.Email.Trim();
-        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
+        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail.ToLower() == normalizedEmail.ToLower(), cancellationToken);
         var hash = await HashAsync(db, completion?.EvidenceId, cancellationToken);
         var slides = module.ModuleType == "BuiltIn"
             ? TrainingContent.Slides.Select(item => new TrainingSlideDto(item.Title, item.Body)).ToArray()
@@ -218,7 +218,7 @@ public sealed class ProgramPortal(
         }
 
         var normalizedEmail = tenant.Email.Trim();
-        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
+        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail.ToLower() == normalizedEmail.ToLower(), cancellationToken);
         if (existing is not null)
         {
             return Result<QuizResult>.Ok(new QuizResult(true, existing.Score, TrainingContent.Questions.Count, existing.EvidenceId, await HashAsync(db, existing.EvidenceId, cancellationToken)));
@@ -249,7 +249,7 @@ public sealed class ProgramPortal(
         }
 
         var normalizedEmail = tenant.Email.Trim();
-        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && EF.Functions.ILike(item.PersonEmail, normalizedEmail), cancellationToken);
+        var existing = await db.TrainingCompletions.FirstOrDefaultAsync(item => item.ModuleId == id && item.PersonEmail.ToLower() == normalizedEmail.ToLower(), cancellationToken);
         if (existing is not null)
         {
             return Result<QuizResult>.Ok(new QuizResult(true, existing.Score, 1, existing.EvidenceId, await HashAsync(db, existing.EvidenceId, cancellationToken)));
@@ -267,7 +267,7 @@ public sealed class ProgramPortal(
         var term = search?.Trim();
         if (!string.IsNullOrEmpty(term))
         {
-            var pattern = $"%{term}%";
+            var pattern = D2DAudit.Infrastructure.Persistence.DbText.ContainsPattern(term);
             query = query.Where(item =>
                 EF.Functions.ILike(item.Name, pattern)
                 || EF.Functions.ILike(item.AssetType, pattern)
@@ -276,7 +276,7 @@ public sealed class ProgramPortal(
         }
 
         var total = await query.CountAsync(cancellationToken);
-        var rows = await query.OrderBy(item => item.AssetType).ThenBy(item => item.Name).Skip((index - 1) * size).Take(size).ToListAsync(cancellationToken);
+        var rows = await query.OrderBy(item => item.AssetType).ThenBy(item => item.Name).ThenBy(item => item.Id).Skip((index - 1) * size).Take(size).ToListAsync(cancellationToken);
         return new AssetPage(rows.Select(ToAsset).ToArray(), total, index, size);
     }
 
@@ -489,7 +489,7 @@ public sealed class ProgramPortal(
             return Result<MemberItem>.Fail("invalid_member");
         }
 
-        var user = await control.Users.FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, email), cancellationToken);
+        var user = await control.Users.FirstOrDefaultAsync(item => item.Email.ToLower() == email.ToLower(), cancellationToken);
         if (user is null)
         {
             user = new UserAccount
@@ -617,7 +617,7 @@ public sealed class ProgramPortal(
         }
 
         var email = (request.Email ?? "").Trim().ToLowerInvariant();
-        var user = await control.Users.FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, email), cancellationToken);
+        var user = await control.Users.FirstOrDefaultAsync(item => item.Email.ToLower() == email.ToLower(), cancellationToken);
         var member = user is null ? null : await control.Memberships.FirstOrDefaultAsync(item => item.UserId == user.Id && item.TenantId == tenant.TenantId, cancellationToken);
         if (user is null || member is null || request.Frameworks is null || request.Frameworks.Count == 0)
         {
@@ -759,13 +759,13 @@ public sealed class ProgramPortal(
     private static async Task<DirectoryPerson?> FindPersonAsync(TenantDbContext db, string email, CancellationToken cancellationToken)
     {
         var normalized = email.Trim();
-        return await db.People.Include(item => item.Tasks).FirstOrDefaultAsync(item => EF.Functions.ILike(item.Email, normalized), cancellationToken);
+        return await db.People.Include(item => item.Tasks).FirstOrDefaultAsync(item => item.Email.ToLower() == normalized.ToLower(), cancellationToken);
     }
 
     private static async Task<List<PolicyAcknowledgement>> AcknowledgementsAsync(TenantDbContext db, string email, CancellationToken cancellationToken)
     {
         var normalized = email.Trim();
-        return await db.Acknowledgements.AsNoTracking().Where(item => EF.Functions.ILike(item.PersonEmail, normalized)).ToListAsync(cancellationToken);
+        return await db.Acknowledgements.AsNoTracking().Where(item => item.PersonEmail.ToLower() == normalized.ToLower()).ToListAsync(cancellationToken);
     }
 
     private static async Task<(Guid? Evidence, bool Done)> CompletionAsync(TenantDbContext db, string code, string email, CancellationToken cancellationToken)
@@ -777,7 +777,7 @@ public sealed class ProgramPortal(
         }
 
         var normalized = email.Trim();
-        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == module.Id && EF.Functions.ILike(item.PersonEmail, normalized), cancellationToken);
+        var completion = await db.TrainingCompletions.AsNoTracking().FirstOrDefaultAsync(item => item.ModuleId == module.Id && item.PersonEmail.ToLower() == normalized.ToLower(), cancellationToken);
         return (completion?.EvidenceId, completion is not null);
     }
 

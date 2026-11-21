@@ -118,7 +118,7 @@ public sealed class GovernancePortal(
         var term = search?.Trim();
         if (!string.IsNullOrEmpty(term))
         {
-            var pattern = $"%{term}%";
+            var pattern = D2DAudit.Infrastructure.Persistence.DbText.ContainsPattern(term);
             query = query.Where(item =>
                 EF.Functions.ILike(item.Name, pattern)
                 || EF.Functions.ILike(item.Email, pattern)
@@ -129,10 +129,12 @@ public sealed class GovernancePortal(
         var total = await query.CountAsync(cancellationToken);
         var people = await query
             .OrderBy(item => item.Name)
+            .ThenBy(item => item.Id)
             .Skip((index - 1) * size)
             .Take(size)
             .Include(item => item.Accounts)
             .Include(item => item.Tasks)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
         return new PersonPage(people.Select(ToPersonList).ToArray(), total, index, size);
     }
@@ -1069,7 +1071,7 @@ public sealed class GovernancePortal(
     {
         var acknowledgements = await db.Acknowledgements.AsNoTracking()
             .Include(item => item.Version).ThenInclude(version => version!.Policy)
-            .Where(item => EF.Functions.ILike(item.PersonEmail, person.Email))
+            .Where(item => item.PersonEmail.ToLower() == person.Email.ToLower())
             .ToListAsync(cancellationToken);
         return new PersonDetail(
             person.Id,

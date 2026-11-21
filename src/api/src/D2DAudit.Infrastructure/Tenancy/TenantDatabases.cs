@@ -18,8 +18,9 @@ public sealed class TenantDatabases(IConfiguration configuration)
 
         var controlPlane = configuration.GetConnectionString("ControlPlane")
             ?? throw new InvalidOperationException("ConnectionStrings:ControlPlane is required.");
-        var builder = new NpgsqlConnectionStringBuilder(controlPlane) { Database = databaseName };
-        var options = new DbContextOptionsBuilder<TenantDbContext>().UseNpgsql(builder.ConnectionString).Options;
+        var settings = DatabaseSettings.From(configuration);
+        var connectionString = settings.TenantConnectionString(controlPlane, databaseName);
+        var options = new DbContextOptionsBuilder<TenantDbContext>().UseNpgsql(connectionString, settings.Apply).Options;
         return new TenantDbContext(options);
     }
 
