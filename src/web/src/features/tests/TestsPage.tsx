@@ -10,6 +10,8 @@ import {
 } from "../../shared/api/client";
 import { Pill } from "../../shared/ui/ui";
 import { AssignTask } from "../program/AssignTask";
+import { CustomTestBuilder } from "./CustomTestBuilder";
+import { TestStateActions, TestStateBadge, type TestState } from "./TestState";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
@@ -19,6 +21,9 @@ export function TestsPage() {
   const [rows, setRows] = useState<AutomatedTest[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [states, setStates] = useState<TestState[]>([]);
+  const [version, setVersion] = useState(0);
+  const selectedRow = rows?.find((row) => row.name === selected);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -30,10 +35,19 @@ export function TestsPage() {
       .catch((caught: unknown) => {
         if (!cancelled) setError(caught instanceof ApiError ? caught.code : "load");
       });
+    void api<TestState[]>("/api/v1/tests/states", { tenantId })
+      .then((value) => {
+        if (!cancelled) setStates(value);
+      })
+      .catch(() => {
+        if (!cancelled) setStates([]);
+      });
     return () => {
       cancelled = true;
     };
-  }, [tenantId]);
+  }, [tenantId, version]);
+
+  const refresh = () => setVersion((value) => value + 1);
 
   if (error)
     return (
@@ -51,6 +65,11 @@ export function TestsPage() {
           <div className="sub">{t("testsPage.sub")}</div>
         </div>
       </div>
+      <CustomTestBuilder
+        tenantId={tenantId}
+        canWrite={Boolean(workspace?.canWrite)}
+        onChanged={refresh}
+      />
       {rows.length === 0 ? (
         <div className="empty">{t("testsPage.empty")}</div>
       ) : (
@@ -77,7 +96,11 @@ export function TestsPage() {
                       >
                         <div className="t">{row.name}</div>
                       </button>
+                      {row.key.startsWith("custom-") && (
+                        <span className="tag">{t("assurance.tests.customTag")}</span>
+                      )}
                       {row.remediation && <div className="m">{row.remediation}</div>}
+                      <TestStateBadge state={states.find((state) => state.testKey === row.key)} />
                     </td>
                     <td className="id">{row.controlCode}</td>
                     <td>
@@ -109,6 +132,14 @@ export function TestsPage() {
             linkedCode={selected}
             canWrite={Boolean(workspace?.canWrite)}
           />
+          {workspace?.canWrite && selectedRow && (
+            <TestStateActions
+              tenantId={tenantId}
+              testKey={selectedRow.key}
+              state={states.find((state) => state.testKey === selectedRow.key)}
+              onChanged={refresh}
+            />
+          )}
         </div>
       )}
     </>

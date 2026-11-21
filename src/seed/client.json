@@ -10827,7 +10827,8 @@
       "name": "logs-prod",
       "attributes": {
         "public": "false",
-        "encrypted": "true"
+        "encrypted": "true",
+        "versioning": "true"
       }
     },
     {
@@ -10877,7 +10878,8 @@
       "name": "warehouse-prod",
       "attributes": {
         "public": "false",
-        "encrypted": "true"
+        "encrypted": "true",
+        "versioning": "true"
       }
     },
     {
@@ -10887,7 +10889,8 @@
       "name": "stages-prod",
       "attributes": {
         "public": "false",
-        "encrypted": "true"
+        "encrypted": "true",
+        "versioning": "false"
       }
     },
     {

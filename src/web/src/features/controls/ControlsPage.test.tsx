@@ -48,6 +48,17 @@ const detail = {
 
 beforeEach(() => {
   vi.mocked(api).mockImplementation((path: string) => {
+    if (path.endsWith("/PP-01/readiness")) {
+      return Promise.resolve({
+        controlCode: "PP-01",
+        ready: true,
+        percent: 100,
+        checks: [],
+        profile: null,
+        libraryEvidence: [],
+      });
+    }
+    if (path.endsWith("/PP-01/comments")) return Promise.resolve([]);
     if (path.includes("/PP-01")) return Promise.resolve(detail);
     return Promise.resolve(list);
   });

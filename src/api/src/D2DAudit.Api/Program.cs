@@ -148,6 +148,7 @@ app.MapCloudSecurityEndpoints();
 app.MapEnterpriseEndpoints();
 app.MapGovernanceHubEndpoints();
 app.MapInsightsEndpoints();
+app.MapAssuranceEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs").DisableRequestTimeout();
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {

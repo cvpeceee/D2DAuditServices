@@ -19,6 +19,7 @@ import { handleCloudSecurity } from "./security";
 import { handleEnterprise, handlePublicTrustEnterprise } from "./enterprise";
 import { handleGovernanceHub } from "./governanceHub";
 import { handleDemoReset, handleInsights } from "./insights";
+import { handleAssurance } from "./assurance";
 import { plainPdf } from "./pdf";
 import { zipStore } from "./zip";
 
@@ -184,6 +185,16 @@ async function route(
   if (governanceHub) return governanceHub;
   const insights = handleInsights(method, path, query, body, data, actor);
   if (insights) return insights;
+  const assurance = await handleAssurance(
+    method,
+    path,
+    query,
+    body,
+    data,
+    actor,
+    (action, detail) => record(actor, action, "ok", detail),
+  );
+  if (assurance) return assurance;
   const scoped = inScope(data, actor);
 
   if (path === "/api/v1/workspace") return json(workspace(scoped, actor));

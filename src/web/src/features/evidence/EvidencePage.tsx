@@ -13,6 +13,7 @@ import {
   type Workspace,
 } from "../../shared/api/client";
 import { Pill } from "../../shared/ui/ui";
+import { EvidenceLibrary } from "./EvidenceLibrary";
 
 type ShellContext = { workspace: Workspace | null; tenantId: string | null; jobs: Job[] };
 
@@ -26,6 +27,35 @@ type PreviewState = {
 };
 
 export function EvidencePage() {
+  const { t } = useTranslation();
+  const { workspace, tenantId } = useOutletContext<ShellContext>();
+  const [tab, setTab] = useState<"chain" | "library">("chain");
+  return (
+    <>
+      <div className="act" role="tablist" style={{ marginBottom: 12 }}>
+        {(["chain", "library"] as const).map((name) => (
+          <button
+            key={name}
+            role="tab"
+            type="button"
+            aria-selected={tab === name}
+            className={tab === name ? "btn primary" : "btn"}
+            onClick={() => setTab(name)}
+          >
+            {t(`assurance.evidence.tabs.${name}`)}
+          </button>
+        ))}
+      </div>
+      {tab === "chain" ? (
+        <EvidenceChain />
+      ) : (
+        <EvidenceLibrary tenantId={tenantId} canWrite={Boolean(workspace?.canWrite)} />
+      )}
+    </>
+  );
+}
+
+function EvidenceChain() {
   const { t } = useTranslation();
   const { workspace, tenantId } = useOutletContext<ShellContext>();
   const [page, setPage] = useState<EvidencePayload | null>(null);

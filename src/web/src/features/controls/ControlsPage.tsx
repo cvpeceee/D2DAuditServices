@@ -11,6 +11,7 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import { frameworkTag, Pill, Skeleton } from "../../shared/ui/ui";
 import { AssignTask } from "../program/AssignTask";
+import { ControlReadinessPanel } from "./ControlReadinessPanel";
 
 type Tab = "all" | "failing" | "needsEvidence" | "dueSoon" | "mine";
 
@@ -465,6 +466,11 @@ export function ControlsPage() {
                   )}
                 </form>
               )}
+              <ControlReadinessPanel
+                tenantId={tenantId}
+                code={selected}
+                canWrite={Boolean(workspace?.canWrite)}
+              />
               <AssignTask
                 tenantId={tenantId}
                 linkedKind="Control"

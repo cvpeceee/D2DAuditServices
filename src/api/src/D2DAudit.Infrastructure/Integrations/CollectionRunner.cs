@@ -1,6 +1,7 @@
 using System.Text.Json;
 using D2DAudit.Application;
 using D2DAudit.Domain;
+using D2DAudit.Infrastructure.Assurance;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Insights;
 using D2DAudit.Infrastructure.Persistence;
@@ -105,7 +106,7 @@ public sealed class CollectionRunner(
 
         await using var db = databases.Create(tenant.DatabaseName);
         var connections = await db.Integrations.Where(item => item.Status == "connected").ToListAsync(cancellationToken);
-        var total = Math.Max(1, connections.Count + AutomatedChecks.All.Count);
+        var total = Math.Max(1, connections.Count + AutomatedChecks.All.Count + 1);
         var step = 0;
         var failed = false;
         foreach (var connection in connections)
@@ -130,11 +131,13 @@ public sealed class CollectionRunner(
         var controls = await db.Controls.Include(item => item.Tests).ToListAsync(cancellationToken);
         var touched = new HashSet<Guid>();
         var newlyFailed = new List<(CheckSpec Spec, CheckResult Result, Control ControlItem)>();
+        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        var suppressions = await AssuranceCycle.ActiveSuppressionsAsync(db, today, cancellationToken);
         foreach (var spec in AutomatedChecks.All)
         {
             step++;
             await jobs.AdvanceAsync(jobId, step, total, spec.Name, cancellationToken);
-            var result = AutomatedChecks.Evaluate(spec.Key, resources);
+            var result = AssuranceCycle.Suppress(AutomatedChecks.Evaluate(spec.Key, resources), suppressions.GetValueOrDefault(spec.Key));
             var controlItem = controls.FirstOrDefault(item => item.Code == spec.ControlCode);
             if (controlItem is null)
             {
@@ -177,10 +180,33 @@ public sealed class CollectionRunner(
             await db.SaveChangesAsync(cancellationToken);
         }
 
+        step++;
+        await jobs.AdvanceAsync(jobId, step, total, "Custom tests", cancellationToken);
+        var inventory = await AssuranceCycle.InventoryAsync(db, cancellationToken);
+        var custom = await AssuranceCycle.RunCustomTestsAsync(
+            db,
+            evidence,
+            tenantId,
+            controls,
+            inventory,
+            suppressions,
+            time.GetUtcNow(),
+            time.GetUtcNow().AddYears(tenant.RetentionYears),
+            touched,
+            cancellationToken);
+        newlyFailed.AddRange(custom
+            .Where(item => item.Run.Outcome == TestOutcome.Fail && item.Previous != TestOutcome.Fail)
+            .Select(item => (
+                new CheckSpec(item.Definition.Key, item.Definition.Name, item.ControlItem.Code, [], item.Definition.Remediation),
+                new CheckResult(item.Run.Outcome, item.Run.Detail),
+                item.ControlItem)));
+
         foreach (var controlItem in controls.Where(item => touched.Contains(item.Id)))
         {
             controlItem.Status = Recompute(controlItem);
         }
+
+        await AssuranceCycle.ApplyLibraryAsync(db, controls, today, cancellationToken);
 
         await RecordTelemetryAsync(db, controls, newlyFailed, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
@@ -292,7 +318,7 @@ public sealed class CollectionRunner(
         test.Requirements = string.Join(", ", spec.Requirements);
     }
 
-    private static ControlStatus Recompute(Control controlItem)
+    internal static ControlStatus Recompute(Control controlItem)
     {
         var relevant = controlItem.Tests.Where(test => test.Outcome != TestOutcome.NotRun).ToArray();
         if (relevant.Any(test => test.Outcome == TestOutcome.Fail))

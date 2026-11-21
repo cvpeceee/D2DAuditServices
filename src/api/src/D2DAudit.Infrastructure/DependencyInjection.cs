@@ -164,6 +164,10 @@ public static class DependencyInjection
         services.AddScoped<IDeviceFleet, DeviceFleet>();
         services.AddScoped<IProgram, ProgramPortal>();
         services.AddScoped<IAuditPortal, AuditPortal>();
+        services.AddScoped<ICustomTestPortal, Assurance.CustomTestPortal>();
+        services.AddScoped<IEvidenceLibraryPortal, Assurance.EvidenceLibraryPortal>();
+        services.AddScoped<IControlInsightPortal, Assurance.ControlInsightPortal>();
+        services.AddScoped<IPolicyInsightPortal, Assurance.PolicyInsightPortal>();
         services.AddScoped<AuditPackageRunner>();
         services.AddSingleton<AuditExportQueue>();
         services.AddHostedService(provider => provider.GetRequiredService<AuditExportQueue>());
