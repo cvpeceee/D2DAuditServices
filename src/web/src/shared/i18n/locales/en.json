@@ -14,6 +14,8 @@
     "dspm": "Data security (DSPM)",
     "finops": "Cloud FinOps",
     "governance": "Governance",
+    "governanceHub": "Governance Hub",
+    "tutorial": "Interactive Tutorial",
     "policies": "Policies",
     "risks": "Risks",
     "vendors": "Vendors",
@@ -327,7 +329,6 @@
       "invalid_state": "The authorization response did not match this connection.",
       "oauth_exchange_failed": "The authorization code was not accepted.",
       "invalid_installation": "The installation id should be digits.",
-      "already_claimed": "That external account is already linked to another workspace.",
       "forbidden": "Example fixtures are only for example workspaces.",
       "unknown_provider": "That provider is not available."
     }
@@ -367,9 +368,6 @@
     "controlCode": "Control code",
     "file": "File",
     "titleLabel": "Title",
-    "preview": "Preview",
-    "previewTitle": "Evidence preview — {{title}}",
-    "binaryNotice": "Binary or Parquet evidence artifact — use Download evidence to inspect locally.",
     "download": "Download evidence",
     "checked": "{{count}} links checked",
     "verified": "SHA-256 verified",
@@ -827,7 +825,7 @@
     "grants": "Auditor grants",
     "saveGrant": "Save grant",
     "automation": "Automation",
-    "automationHelp": "When a trigger happens, matching actions dispatch via configured Jira, Linear, Slack, Teams, SMTP/Resend, and signed webhooks (falling back to local delivery records in Development/demo mode).",
+    "automationHelp": "When a trigger happens, the matching action runs. Jira, Slack, Teams, and email use a fake sender in this workspace and record the delivery here.",
     "ruleName": "Rule name",
     "trigger": "Trigger",
     "action": "Action",
@@ -842,7 +840,6 @@
     "keyName": "Key label",
     "keyScopes": "Scopes (comma-separated)",
     "createKey": "Create API key",
-    "lastUsed": "Last used {{when}}",
     "revoke": "Revoke",
     "revoked": "Revoked",
     "webhooks": "Outbound webhooks",
@@ -850,8 +847,6 @@
     "webhookUrl": "Endpoint URL (https://)",
     "webhookEvents": "Events",
     "createWebhook": "Add webhook",
-    "testWebhook": "Send test",
-    "urlNotAllowed": "Webhook URL must be a public http(s) endpoint; localhost and private IP ranges are blocked.",
     "remove": "Delete",
     "triggers": {
       "TestFailed": "Test failed",
@@ -1266,6 +1261,23 @@
     "chokepoint": "Chokepoint fix",
     "blastScore": "Blast score {{score}}",
     "controlsImpacted": "Impacted controls"
+  },
+  "governanceHubPage": {
+    "title": "Enterprise Governance Hub & Differentiators",
+    "sub": "Multi-entity compliance rollup, GDPR RoPA/DPIA, ISO 42001 AI registry, Checkr & KnowBe4 phishing sync, SCIM 2.0 deprovisioning, external ASM, 1-click Remediation PRs, and Audit Time Machine.",
+    "entityCount": "Legal entities",
+    "totalHeadcount": "Consolidated headcount",
+    "controlsRollup": "Controls passing",
+    "consolidatedReadiness": "Consolidated readiness",
+    "addEntity": "Add or update legal entity",
+    "tabs": {
+      "entities": "Multi-Entity Rollup",
+      "privacy": "Privacy (RoPA & DPIA)",
+      "ai": "AI Governance Registry",
+      "workforce": "Checkr, KnowBe4 & SCIM 2.0",
+      "asm": "ASM & Remediation PRs",
+      "timemachine": "Time Machine & Auditors"
+    }
   },
   "errors": {
     "load": "The page could not be loaded.",

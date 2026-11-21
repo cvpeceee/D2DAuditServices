@@ -30,6 +30,7 @@ const cloudSecurity = [
 ] as const;
 
 const governance = [
+  { to: "/governance-hub", key: "governanceHub" },
   { to: "/me", key: "me" },
   { to: "/training", key: "training" },
   { to: "/policies", key: "policies" },
@@ -179,9 +180,15 @@ export function AppShell() {
         { id: "attackPaths", label: t("nav.attackPaths"), run: () => navigate("/attack-paths") },
         { id: "dspm", label: t("nav.dspm"), run: () => navigate("/dspm") },
         { id: "finops", label: t("nav.finops"), run: () => navigate("/finops") },
+        {
+          id: "governanceHub",
+          label: t("nav.governanceHub"),
+          run: () => navigate("/governance-hub"),
+        },
         { id: "me", label: t("nav.me"), run: () => navigate("/me") },
       );
     }
+    items.push({ id: "tutorial", label: t("nav.tutorial"), run: () => navigate("/tutorial") });
     if (workspace?.canWrite) {
       items.push({ id: "trust", label: t("nav.trust"), run: () => navigate("/trust-center") });
     }
@@ -231,7 +238,9 @@ export function AppShell() {
         ? "trust"
         : parts[0] === "attack-paths"
           ? "attackPaths"
-          : parts[0] || "dashboard";
+          : parts[0] === "governance-hub"
+            ? "governanceHub"
+            : parts[0] || "dashboard";
   const crumb = t(`nav.${crumbKey}`, { defaultValue: t("nav.dashboard") });
   const running = jobs.some(
     (job) =>
@@ -356,7 +365,9 @@ export function AppShell() {
           .filter(
             (link) =>
               workspace?.role !== "Auditor" ||
-              !["me", "computers", "vulnerabilities", "questionnaires"].includes(link.key),
+              !["governanceHub", "me", "computers", "vulnerabilities", "questionnaires"].includes(
+                link.key,
+              ),
           )
           .map((link) => (
             <NavLink
@@ -371,6 +382,14 @@ export function AppShell() {
             </NavLink>
           ))}
         <div className="sec">{t("nav.audit")}</div>
+        <NavLink
+          to="/tutorial"
+          className={({ isActive }) => `nav ${isActive ? "on" : ""}`}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Icon name="tutorial" />
+          <span>{t("nav.tutorial")}</span>
+        </NavLink>
         <NavLink
           to="/auditor"
           className={({ isActive }) => `nav ${isActive ? "on" : ""}`}

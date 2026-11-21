@@ -76,9 +76,10 @@ public sealed class QuestionnairePortal(
             CreatedAt = now,
         };
         var position = 1;
+        var scopeLabel = string.IsNullOrWhiteSpace(tenant.TenantName) ? "workspace knowledge base" : tenant.TenantName;
         foreach (var question in questions)
         {
-            var suggested = assistant.Suggest(question, knowledge);
+            var suggested = await assistant.SuggestAsync(question, knowledge, scopeLabel, cancellationToken);
             var suggestion = Limit(suggested.Answer, 4000);
             row.Answers.Add(new QuestionnaireAnswer
             {

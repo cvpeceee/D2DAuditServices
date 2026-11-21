@@ -227,6 +227,20 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
 
     public DbSet<WebhookSubscription> Webhooks => Set<WebhookSubscription>();
 
+    public DbSet<LegalEntityRecord> LegalEntities => Set<LegalEntityRecord>();
+
+    public DbSet<PrivacyAssessment> PrivacyAssessments => Set<PrivacyAssessment>();
+
+    public DbSet<AiModelRecord> AiModels => Set<AiModelRecord>();
+
+    public DbSet<PhishingCampaign> PhishingCampaigns => Set<PhishingCampaign>();
+
+    public DbSet<AttackSurfaceAsset> AttackSurfaceAssets => Set<AttackSurfaceAsset>();
+
+    public DbSet<AuditorFirmRecord> AuditorNetwork => Set<AuditorFirmRecord>();
+
+    public DbSet<RemediationPullRequest> RemediationPullRequests => Set<RemediationPullRequest>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var framework = modelBuilder.Entity<FrameworkRecord>();
@@ -833,6 +847,91 @@ public sealed class TenantDbContext(DbContextOptions<TenantDbContext> options) :
         webhook.Property(x => x.Events).HasMaxLength(500).IsRequired();
         webhook.Property(x => x.SigningSecretHash).HasMaxLength(64).IsRequired();
         webhook.Property(x => x.SigningSecretEncrypted).HasMaxLength(2000).HasDefaultValue("").IsRequired();
+
+        var entity = modelBuilder.Entity<LegalEntityRecord>();
+        entity.ToTable("organization_entities");
+        entity.HasKey(x => x.Id);
+        entity.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        entity.Property(x => x.Jurisdiction).HasMaxLength(80).IsRequired();
+        entity.Property(x => x.Region).HasMaxLength(32).IsRequired();
+        entity.Property(x => x.PrimaryFramework).HasMaxLength(64).IsRequired();
+        entity.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        entity.HasIndex(x => x.Code).IsUnique();
+
+        var privacy = modelBuilder.Entity<PrivacyAssessment>();
+        privacy.ToTable("privacy_assessments");
+        privacy.HasKey(x => x.Id);
+        privacy.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        privacy.Property(x => x.Kind).HasMaxLength(16).IsRequired();
+        privacy.Property(x => x.ActivityName).HasMaxLength(200).IsRequired();
+        privacy.Property(x => x.DataSubjects).HasMaxLength(200).IsRequired();
+        privacy.Property(x => x.LawfulBasis).HasMaxLength(120).IsRequired();
+        privacy.Property(x => x.TransferMechanism).HasMaxLength(120).IsRequired();
+        privacy.Property(x => x.RiskLevel).HasMaxLength(16).IsRequired();
+        privacy.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        privacy.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        privacy.HasIndex(x => x.Code).IsUnique();
+
+        var aiModel = modelBuilder.Entity<AiModelRecord>();
+        aiModel.ToTable("ai_models");
+        aiModel.HasKey(x => x.Id);
+        aiModel.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        aiModel.Property(x => x.ModelName).HasMaxLength(200).IsRequired();
+        aiModel.Property(x => x.Provider).HasMaxLength(100).IsRequired();
+        aiModel.Property(x => x.EuAiActRiskTier).HasMaxLength(32).IsRequired();
+        aiModel.Property(x => x.TrainingDataProvenance).HasMaxLength(500).IsRequired();
+        aiModel.Property(x => x.Guardrails).HasMaxLength(500).IsRequired();
+        aiModel.Property(x => x.RedTeamStatus).HasMaxLength(32).IsRequired();
+        aiModel.Property(x => x.LinkedControlCode).HasMaxLength(32).IsRequired();
+        aiModel.Property(x => x.OwnerEmail).HasMaxLength(320).IsRequired();
+        aiModel.HasIndex(x => x.Code).IsUnique();
+
+        var phishing = modelBuilder.Entity<PhishingCampaign>();
+        phishing.ToTable("phishing_campaigns");
+        phishing.HasKey(x => x.Id);
+        phishing.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        phishing.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        phishing.Property(x => x.Source).HasMaxLength(32).IsRequired();
+        phishing.Property(x => x.RemedialTrainingStatus).HasMaxLength(64).IsRequired();
+        phishing.HasIndex(x => x.Code).IsUnique();
+
+        var asm = modelBuilder.Entity<AttackSurfaceAsset>();
+        asm.ToTable("attack_surface_assets");
+        asm.HasKey(x => x.Id);
+        asm.Property(x => x.Hostname).HasMaxLength(253).IsRequired();
+        asm.Property(x => x.IpAddress).HasMaxLength(64).IsRequired();
+        asm.Property(x => x.Service).HasMaxLength(100).IsRequired();
+        asm.Property(x => x.Severity).HasMaxLength(16).IsRequired();
+        asm.Property(x => x.Status).HasMaxLength(16).IsRequired();
+        asm.HasIndex(x => x.Hostname).IsUnique();
+
+        var firm = modelBuilder.Entity<AuditorFirmRecord>();
+        firm.ToTable("auditor_network");
+        firm.HasKey(x => x.Id);
+        firm.Property(x => x.Code).HasMaxLength(32).IsRequired();
+        firm.Property(x => x.FirmName).HasMaxLength(200).IsRequired();
+        firm.Property(x => x.Accreditation).HasMaxLength(120).IsRequired();
+        firm.Property(x => x.Specialties).HasMaxLength(300).IsRequired();
+        firm.Property(x => x.Regions).HasMaxLength(120).IsRequired();
+        firm.Property(x => x.LeadAuditorEmail).HasMaxLength(320).IsRequired();
+        firm.HasIndex(x => x.Code).IsUnique();
+
+        var pr = modelBuilder.Entity<RemediationPullRequest>();
+        pr.ToTable("remediation_pull_requests");
+        pr.HasKey(x => x.Id);
+        pr.Property(x => x.ControlCode).HasMaxLength(32).IsRequired();
+        pr.Property(x => x.TargetResource).HasMaxLength(200).IsRequired();
+        pr.Property(x => x.Repository).HasMaxLength(200).IsRequired();
+        pr.Property(x => x.BranchName).HasMaxLength(120).IsRequired();
+        pr.Property(x => x.Title).HasMaxLength(250).IsRequired();
+        pr.Property(x => x.ArtifactType).HasMaxLength(32).IsRequired();
+        pr.Property(x => x.UnifiedDiff).HasMaxLength(4000).IsRequired();
+        pr.Property(x => x.PrUrl).HasMaxLength(500).IsRequired();
+        pr.Property(x => x.Mode).HasMaxLength(32).IsRequired();
+        pr.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        pr.Property(x => x.EvidenceSha256).HasMaxLength(64).IsRequired();
+        pr.HasIndex(x => x.ControlCode);
     }
 }
 

@@ -1,0 +1,36 @@
+# Render.com Cloud Hosting Blueprint — D2D Audit Services Super App (d2d-audit-superapp)
+# Deploys directly from https://github.com/cvpeceee/D2DAuditServices
+# Zero-dependency interactive Super App + Harborline workspace + Interactive Animation & Video+Audio Tutorial
+# For full-stack Docker API + Render PostgreSQL mode, see docs/RENDER_DEPLOY.md.
+
+services:
+  - type: web
+    name: d2d-audit-web
+    env: static
+    repo: https://github.com/cvpeceee/D2DAuditServices
+    branch: main
+    rootDir: src/web
+    buildCommand: npm ci && npx vite build --mode demo --base=/
+    staticPublishPath: dist
+    autoDeploy: true
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /tutorial/*
+        name: Cache-Control
+        value: public, max-age=86400
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

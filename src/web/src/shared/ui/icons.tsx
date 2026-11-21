@@ -37,7 +37,9 @@ export type IconName =
   | "bell"
   | "sparkles"
   | "jobs"
-  | "device";
+  | "device"
+  | "governanceHub"
+  | "tutorial";
 
 export interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName | string;
@@ -390,6 +392,23 @@ export function Icon({ name, size = 16, className = "", ...rest }: IconProps) {
         <svg {...commonProps}>
           <rect width="18" height="12" x="3" y="4" rx="2" />
           <line x1="2" x2="22" y1="20" y2="20" />
+        </svg>
+      );
+
+    case "governanceHub":
+      return (
+        <svg {...commonProps}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v18" />
+          <path d="M3 12h18" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
+
+    case "tutorial":
+      return (
+        <svg {...commonProps}>
+          <polygon points="6 4 20 12 6 20 6 4" />
         </svg>
       );
 

@@ -5837,6 +5837,649 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/governance/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GovernanceHubOverviewDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EntityRollupDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveEntityRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LegalEntityDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/checkr/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SyncIntegrationResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/knowbe4/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SyncIntegrationResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/scim/deprovision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ScimDeprovisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScimDeprovisionResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/privacy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivacyAssessmentDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SavePrivacyAssessmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivacyAssessmentDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/ai-models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiModelDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAiModelRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiModelDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/phishing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PhishingCampaignDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePhishingCampaignRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PhishingCampaignDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/attack-surface": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AttackSurfaceAssetDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveAttackSurfaceAssetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AttackSurfaceAssetDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/auditor-network": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditorFirmDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/auditor-network/{id}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditorFirmDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/remediation-prs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RemediationPrDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateRemediationPrRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RemediationPrDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/governance/time-machine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    asOf?: string;
+                    compareTo?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TimeMachineComparison"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scim/v2/Users/{email}/deprovision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    email: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["ScimDeprovisionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ScimDeprovisionResultDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5918,6 +6561,21 @@ export interface components {
             passwordManager: boolean;
             autoUpdate: boolean;
         };
+        AiModelDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            modelName: string;
+            provider: string;
+            euAiActRiskTier: string;
+            trainingDataProvenance: string;
+            guardrails: string;
+            redTeamStatus: string;
+            linkedControlCode: string;
+            ownerEmail: string;
+            /** Format: date-time */
+            evaluatedAt: string;
+        };
         ApiKeyDto: {
             /** Format: uuid */
             id: string;
@@ -5998,6 +6656,22 @@ export interface components {
             highestBlastRadius: number | string;
             paths: components["schemas"]["AttackPath"][];
         };
+        AttackSurfaceAssetDto: {
+            /** Format: uuid */
+            id: string;
+            hostname: string;
+            ipAddress: string;
+            service: string;
+            /** Format: int32 */
+            port: number | string;
+            /** Format: int32 */
+            tlsDaysRemaining: number | string;
+            shadowIt: boolean;
+            severity: string;
+            status: string;
+            /** Format: date-time */
+            lastSeenAt: string;
+        };
         AuditEngagementDto: {
             name: string;
             firmName: string;
@@ -6023,6 +6697,19 @@ export interface components {
             exceptions: number | string;
             /** Format: double */
             averageResponseHours: null | number | string;
+        };
+        AuditorFirmDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            firmName: string;
+            accreditation: string;
+            specialties: string;
+            regions: string;
+            leadAuditorEmail: string;
+            invited: boolean;
+            /** Format: date-time */
+            invitedAt: null | string;
         };
         AuditPeriodRequest: {
             /** Format: date */
@@ -6306,6 +6993,24 @@ export interface components {
             detail: string;
             requirementCode: string;
         };
+        CreatePhishingCampaignRequest: {
+            name: string;
+            source: string;
+            /** Format: int32 */
+            sentCount: number | string;
+            /** Format: int32 */
+            clickedCount: number | string;
+            /** Format: int32 */
+            reportedCount: number | string;
+            remedialTrainingStatus: null | string;
+        };
+        CreateRemediationPrRequest: {
+            controlCode: string;
+            targetResource: string;
+            repository: string;
+            artifactType: string;
+            customFix: null | string;
+        };
         CreateSampleRequest: {
             title: string;
             population: string;
@@ -6388,6 +7093,22 @@ export interface components {
             dueOn: string;
             href: string;
             overdue: boolean;
+        };
+        EntityRollupDto: {
+            summary: components["schemas"]["EntityRollupSummary"];
+            entities: components["schemas"]["LegalEntityDto"][];
+        };
+        EntityRollupSummary: {
+            /** Format: int32 */
+            entityCount: number | string;
+            /** Format: int32 */
+            totalHeadcount: number | string;
+            /** Format: int32 */
+            controlsPassing: number | string;
+            /** Format: int32 */
+            controlsTotal: number | string;
+            /** Format: int32 */
+            consolidatedReadinessPercent: number | string;
         };
         EvidenceChoiceDto: {
             /** Format: uuid */
@@ -6574,6 +7295,16 @@ export interface components {
             /** Format: int32 */
             percent: number | string;
         };
+        GovernanceHubOverviewDto: {
+            entities: components["schemas"]["EntityRollupDto"];
+            privacyAssessments: components["schemas"]["PrivacyAssessmentDto"][];
+            aiModels: components["schemas"]["AiModelDto"][];
+            phishingCampaigns: components["schemas"]["PhishingCampaignDto"][];
+            attackSurface: components["schemas"]["AttackSurfaceAssetDto"][];
+            auditorNetwork: components["schemas"]["AuditorFirmDto"][];
+            remediationPrs: components["schemas"]["RemediationPrDto"][];
+            timeMachine: components["schemas"]["TimeMachineComparison"];
+        };
         GrantItem: {
             /** Format: uuid */
             id: string;
@@ -6689,6 +7420,26 @@ export interface components {
             error: null | string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        LegalEntityDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            jurisdiction: string;
+            region: string;
+            /** Format: int32 */
+            headcount: number | string;
+            /** Format: int32 */
+            controlsPassing: number | string;
+            /** Format: int32 */
+            controlsTotal: number | string;
+            /** Format: int32 */
+            readinessPercent: number | string;
+            primaryFramework: string;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         ManagementResponseRequest: {
             response: string;
@@ -6861,6 +7612,27 @@ export interface components {
             taskCode: string;
             done: boolean;
         };
+        PhishingCampaignDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            source: string;
+            /** Format: int32 */
+            sentCount: number | string;
+            /** Format: int32 */
+            clickedCount: number | string;
+            /** Format: int32 */
+            reportedCount: number | string;
+            /** Format: double */
+            clickRatePercent: number | string;
+            /** Format: double */
+            reportRatePercent: number | string;
+            riskBand: string;
+            remedialTrainingStatus: string;
+            /** Format: date-time */
+            ranAt: string;
+        };
         PickAppsRequest: {
             providers: string[];
         };
@@ -6905,6 +7677,23 @@ export interface components {
             /** Format: date-time */
             approvedAt: null | string;
             approvedByName: null | string;
+        };
+        PrivacyAssessmentDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            kind: string;
+            activityName: string;
+            dataSubjects: string;
+            lawfulBasis: string;
+            transferMechanism: string;
+            riskLevel: string;
+            status: string;
+            ownerEmail: string;
+            /** Format: date */
+            reviewDueOn: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         QuestionnaireAnswerItem: {
             /** Format: uuid */
@@ -6962,6 +7751,27 @@ export interface components {
         };
         RemediateRequest: {
             note: string;
+        };
+        RemediationPrDto: {
+            /** Format: uuid */
+            id: string;
+            controlCode: string;
+            targetResource: string;
+            repository: string;
+            branchName: string;
+            title: string;
+            artifactType: string;
+            unifiedDiff: string;
+            /** Format: int32 */
+            prNumber: number | string;
+            prUrl: string;
+            mode: string;
+            status: string;
+            /** Format: uuid */
+            evidenceId: null | string;
+            evidenceSha256: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         ReportIncidentRequest: {
             title: string;
@@ -7060,6 +7870,19 @@ export interface components {
             respondedAt: string;
             evidenceTitle: null | string;
         };
+        SaveAiModelRequest: {
+            /** Format: uuid */
+            id: null | string;
+            code: string;
+            modelName: string;
+            provider: string;
+            euAiActRiskTier: string;
+            trainingDataProvenance: string;
+            guardrails: string;
+            redTeamStatus: string;
+            linkedControlCode: string;
+            ownerEmail: string;
+        };
         SaveAssetRequest: {
             /** Format: uuid */
             id: null | string;
@@ -7071,6 +7894,20 @@ export interface components {
             environment: string;
             classification: string;
             inScope: boolean;
+        };
+        SaveAttackSurfaceAssetRequest: {
+            /** Format: uuid */
+            id: null | string;
+            hostname: string;
+            ipAddress: string;
+            service: string;
+            /** Format: int32 */
+            port: number | string;
+            /** Format: int32 */
+            tlsDaysRemaining: number | string;
+            shadowIt: boolean;
+            severity: string;
+            status: string;
         };
         SaveAutomationRuleRequest: {
             /** Format: uuid */
@@ -7112,6 +7949,22 @@ export interface components {
             controlCode: string;
             ownerEmail: string;
         };
+        SaveEntityRequest: {
+            /** Format: uuid */
+            id: null | string;
+            code: string;
+            name: string;
+            jurisdiction: string;
+            region: string;
+            /** Format: int32 */
+            headcount: number | string;
+            /** Format: int32 */
+            controlsPassing: number | string;
+            /** Format: int32 */
+            controlsTotal: number | string;
+            primaryFramework: string;
+            status: string;
+        };
         SaveExerciseRequest: {
             name: string;
             /** Format: uuid */
@@ -7148,6 +8001,21 @@ export interface components {
             kind: string;
             body: string;
             controlCode: string;
+        };
+        SavePrivacyAssessmentRequest: {
+            /** Format: uuid */
+            id: null | string;
+            code: string;
+            kind: string;
+            activityName: string;
+            dataSubjects: string;
+            lawfulBasis: string;
+            transferMechanism: string;
+            riskLevel: string;
+            status: string;
+            ownerEmail: string;
+            /** Format: date */
+            reviewDueOn: string;
         };
         SaveRiskRequest: {
             code: null | string;
@@ -7252,6 +8120,24 @@ export interface components {
             /** Format: date-time */
             resolvedAt: null | string;
         };
+        ScimDeprovisionRequest: {
+            email: string;
+            reason: null | string;
+            revokeDownstreamAccounts: boolean;
+        };
+        ScimDeprovisionResultDto: {
+            email: string;
+            personName: string;
+            state: string;
+            leaverAccessFlagged: boolean;
+            /** Format: int32 */
+            remainingActiveAccounts: number | string;
+            offboardedCheckOutcome: string;
+            offboardedCheckDetail: string;
+            backgroundCheckOutcome: string;
+            /** Format: date-time */
+            processedAt: string;
+        };
         ScreenshotRequest: {
             fileName: string;
             contentBase64: string;
@@ -7298,6 +8184,15 @@ export interface components {
             /** Format: date */
             dueOn: string;
         };
+        SyncIntegrationResultDto: {
+            provider: string;
+            mode: string;
+            /** Format: int32 */
+            updatedRecords: number | string;
+            summary: string;
+            /** Format: date-time */
+            syncedAt: string;
+        };
         SystemDescriptionDto: {
             body: string;
             /** Format: date-time */
@@ -7312,6 +8207,34 @@ export interface components {
             region: string;
             role: string;
             exampleData: boolean;
+        };
+        TimeMachineComparison: {
+            asOf: components["schemas"]["TimeMachineSnapshot"];
+            compareTo: components["schemas"]["TimeMachineSnapshot"];
+            /** Format: int32 */
+            passPercentDelta: number | string;
+            /** Format: int32 */
+            readinessDelta: number | string;
+            /** Format: int32 */
+            chainEntriesDelta: number | string;
+            summary: string;
+        };
+        TimeMachineSnapshot: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            passingTests: number | string;
+            /** Format: int32 */
+            failingTests: number | string;
+            /** Format: int32 */
+            testPassPercent: number | string;
+            /** Format: int32 */
+            estimatedReadinessPercent: number | string;
+            /** Format: int32 */
+            chainEntryCount: number | string;
+            /** Format: int64 */
+            latestChainSequence: number | string;
+            latestChainHead: string;
         };
         TrainingModuleDetail: {
             /** Format: uuid */

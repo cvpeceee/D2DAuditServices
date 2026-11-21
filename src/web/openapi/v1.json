@@ -4575,6 +4575,517 @@
           }
         }
       }
+    },
+    "/api/v1/governance/overview": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceHubOverviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/entities": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityRollupDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveEntityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalEntityDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/checkr/sync": {
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncIntegrationResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/knowbe4/sync": {
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncIntegrationResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/scim/deprovision": {
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScimDeprovisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScimDeprovisionResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/privacy": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrivacyAssessmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePrivacyAssessmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivacyAssessmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/ai-models": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AiModelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAiModelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiModelDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/phishing": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhishingCampaignDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhishingCampaignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhishingCampaignDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/attack-surface": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttackSurfaceAssetDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveAttackSurfaceAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttackSurfaceAssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/auditor-network": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditorFirmDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/auditor-network/{id}/invite": {
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditorFirmDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/remediation-prs": {
+      "get": {
+        "tags": [
+          "D2DAudit.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RemediationPrDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRemediationPrRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemediationPrDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/governance/time-machine": {
+      "get": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "asOf",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "compareTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeMachineComparison"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scim/v2/Users/{email}/deprovision": {
+      "post": {
+        "tags": [
+          "GovernanceHubEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScimDeprovisionRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScimDeprovisionResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4875,6 +5386,59 @@
           },
           "autoUpdate": {
             "type": "boolean"
+          }
+        }
+      },
+      "AiModelDto": {
+        "required": [
+          "id",
+          "code",
+          "modelName",
+          "provider",
+          "euAiActRiskTier",
+          "trainingDataProvenance",
+          "guardrails",
+          "redTeamStatus",
+          "linkedControlCode",
+          "ownerEmail",
+          "evaluatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "euAiActRiskTier": {
+            "type": "string"
+          },
+          "trainingDataProvenance": {
+            "type": "string"
+          },
+          "guardrails": {
+            "type": "string"
+          },
+          "redTeamStatus": {
+            "type": "string"
+          },
+          "linkedControlCode": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "evaluatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -5197,6 +5761,65 @@
           }
         }
       },
+      "AttackSurfaceAssetDto": {
+        "required": [
+          "id",
+          "hostname",
+          "ipAddress",
+          "service",
+          "port",
+          "tlsDaysRemaining",
+          "shadowIt",
+          "severity",
+          "status",
+          "lastSeenAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "port": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "tlsDaysRemaining": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "shadowIt": {
+            "type": "boolean"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "AuditEngagementDto": {
         "required": [
           "name",
@@ -5296,6 +5919,54 @@
               "string"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AuditorFirmDto": {
+        "required": [
+          "id",
+          "code",
+          "firmName",
+          "accreditation",
+          "specialties",
+          "regions",
+          "leadAuditorEmail",
+          "invited",
+          "invitedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "firmName": {
+            "type": "string"
+          },
+          "accreditation": {
+            "type": "string"
+          },
+          "specialties": {
+            "type": "string"
+          },
+          "regions": {
+            "type": "string"
+          },
+          "leadAuditorEmail": {
+            "type": "string"
+          },
+          "invited": {
+            "type": "boolean"
+          },
+          "invitedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -6519,6 +7190,85 @@
           }
         }
       },
+      "CreatePhishingCampaignRequest": {
+        "required": [
+          "name",
+          "source",
+          "sentCount",
+          "clickedCount",
+          "reportedCount",
+          "remedialTrainingStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sentCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "clickedCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reportedCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "remedialTrainingStatus": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CreateRemediationPrRequest": {
+        "required": [
+          "controlCode",
+          "targetResource",
+          "repository",
+          "artifactType",
+          "customFix"
+        ],
+        "type": "object",
+        "properties": {
+          "controlCode": {
+            "type": "string"
+          },
+          "targetResource": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "artifactType": {
+            "type": "string"
+          },
+          "customFix": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CreateSampleRequest": {
         "required": [
           "title",
@@ -6858,6 +7608,76 @@
           },
           "overdue": {
             "type": "boolean"
+          }
+        }
+      },
+      "EntityRollupDto": {
+        "required": [
+          "summary",
+          "entities"
+        ],
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/EntityRollupSummary"
+          },
+          "entities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalEntityDto"
+            }
+          }
+        }
+      },
+      "EntityRollupSummary": {
+        "required": [
+          "entityCount",
+          "totalHeadcount",
+          "controlsPassing",
+          "controlsTotal",
+          "consolidatedReadinessPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "entityCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalHeadcount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsPassing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "consolidatedReadinessPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -7613,6 +8433,63 @@
           }
         }
       },
+      "GovernanceHubOverviewDto": {
+        "required": [
+          "entities",
+          "privacyAssessments",
+          "aiModels",
+          "phishingCampaigns",
+          "attackSurface",
+          "auditorNetwork",
+          "remediationPrs",
+          "timeMachine"
+        ],
+        "type": "object",
+        "properties": {
+          "entities": {
+            "$ref": "#/components/schemas/EntityRollupDto"
+          },
+          "privacyAssessments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrivacyAssessmentDto"
+            }
+          },
+          "aiModels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiModelDto"
+            }
+          },
+          "phishingCampaigns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PhishingCampaignDto"
+            }
+          },
+          "attackSurface": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttackSurfaceAssetDto"
+            }
+          },
+          "auditorNetwork": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditorFirmDto"
+            }
+          },
+          "remediationPrs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RemediationPrDto"
+            }
+          },
+          "timeMachine": {
+            "$ref": "#/components/schemas/TimeMachineComparison"
+          }
+        }
+      },
       "GrantItem": {
         "required": [
           "id",
@@ -8054,6 +8931,83 @@
             ]
           },
           "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LegalEntityDto": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "jurisdiction",
+          "region",
+          "headcount",
+          "controlsPassing",
+          "controlsTotal",
+          "readinessPercent",
+          "primaryFramework",
+          "status",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "jurisdiction": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "headcount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsPassing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "readinessPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "primaryFramework": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -8673,6 +9627,88 @@
           }
         }
       },
+      "PhishingCampaignDto": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "source",
+          "sentCount",
+          "clickedCount",
+          "reportedCount",
+          "clickRatePercent",
+          "reportRatePercent",
+          "riskBand",
+          "remedialTrainingStatus",
+          "ranAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sentCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "clickedCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reportedCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "clickRatePercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "reportRatePercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "riskBand": {
+            "type": "string"
+          },
+          "remedialTrainingStatus": {
+            "type": "string"
+          },
+          "ranAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PickAppsRequest": {
         "required": [
           "providers"
@@ -8858,6 +9894,64 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "PrivacyAssessmentDto": {
+        "required": [
+          "id",
+          "code",
+          "kind",
+          "activityName",
+          "dataSubjects",
+          "lawfulBasis",
+          "transferMechanism",
+          "riskLevel",
+          "status",
+          "ownerEmail",
+          "reviewDueOn",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "activityName": {
+            "type": "string"
+          },
+          "dataSubjects": {
+            "type": "string"
+          },
+          "lawfulBasis": {
+            "type": "string"
+          },
+          "transferMechanism": {
+            "type": "string"
+          },
+          "riskLevel": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "reviewDueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -9083,6 +10177,84 @@
         "properties": {
           "note": {
             "type": "string"
+          }
+        }
+      },
+      "RemediationPrDto": {
+        "required": [
+          "id",
+          "controlCode",
+          "targetResource",
+          "repository",
+          "branchName",
+          "title",
+          "artifactType",
+          "unifiedDiff",
+          "prNumber",
+          "prUrl",
+          "mode",
+          "status",
+          "evidenceId",
+          "evidenceSha256",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "controlCode": {
+            "type": "string"
+          },
+          "targetResource": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "branchName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "artifactType": {
+            "type": "string"
+          },
+          "unifiedDiff": {
+            "type": "string"
+          },
+          "prNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "prUrl": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "evidenceId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "evidenceSha256": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -9476,6 +10648,57 @@
           }
         }
       },
+      "SaveAiModelRequest": {
+        "required": [
+          "id",
+          "code",
+          "modelName",
+          "provider",
+          "euAiActRiskTier",
+          "trainingDataProvenance",
+          "guardrails",
+          "redTeamStatus",
+          "linkedControlCode",
+          "ownerEmail"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "euAiActRiskTier": {
+            "type": "string"
+          },
+          "trainingDataProvenance": {
+            "type": "string"
+          },
+          "guardrails": {
+            "type": "string"
+          },
+          "redTeamStatus": {
+            "type": "string"
+          },
+          "linkedControlCode": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          }
+        }
+      },
       "SaveAssetRequest": {
         "required": [
           "id",
@@ -9520,6 +10743,63 @@
           },
           "inScope": {
             "type": "boolean"
+          }
+        }
+      },
+      "SaveAttackSurfaceAssetRequest": {
+        "required": [
+          "id",
+          "hostname",
+          "ipAddress",
+          "service",
+          "port",
+          "tlsDaysRemaining",
+          "shadowIt",
+          "severity",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "port": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "tlsDaysRemaining": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "shadowIt": {
+            "type": "boolean"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
           }
         }
       },
@@ -9681,6 +10961,72 @@
           }
         }
       },
+      "SaveEntityRequest": {
+        "required": [
+          "id",
+          "code",
+          "name",
+          "jurisdiction",
+          "region",
+          "headcount",
+          "controlsPassing",
+          "controlsTotal",
+          "primaryFramework",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "jurisdiction": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "headcount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsPassing": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "controlsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "primaryFramework": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "SaveExerciseRequest": {
         "required": [
           "name",
@@ -9818,6 +11164,62 @@
           },
           "controlCode": {
             "type": "string"
+          }
+        }
+      },
+      "SavePrivacyAssessmentRequest": {
+        "required": [
+          "id",
+          "code",
+          "kind",
+          "activityName",
+          "dataSubjects",
+          "lawfulBasis",
+          "transferMechanism",
+          "riskLevel",
+          "status",
+          "ownerEmail",
+          "reviewDueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "activityName": {
+            "type": "string"
+          },
+          "dataSubjects": {
+            "type": "string"
+          },
+          "lawfulBasis": {
+            "type": "string"
+          },
+          "transferMechanism": {
+            "type": "string"
+          },
+          "riskLevel": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string"
+          },
+          "reviewDueOn": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -10241,6 +11643,77 @@
           }
         }
       },
+      "ScimDeprovisionRequest": {
+        "required": [
+          "email",
+          "reason",
+          "revokeDownstreamAccounts"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revokeDownstreamAccounts": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ScimDeprovisionResultDto": {
+        "required": [
+          "email",
+          "personName",
+          "state",
+          "leaverAccessFlagged",
+          "remainingActiveAccounts",
+          "offboardedCheckOutcome",
+          "offboardedCheckDetail",
+          "backgroundCheckOutcome",
+          "processedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "personName": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "leaverAccessFlagged": {
+            "type": "boolean"
+          },
+          "remainingActiveAccounts": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "offboardedCheckOutcome": {
+            "type": "string"
+          },
+          "offboardedCheckDetail": {
+            "type": "string"
+          },
+          "backgroundCheckOutcome": {
+            "type": "string"
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ScreenshotRequest": {
         "required": [
           "fileName",
@@ -10424,6 +11897,39 @@
           }
         }
       },
+      "SyncIntegrationResultDto": {
+        "required": [
+          "provider",
+          "mode",
+          "updatedRecords",
+          "summary",
+          "syncedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "updatedRecords": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "syncedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SystemDescriptionDto": {
         "required": [
           "body",
@@ -10473,6 +11979,122 @@
           },
           "exampleData": {
             "type": "boolean"
+          }
+        }
+      },
+      "TimeMachineComparison": {
+        "required": [
+          "asOf",
+          "compareTo",
+          "passPercentDelta",
+          "readinessDelta",
+          "chainEntriesDelta",
+          "summary"
+        ],
+        "type": "object",
+        "properties": {
+          "asOf": {
+            "$ref": "#/components/schemas/TimeMachineSnapshot"
+          },
+          "compareTo": {
+            "$ref": "#/components/schemas/TimeMachineSnapshot"
+          },
+          "passPercentDelta": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "readinessDelta": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "chainEntriesDelta": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      },
+      "TimeMachineSnapshot": {
+        "required": [
+          "date",
+          "passingTests",
+          "failingTests",
+          "testPassPercent",
+          "estimatedReadinessPercent",
+          "chainEntryCount",
+          "latestChainSequence",
+          "latestChainHead"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "passingTests": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "failingTests": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "testPassPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "estimatedReadinessPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "chainEntryCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "latestChainSequence": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "latestChainHead": {
+            "type": "string"
           }
         }
       },
@@ -11681,6 +13303,9 @@
     },
     {
       "name": "EnterpriseEndpoints"
+    },
+    {
+      "name": "GovernanceHubEndpoints"
     }
   ]
 }

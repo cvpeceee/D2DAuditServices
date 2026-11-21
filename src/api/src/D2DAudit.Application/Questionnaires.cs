@@ -34,6 +34,13 @@ public sealed record ReviewAnswerRequest(string? Answer, bool? Accepted);
 public interface IQuestionnaireAssistant
 {
     (string Answer, string Citation) Suggest(string question, IReadOnlyList<(string Citation, string Text)> knowledge);
+
+    Task<(string Answer, string Citation)> SuggestAsync(
+        string question,
+        IReadOnlyList<(string Citation, string Text)> knowledge,
+        string workspaceLabel,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(Suggest(question, knowledge));
 }
 
 public interface IQuestionnaires

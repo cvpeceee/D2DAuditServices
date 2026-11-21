@@ -36,6 +36,30 @@ flowchart LR
   jenkins -.->|build, test, gitleaks, pages artifact| pages
 ```
 
+## Enterprise Governance Hub, Differentiators, IaC & Interactive Tutorial (M10 — 100% Super-App Completion)
+
+```mermaid
+flowchart LR
+  gov[GovernanceHubPortal /governance-hub] --> ent[Multi-Entity Legal Subsidiary Rollup]
+  gov --> priv[GDPR Art. 30 RoPA & Art. 35 DPIA]
+  gov --> ai[ISO 42001 / EU AI Act Model Registry]
+  gov --> wf[Checkr + KnowBe4 Phishing + SCIM 2.0]
+  gov --> asm[External Attack Surface Monitoring]
+  gov --> pr[1-Click Remediation PR Generator]
+  pr -->|signed receipt| chain2[(EvidenceChain SHA-256)]
+  chain2 --> tm[Audit Time Machine Point-in-Time Diff]
+  gov --> aud[Verified Auditor Network Directory]
+  tut[/tutorial: 1080p MP4 + Audio + Interactive SVG Simulator] --> spa2[React SPA on Render.com / AWS ECS]
+```
+
+- **Enterprise Governance Hub (`IGovernanceHub` / `GovernanceHubPortal`)**: Backed by EF Core migration `20261120180000_SuperAppM10` adding 7 persistent tenant tables (`organization_entities`, `privacy_assessments`, `ai_models`, `phishing_campaigns`, `attack_surface_assets`, `auditor_network`, `remediation_pull_requests`) and pure domain calculators (`EntityRollupCalculator`, `PhishingMetrics`, `RemediationPrBuilder`, `TimeMachineCalculator`).
+- **AI-Powered Questionnaires (`GroundedQuestionnaireAssistant`)**: Injects `IAssistantProvider` (`ConfigurableAssistantProvider`) into `QuestionnairePortal` to synthesize grounded answers via an optional OpenAI-compatible LLM while always anchoring citations deterministically to workspace policies, controls, and evidence.
+- **Checkr, KnowBe4 & SCIM 2.0**: Supports live Checkr REST API and KnowBe4 Reporting API sync (with deterministic Harborline example fallback) plus inbound SCIM 2.0 user deprovisioning (`POST /api/v1/scim/v2/Users/{email}/deprovision`) that marks the user `Offboarded`, flags active downstream cloud/repo accounts, and recomputes `offboarded-removed` (`HR-08`) and `HR-01`.
+- **Standout Differentiators**:
+  - **1-Click Remediation PR Generator**: Generates branch names and unified Git diffs for Terraform HCL, Dockerfiles, GitHub Workflows, or IAM Policies, calls GitHub PR API when configured (or issues a signed receipt), and appends the signed JSON receipt directly into `EvidenceChain`.
+  - **Audit Time Machine**: Compares any two historical dates (`asOf` vs `compareTo`) across `check_weeks` and `evidence_chain` snapshots with readiness and evidence-chain growth deltas.
+- **Interactive Video/Audio Tutorial (`/tutorial`)**: Ships a real 1080p H.264/AAC MP4 narrated video (`src/web/public/tutorial/d2d-super-app-tutorial.mp4`), WebVTT captions, chapter jump markers, and an interactive animated architecture & packet-flow simulator (`TutorialPage.tsx`).
+
 ## Enterprise Super-App & CI/CD (M9 — Vanta + Drata Parity+ & Jenkins)
 
 ```mermaid
@@ -108,7 +132,8 @@ flowchart TB
 | `src/aspire/D2DAudit.AppHost` | Local Postgres, MinIO, Temporal, API, and Vite. |
 | `src/api/content/frameworks` | Framework JSON embedded in the API. |
 | `src/seed` | Harborline example client. `brand.json` plus generated `client.json`. |
-| `infra/terraform` | Placeholder for the AWS accounts. Nothing is applied. |
+| `infra/terraform` | Production AWS IaC (ECS Fargate, Multi-AZ RDS PostgreSQL 16, WORM S3 Object Lock, KMS, and optional EU `eu-central-1` data residency). |
+| `render.yaml` | Turnkey Render.com Cloud Hosting Blueprint (Static Super App + documented full-stack Docker API & Postgres 16 profile in `docs/RENDER_DEPLOY.md`). |
 
 HTTP is one `MapGroup` per feature. Endpoints stay thin and call an application interface. Expected failures return `Result<T>` or a validator error. Exceptions are for bugs and for startup misconfiguration.
 
@@ -195,6 +220,8 @@ The fake keeps the same paths, roles, and error codes as the API so a screen tha
 
 ## Deployment
 
-The intended production host is AWS. App containers run on ECS Fargate. Dev, staging, and production are separate accounts. Cloudflare is the CDN and WAF. Tenant databases can be hosted on Neon or moved to a dedicated cluster. Object storage is S3 in production and Cloudflare R2 or MinIO in development. Terraform in `infra/terraform` is the place that definition will live. It is not applied yet.
+Production infrastructure is defined as code in two turnkey deployment targets:
+- **AWS Production & EU Data Residency (`infra/terraform/`)**: Modular Terraform (`>= 1.6.0`, `hashicorp/aws ~> 5.0`) provisioning a 2-AZ VPC, TLS 1.3 ALB, ECS Fargate (`d2d-api`, `d2d-web`, `d2d-temporal-worker`), Multi-AZ encrypted RDS PostgreSQL 16.4 (`rds.force_ssl = 1`), KMS-encrypted WORM S3 Object Lock evidence bucket (`>= 3` years retention, default `6` years for HIPAA), and an optional sovereign EU (`eu-central-1` Frankfurt) replica KMS key and S3 Object Lock bucket.
+- **Render.com Cloud Hosting (`render.yaml` & `docs/RENDER_DEPLOY.md`)**: One-click Render Blueprint deploying the static Harborline Super App (`d2d-audit-web` with SPA rewrites, security headers, and `/tutorial/*` caching) plus a full-stack Docker API + Render Managed PostgreSQL 16 deployment guide.
 
 Self-hosted open-source Jenkins (`Jenkinsfile` + `ci/jenkins/docker-compose.jenkins.yml`) runs build, unit/integration tests, NuGet/npm vulnerability audits, Gitleaks secret scanning, review-site packaging (`docs/` + `VITE_DEMO=true` app), and optional direct `gh-pages` branch publishing with zero GitHub Actions minute usage. Automatic triggers in `.github/workflows/*.yml` are disabled (`workflow_dispatch` manual fallback only).

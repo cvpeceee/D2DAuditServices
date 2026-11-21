@@ -38,6 +38,8 @@ import { FinOpsPage } from "./features/security/FinOpsPage";
 import { AttackPathsPage } from "./features/security/AttackPathsPage";
 import { TrustAdminPage } from "./features/trust/TrustAdminPage";
 import { TrustPublicPage } from "./features/trust/TrustPublicPage";
+import { GovernanceHubPage } from "./features/governance/GovernanceHubPage";
+import { TutorialPage } from "./features/tutorial/TutorialPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, user } = useAuth();
@@ -124,6 +126,8 @@ export function App() {
         <Route path="access-reviews" element={<AccessReviewsPage />} />
         <Route path="auditor" element={<AuditorPage />} />
         <Route path="integrations" element={<IntegrationsPage />} />
+        <Route path="governance-hub" element={<GovernanceHubPage />} />
+        <Route path="tutorial" element={<TutorialPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

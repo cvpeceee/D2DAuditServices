@@ -1,0 +1,306 @@
+{
+  "title": "D2D Audit Services \u2014 All-in-One Super App Interactive & Video Tutorial",
+  "resolution": "1920x1080",
+  "fps": 10,
+  "totalDurationSeconds": 228.0,
+  "videoFile": "tutorial/d2d-super-app-tutorial.mp4",
+  "captionsFile": "tutorial/d2d-super-app-tutorial.vtt",
+  "chapters": [
+    {
+      "number": 1,
+      "id": "ch1-executive-overview",
+      "title": "Executive Overview \u2014 The Vanta + Drata + VRINDA All-in-One Super App & Database-per-Tenant Architecture",
+      "shortTitle": "Executive Overview & DB-per-Tenant",
+      "startTime": 0.0,
+      "endTime": 21.5,
+      "duration": 21.5,
+      "moduleRoute": "/frameworks",
+      "moduleLabel": "Open Frameworks & Overview",
+      "badge": "CONTROL PLANE + TENANT DB ISOLATION | 18/18 GAPS DONE | M1-M10 100%",
+      "codeSnippet": "TenantDbContext -> postgres://tenant_{id} | ProviderClaim uniqueness | Zero cross-tenant leakage",
+      "narration": "Welcome to D2D Audit Services, the all-in-one compliance and cloud security super app unifying Vanta, Drata, and VRINDA in a single platform. Every customer workspace runs inside a dedicated PostgreSQL database per tenant, orchestrated by a central Control Plane with strict Provider Claim uniqueness and role-scoped authorization across all ten milestones.",
+      "nodes": [
+        {
+          "stage": "Control Plane",
+          "detail": "WorkOS / Local Auth + Tenant Resolver"
+        },
+        {
+          "stage": "Dedicated Tenant DB",
+          "detail": "Isolated Postgres Schema & Claims"
+        },
+        {
+          "stage": "Continuous Collectors",
+          "detail": "AWS, Azure, GCP, GitHub & MDM"
+        },
+        {
+          "stage": "Unified Super App",
+          "detail": "13 Frameworks + Cloud Sec + Trust"
+        }
+      ],
+      "bullets": [
+        "100% physical database-per-tenant isolation with automated EF Core migration parity gates",
+        "Unifies continuous GRC compliance, cloud posture, blast-radius attack paths, and buyer trust",
+        "18 of 18 Gap Tracker capabilities and Milestones M1 through M10 delivered end-to-end"
+      ]
+    },
+    {
+      "number": 2,
+      "id": "ch2-cspm-frameworks",
+      "title": "Multi-Cloud CSPM (AWS, Azure, GCP) & 13 Compliance Frameworks + What-If Gap Simulator",
+      "shortTitle": "Multi-Cloud CSPM & 13 Frameworks",
+      "startTime": 21.5,
+      "endTime": 62.5,
+      "duration": 41.0,
+      "moduleRoute": "/frameworks",
+      "moduleLabel": "Open 13 Frameworks & What-If Simulator",
+      "badge": "13 EMBEDDED FRAMEWORKS | CUSTOM CSV UPLOAD | 1-CLICK WHAT-IF GAP ADOPTION",
+      "codeSnippet": "POST /api/v1/frameworks/{key}/simulator/adopt -> adopts missing controls & recalculates readiness",
+      "narration": "Chapter Two covers Multi-Cloud C S P M and our thirteen embedded compliance frameworks. Live collectors inspect AWS, Microsoft Azure, and Google Cloud across sixteen automated checks. Security teams track readiness across SOC 2, ISO 27001, 27017, 27018, 42001, HIPAA, GDPR, PCI DSS 4.0, NIST CSF 2.0, DORA, NIST AI RMF, the EU AI Act, and IEC 62443, and run the What-If Gap Simulator to adopt missing controls in one click.",
+      "nodes": [
+        {
+          "stage": "AWS + Azure + GCP",
+          "detail": "16 Live Cross-Cloud Collector Checks"
+        },
+        {
+          "stage": "Control Crosswalk",
+          "detail": "62 Controls Mapped Across 13 Catalogs"
+        },
+        {
+          "stage": "What-If Simulator",
+          "detail": "Projected Readiness & Gap Delta"
+        },
+        {
+          "stage": "1-Click Adoption",
+          "detail": "Auto-Creates & Maps Missing Controls"
+        }
+      ],
+      "bullets": [
+        "Live AWS, Azure Entra/Storage/KeyVault/NSG, and GCP IAM/Buckets/KMS/Audit collector pipeline",
+        "13 built-in regulatory and AI frameworks plus custom CSV framework upload and control import",
+        "Interactive What-If Gap Simulator shows immediate readiness lift and adopts gap controls in 1 click"
+      ]
+    },
+    {
+      "number": 3,
+      "id": "ch3-exposure-attack-paths",
+      "title": "Cloud Security Intelligence \u2014 Public Exposure, 1-Click Terraform/CLI Remediation & Blast-Radius Attack Paths",
+      "shortTitle": "Public Exposure & Blast-Radius Attack Paths",
+      "startTime": 62.5,
+      "endTime": 91.5,
+      "duration": 29.0,
+      "moduleRoute": "/attack-paths",
+      "moduleLabel": "Open Blast-Radius Attack Paths",
+      "badge": "INTERNET EXPOSURE -> LEAKED SECRET -> IDENTITY GAP -> PII STORE",
+      "codeSnippet": "aws ec2 revoke-security-group-ingress --port 22 | resource \"aws_security_group_rule\" \"lockdown\"",
+      "narration": "Chapter Three introduces VRINDA-grade Cloud Security Intelligence and Blast-Radius Attack Paths. The Exposure engine detects internet-open security groups, public buckets, and exposed databases, generating copy-ready Terraform H C L, AWS CLI, Azure CLI, and GCloud remediation patches. Our Attack Path Analyzer correlates public exposures, leaked secrets, identity gaps, and PII stores into multi-hop blast-radius graphs with a single chokepoint fix.",
+      "nodes": [
+        {
+          "stage": "Internet Exposure",
+          "detail": "0.0.0.0/0 SSH/RDP & Public Buckets"
+        },
+        {
+          "stage": "Leaked Secret / CVE",
+          "detail": "Baked-in Token or Critical RCE"
+        },
+        {
+          "stage": "Identity Gap",
+          "detail": "Admin Principal Missing MFA / Stale"
+        },
+        {
+          "stage": "PII Store Target",
+          "detail": "Restricted Customer Data Reached"
+        }
+      ],
+      "bullets": [
+        "Continuous public exposure scanning with deterministic Terraform HCL and cloud CLI remediation patches",
+        "Multi-hop blast-radius correlation: Internet Exposure -> Secret/CVE -> Identity Gap -> PII Data Store",
+        "1-click GitHub Pull Request remediation generator in Governance Hub to close exposure chokepoints"
+      ]
+    },
+    {
+      "number": 4,
+      "id": "ch4-sarif-dspm-finops",
+      "title": "Container CVEs, OSS Licenses, Baked-in Secrets (SARIF 2.1.0), DSPM PII Discovery & FinOps \u00d7 Compliance",
+      "shortTitle": "SARIF 2.1.0, DSPM PII & FinOps \u00d7 Compliance",
+      "startTime": 91.5,
+      "endTime": 119.5,
+      "duration": 28.0,
+      "moduleRoute": "/dspm",
+      "moduleLabel": "Open DSPM & Cloud Data Posture",
+      "badge": "SARIF 2.1.0 SECRET REDACTION | DSPM PII/PHI/PCI | FINOPS x CONTROL CORRELATION",
+      "codeSnippet": "SarifParser.RedactSnippet() -> [REDACTED-SECRET] | FinOps savings linked to CFG-01, CR-02, BC-01",
+      "narration": "Chapter Four unites application vulnerability scanning, Data Security Posture Management, and FinOps. Engineers import SARIF 2.1.0 reports to track container C V Es, copyleft open-source licenses, and baked-in secrets with automatic token redaction. D S P M classifies PII, PHI, and PCI data stores by encryption and residency risk, while FinOps correlates cloud cost savings directly with failing controls.",
+      "nodes": [
+        {
+          "stage": "SARIF 2.1.0 Ingest",
+          "detail": "Container CVEs, Licenses & Redacted Secrets"
+        },
+        {
+          "stage": "DSPM Classification",
+          "detail": "PII / PHI / PCI & Residency Scoring"
+        },
+        {
+          "stage": "FinOps Analyzer",
+          "detail": "Idle & Unencrypted Resource Waste"
+        },
+        {
+          "stage": "Control Alignment",
+          "detail": "Closes CFG-01, CR-02 & BC-01 Failures"
+        }
+      ],
+      "bullets": [
+        "Automatic secret redaction on SARIF 2.1.0 ingestion prevents credential leakage inside scan findings",
+        "DSPM evaluates encryption at rest, public access, data residency, and retention across cloud stores",
+        "FinOps x Compliance links every cost optimization directly to the compliance controls it resolves"
+      ]
+    },
+    {
+      "number": 5,
+      "id": "ch5-evidence-chain-time-machine",
+      "title": "Tamper-Evident Evidence Chain (Parquet + SHA-256 + S3 Object Lock) & Audit Time Machine",
+      "shortTitle": "SHA-256 Evidence Chain & Audit Time Machine",
+      "startTime": 119.5,
+      "endTime": 144.5,
+      "duration": 25.0,
+      "moduleRoute": "/evidence",
+      "moduleLabel": "Open Evidence Chain & Verifier",
+      "badge": "PARQUET SNAPSHOTS | SHA-256 HASH CHAIN | S3 OBJECT LOCK | AUDIT TIME MACHINE",
+      "codeSnippet": "ChainHash = SHA256(Seq:PrevHash:ContentSha256) | S3 GOVERNANCE Object Lock | Web Crypto Verify",
+      "narration": "Chapter Five showcases our tamper-evident Evidence Chain and the Audit Time Machine. Every collector snapshot and uploaded artifact is serialized to Parquet or raw bytes, hashed with SHA-256, and chained to the previous entry hash in S3 Object Lock compatible storage. Users can verify byte integrity locally in their browser via Web Crypto and diff historical posture snapshots across any two dates in the Audit Time Machine.",
+      "nodes": [
+        {
+          "stage": "Cloud Collector",
+          "detail": "Parquet & Artifact Byte Capture"
+        },
+        {
+          "stage": "SHA-256 Hash Link",
+          "detail": "Chained to Previous Sequence Hash"
+        },
+        {
+          "stage": "S3 Object Lock",
+          "detail": "Immutable WORM Retention Storage"
+        },
+        {
+          "stage": "Time Machine & Verify",
+          "detail": "Historical Diff & Browser Web Crypto"
+        }
+      ],
+      "bullets": [
+        "Per-tenant serialized EvidenceWriter prevents sequence collisions and links every SHA-256 entry hash",
+        "Browser-native Web Crypto SHA-256 verification proves downloaded bytes match the recorded chain hash",
+        "Audit Time Machine compares historical posture snapshots to show exact control and evidence deltas"
+      ]
+    },
+    {
+      "number": 6,
+      "id": "ch6-trust-center-v2",
+      "title": "Trust Center v2 \u2014 Clickwrap NDA (X-Trust-Token), Buyer-Verifiable Cryptographic Receipts & Trust AI Q&A",
+      "shortTitle": "Trust Center v2 & Cryptographic Receipts",
+      "startTime": 144.5,
+      "endTime": 169.0,
+      "duration": 24.5,
+      "moduleRoute": "/trust/harborline",
+      "moduleLabel": "Open Public Trust Center",
+      "badge": "X-TRUST-TOKEN NDA HEADER | FULL-CHAIN CRYPTOGRAPHIC RECEIPT | PUBLIC TRUST AI Q&A",
+      "codeSnippet": "GET /api/v1/public/trust/{slug}/receipt -> Verify canonical payload SHA-256 in Buyer Browser",
+      "narration": "Chapter Six demonstrates Trust Center version two. Prospective buyers inspect live framework readiness, submit clickwrap N D A requests, and download gated reports using constant-time validated X-Trust-Token headers without leaking tokens in URLs. Buyers can independently verify the Cryptographic Trust Receipt anchored to the workspace evidence chain head hash, or ask the grounded Trust Center A I assistant.",
+      "nodes": [
+        {
+          "stage": "Evidence Chain Head",
+          "detail": "Full-Chain Continuity Verified"
+        },
+        {
+          "stage": "Canonical Trust Receipt",
+          "detail": "Deterministic JSON Posture Payload"
+        },
+        {
+          "stage": "Buyer Browser Crypto",
+          "detail": "1-Click Local SHA-256 Verification"
+        },
+        {
+          "stage": "X-Trust-Token NDA",
+          "detail": "Header-Gated Report Downloads & AI Q&A"
+        }
+      ],
+      "bullets": [
+        "Cryptographic Trust Receipts verify full-chain continuity from genesis to head hash before signing",
+        "Constant-time X-Trust-Token header validation protects NDA-gated documents from URL/referer leakage",
+        "Public Trust Center AI Q&A answers buyer security questions strictly from published posture data"
+      ]
+    },
+    {
+      "number": 7,
+      "id": "ch7-governance-workforce-privacy-ai",
+      "title": "Workforce, Checkr, KnowBe4, MDM/Endpoint Agent, RoPA/DPIA, AI Model Registry & Multi-Entity Rollup",
+      "shortTitle": "Governance Hub: Multi-Entity, Privacy & AI",
+      "startTime": 169.0,
+      "endTime": 199.0,
+      "duration": 30.0,
+      "moduleRoute": "/governance-hub",
+      "moduleLabel": "Open Enterprise Governance Hub",
+      "badge": "MULTI-ENTITY ROLLUP | GDPR ROPA & DPIA | AI MODEL REGISTRY | CHECKR + KNOWBE4 + SCIM 2.0",
+      "codeSnippet": "GET /api/v1/governance-hub/board -> Multi-Entity Readiness, RoPA/DPIA, AI Risk Tiers & SCIM",
+      "narration": "Chapter Seven tours workforce security and the Enterprise Governance Hub. D2D integrates Jamf, Intune, Kandji, and endpoint device agent check-ins alongside Checkr background checks, KnowBe4 phishing simulations, and SCIM 2.0 directory sync. The Governance Hub adds parent-child Multi-Entity Rollups, GDPR Record of Processing Activities and D P I A assessments, and an A I Model Governance Registry mapped to ISO 42001 and the EU AI Act.",
+      "nodes": [
+        {
+          "stage": "Workforce & MDM",
+          "detail": "Checkr, KnowBe4, SCIM 2.0 & Agent"
+        },
+        {
+          "stage": "Privacy RoPA & DPIA",
+          "detail": "GDPR Article 30 & Impact Scoring"
+        },
+        {
+          "stage": "AI Model Registry",
+          "detail": "EU AI Act Tiering & Guardrails"
+        },
+        {
+          "stage": "Multi-Entity Rollup",
+          "detail": "Parent / Subsidiary Consolidated Score"
+        }
+      ],
+      "bullets": [
+        "Live & deterministic adapters for Checkr background checks, KnowBe4 phishing campaigns, and SCIM 2.0",
+        "GDPR RoPA & DPIA registers plus AI Model Registry tracking bias/hallucination tests and human oversight",
+        "Multi-Entity Rollup aggregates readiness, controls, and open risks across global business units"
+      ]
+    },
+    {
+      "number": 8,
+      "id": "ch8-auditor-api-webhooks-jenkins",
+      "title": "Auditor Workspace, Grounded AI Assistant, Developer API Keys (Bearer d2d_api_...), Signed Webhooks & Open-Source Jenkins CI",
+      "shortTitle": "Auditor Portal, API Keys, Webhooks & Jenkins CI",
+      "startTime": 199.0,
+      "endTime": 228.0,
+      "duration": 29.0,
+      "moduleRoute": "/settings",
+      "moduleLabel": "Open Settings & Developer Console",
+      "badge": "BEARER d2d_api_... | HMAC-SHA256 WEBHOOKS | AUDITOR ISOLATION | JENKINS + RENDER DEPLOY",
+      "codeSnippet": "Authorization: Bearer d2d_api_<tenant>_<secret> | X-D2D-Signature: t=1763680000,v1=<hmac_sha256>",
+      "narration": "Finally, Chapter Eight covers the External Auditor Workspace, Grounded A I Assistant, Developer Console, and CI/CD infrastructure. External auditors operate under strict framework and storage-prefix isolation. Developers automate workflows with tenant-bound Bearer API keys and SSRF-hardened HMAC-SHA256 outbound webhooks. The entire stack builds via self-hosted open-source Jenkins CI and deploys cleanly via Terraform or Render Blueprint.",
+      "nodes": [
+        {
+          "stage": "Auditor Isolation",
+          "detail": "Framework-Scoped Portal & ZIP Prefix"
+        },
+        {
+          "stage": "Grounded AI Sidecar",
+          "detail": "Role-Scoped Citations & Retrieval"
+        },
+        {
+          "stage": "Developer API & Hooks",
+          "detail": "Bearer d2d_api_... & HMAC-SHA256"
+        },
+        {
+          "stage": "Jenkins CI & Render",
+          "detail": "Zero GH Actions Minutes + IaC Blueprint"
+        }
+      ],
+      "bullets": [
+        "External auditors are isolated by WorkspaceMember policies, granted frameworks, and dedicated S3 zip prefixes",
+        "Runtime SHA-256 API key authentication and DNS-rebinding-protected HMAC-SHA256 outbound webhooks",
+        "Turnkey open-source Jenkins CI stack, AWS/EU Object Lock Terraform modules, and Render cloud blueprint"
+      ]
+    }
+  ]
+}

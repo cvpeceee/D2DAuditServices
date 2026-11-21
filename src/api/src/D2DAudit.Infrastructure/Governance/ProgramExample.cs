@@ -4,6 +4,7 @@ using D2DAudit.Infrastructure.Changes;
 using D2DAudit.Infrastructure.CloudSecurity;
 using D2DAudit.Infrastructure.Continuity;
 using D2DAudit.Infrastructure.Descriptions;
+using D2DAudit.Infrastructure.GovernanceHub;
 using D2DAudit.Infrastructure.Questionnaires;
 using D2DAudit.Infrastructure.Incidents;
 using D2DAudit.Infrastructure.Operations;
@@ -41,6 +42,7 @@ internal static class ProgramExample
         await SystemDescriptionExample.ApplyAsync(db, now, cancellationToken);
         await ContinuityExample.ApplyAsync(db, now, cancellationToken);
         await CloudSecurityExample.ApplyAsync(db, now, cancellationToken);
+        await GovernanceHubExample.ApplyAsync(db, today, now, cancellationToken);
 
         if (!db.AccessCampaigns.Local.Any(item => item.State == CampaignState.Draft))
         {

@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:21.500
+Chapter 1: Executive Overview & DB-per-Tenant — Welcome to D2D Audit Services, the all-in-one compliance and cloud security super app unifying Vanta, Drata, and VRINDA in a single platform. Every customer workspace runs inside a dedicated PostgreSQL database per tenant, orchestrated by a central Control Plane with strict Provider Claim uniqueness and role-scoped authorization across all ten milestones.
+
+2
+00:00:21.500 --> 00:01:02.500
+Chapter 2: Multi-Cloud CSPM & 13 Frameworks — Chapter Two covers Multi-Cloud C S P M and our thirteen embedded compliance frameworks. Live collectors inspect AWS, Microsoft Azure, and Google Cloud across sixteen automated checks. Security teams track readiness across SOC 2, ISO 27001, 27017, 27018, 42001, HIPAA, GDPR, PCI DSS 4.0, NIST CSF 2.0, DORA, NIST AI RMF, the EU AI Act, and IEC 62443, and run the What-If Gap Simulator to adopt missing controls in one click.
+
+3
+00:01:02.500 --> 00:01:31.500
+Chapter 3: Public Exposure & Blast-Radius Attack Paths — Chapter Three introduces VRINDA-grade Cloud Security Intelligence and Blast-Radius Attack Paths. The Exposure engine detects internet-open security groups, public buckets, and exposed databases, generating copy-ready Terraform H C L, AWS CLI, Azure CLI, and GCloud remediation patches. Our Attack Path Analyzer correlates public exposures, leaked secrets, identity gaps, and PII stores into multi-hop blast-radius graphs with a single chokepoint fix.
+
+4
+00:01:31.500 --> 00:01:59.500
+Chapter 4: SARIF 2.1.0, DSPM PII & FinOps × Compliance — Chapter Four unites application vulnerability scanning, Data Security Posture Management, and FinOps. Engineers import SARIF 2.1.0 reports to track container C V Es, copyleft open-source licenses, and baked-in secrets with automatic token redaction. D S P M classifies PII, PHI, and PCI data stores by encryption and residency risk, while FinOps correlates cloud cost savings directly with failing controls.
+
+5
+00:01:59.500 --> 00:02:24.500
+Chapter 5: SHA-256 Evidence Chain & Audit Time Machine — Chapter Five showcases our tamper-evident Evidence Chain and the Audit Time Machine. Every collector snapshot and uploaded artifact is serialized to Parquet or raw bytes, hashed with SHA-256, and chained to the previous entry hash in S3 Object Lock compatible storage. Users can verify byte integrity locally in their browser via Web Crypto and diff historical posture snapshots across any two dates in the Audit Time Machine.
+
+6
+00:02:24.500 --> 00:02:49.000
+Chapter 6: Trust Center v2 & Cryptographic Receipts — Chapter Six demonstrates Trust Center version two. Prospective buyers inspect live framework readiness, submit clickwrap N D A requests, and download gated reports using constant-time validated X-Trust-Token headers without leaking tokens in URLs. Buyers can independently verify the Cryptographic Trust Receipt anchored to the workspace evidence chain head hash, or ask the grounded Trust Center A I assistant.
+
+7
+00:02:49.000 --> 00:03:19.000
+Chapter 7: Governance Hub: Multi-Entity, Privacy & AI — Chapter Seven tours workforce security and the Enterprise Governance Hub. D2D integrates Jamf, Intune, Kandji, and endpoint device agent check-ins alongside Checkr background checks, KnowBe4 phishing simulations, and SCIM 2.0 directory sync. The Governance Hub adds parent-child Multi-Entity Rollups, GDPR Record of Processing Activities and D P I A assessments, and an A I Model Governance Registry mapped to ISO 42001 and the EU AI Act.
+
+8
+00:03:19.000 --> 00:03:48.000
+Chapter 8: Auditor Portal, API Keys, Webhooks & Jenkins CI — Finally, Chapter Eight covers the External Auditor Workspace, Grounded A I Assistant, Developer Console, and CI/CD infrastructure. External auditors operate under strict framework and storage-prefix isolation. Developers automate workflows with tenant-bound Bearer API keys and SSRF-hardened HMAC-SHA256 outbound webhooks. The entire stack builds via self-hosted open-source Jenkins CI and deploys cleanly via Terraform or Render Blueprint.

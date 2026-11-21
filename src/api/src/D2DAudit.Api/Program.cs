@@ -148,6 +148,7 @@ app.MapVulnerabilityIngestEndpoints();
 app.MapDeviceFleetEndpoints();
 app.MapCloudSecurityEndpoints();
 app.MapEnterpriseEndpoints();
+app.MapGovernanceHubEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

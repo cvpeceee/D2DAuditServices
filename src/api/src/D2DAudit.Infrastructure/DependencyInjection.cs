@@ -6,6 +6,7 @@ using D2DAudit.Infrastructure.CloudSecurity;
 using D2DAudit.Infrastructure.Continuity;
 using D2DAudit.Infrastructure.Descriptions;
 using D2DAudit.Infrastructure.Enterprise;
+using D2DAudit.Infrastructure.GovernanceHub;
 using D2DAudit.Infrastructure.Questionnaires;
 using D2DAudit.Infrastructure.Governance;
 using D2DAudit.Infrastructure.Catalog;
@@ -116,17 +117,14 @@ public static class DependencyInjection
         services.AddHttpClient<JiraChangeFeed>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddScoped<IJiraChangeFeed>(provider => provider.GetRequiredService<JiraChangeFeed>());
         services.AddScoped<IChanges, ChangePortal>();
-        services.AddSingleton<IQuestionnaireAssistant, DeterministicQuestionnaireAssistant>();
+        services.AddScoped<IQuestionnaireAssistant, GroundedQuestionnaireAssistant>();
         services.AddScoped<IQuestionnaires, QuestionnairePortal>();
         services.AddScoped<ISystemDescription, SystemDescriptionPortal>();
         services.AddScoped<IContinuity, ContinuityPortal>();
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
-        services.AddSingleton<WebhookSecretProtector>();
-        services.AddScoped<IApiKeyAuthenticator, ApiKeyAuthenticator>();
-        services.AddHttpClient<IWebhookDispatcher, WebhookDispatcher>(client => client.Timeout = TimeSpan.FromSeconds(15))
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();
+        services.AddHttpClient<IGovernanceHub, GovernanceHubPortal>(client => client.Timeout = TimeSpan.FromSeconds(25));
         services.AddSingleton<AwsInspectorFeed>();
         services.AddScoped<IVulnerabilityIngest, VulnerabilityIngest>();
         services.AddHttpClient<MdmImport>(client => client.Timeout = TimeSpan.FromSeconds(30));

@@ -83,6 +83,11 @@ public sealed class ApiPipelineSecurityTests : IClassFixture<ApiPipelineSecurity
     [InlineData("GET", "/api/v1/devices")]
     [InlineData("GET", "/api/v1/resources")]
     [InlineData("GET", "/api/v1/frameworks/iso27001/simulator")]
+    [InlineData("GET", "/api/v1/governance/overview")]
+    [InlineData("GET", "/api/v1/governance/entities")]
+    [InlineData("GET", "/api/v1/governance/time-machine")]
+    [InlineData("POST", "/api/v1/governance/checkr/sync")]
+    [InlineData("POST", "/api/v1/scim/v2/Users/user%40acme.example/deprovision")]
     [InlineData("POST", "/api/v1/incidents")]
     [InlineData("POST", "/api/v1/me/cards")]
     public async Task External_auditor_is_forbidden_from_internal_security_trust_and_employee_endpoints(string method, string path)
@@ -165,6 +170,13 @@ public sealed class ApiPipelineSecurityTests : IClassFixture<ApiPipelineSecurity
         Assert.True(paths.TryGetProperty("/api/v1/developer/webhooks/{id}/test", out _));
         Assert.True(paths.TryGetProperty("/api/v1/public/trust/{slug}/receipt", out _));
         Assert.True(paths.TryGetProperty("/api/v1/evidence/{id}/download", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/overview", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/entities", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/checkr/sync", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/knowbe4/sync", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/remediation-prs", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/governance/time-machine", out _));
+        Assert.True(paths.TryGetProperty("/api/v1/scim/v2/Users/{email}/deprovision", out _));
 
         if (string.Equals(Environment.GetEnvironmentVariable("UPDATE_OPENAPI_SNAPSHOT"), "1", StringComparison.Ordinal))
         {
@@ -222,6 +234,7 @@ public sealed class ApiPipelineSecurityTests : IClassFixture<ApiPipelineSecurity
                 services.RemoveAll<IActivityWriter>();
                 services.RemoveAll<ICloudSecurity>();
                 services.RemoveAll<IEnterprisePortal>();
+                services.RemoveAll<IGovernanceHub>();
                 services.RemoveAll<IOperations>();
                 services.RemoveAll<IIncidents>();
                 services.RemoveAll<IProgram>();
@@ -233,6 +246,7 @@ public sealed class ApiPipelineSecurityTests : IClassFixture<ApiPipelineSecurity
                 services.AddSingleton<IActivityWriter, StubActivityWriter>();
                 services.AddSingleton<ICloudSecurity, StubCloudSecurity>();
                 services.AddSingleton<IEnterprisePortal, StubEnterprisePortal>();
+                services.AddSingleton<IGovernanceHub, StubGovernanceHub>();
                 services.AddSingleton<IOperations, StubOperations>();
                 services.AddSingleton<IIncidents, StubIncidents>();
                 services.AddSingleton<IProgram, StubProgram>();
@@ -445,5 +459,36 @@ public sealed class ApiPipelineSecurityTests : IClassFixture<ApiPipelineSecurity
         public Task<IReadOnlyList<ResourceDto>> ResourcesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<ResourceDto>>([]);
         public Task<IReadOnlyList<HistoryPoint>> HistoryAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<HistoryPoint>>([]);
         public Task<int> DeviceCountAsync(CancellationToken cancellationToken) => Task.FromResult(0);
+    }
+
+    private sealed class StubGovernanceHub : IGovernanceHub
+    {
+        private static readonly TimeMachineComparison EmptyTm = TimeMachineCalculator.Compare(new DateOnly(2026, 8, 1), new DateOnly(2026, 11, 20), [], [], 0, 0);
+
+        public Task<GovernanceHubOverviewDto> OverviewAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(new GovernanceHubOverviewDto(new EntityRollupDto(EntityRollupCalculator.Summarize([]), []), [], [], [], [], [], [], EmptyTm));
+        public Task<EntityRollupDto> ListEntitiesAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(new EntityRollupDto(EntityRollupCalculator.Summarize([]), []));
+        public Task<Result<LegalEntityDto>> SaveEntityAsync(SaveEntityRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<Result<SyncIntegrationResultDto>> SyncCheckrAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(Result<SyncIntegrationResultDto>.Ok(new SyncIntegrationResultDto("Checkr", "stub", 0, "ok", DateTimeOffset.UtcNow)));
+        public Task<Result<SyncIntegrationResultDto>> SyncKnowBe4Async(CancellationToken cancellationToken) =>
+            Task.FromResult(Result<SyncIntegrationResultDto>.Ok(new SyncIntegrationResultDto("KnowBe4", "stub", 0, "ok", DateTimeOffset.UtcNow)));
+        public Task<Result<ScimDeprovisionResultDto>> DeprovisionScimUserAsync(ScimDeprovisionRequest request, CancellationToken cancellationToken) =>
+            Task.FromResult(Result<ScimDeprovisionResultDto>.Ok(new ScimDeprovisionResultDto(request.Email, "Stub", "Offboarded", false, 0, "Pass", "ok", "Pass", DateTimeOffset.UtcNow)));
+        public Task<IReadOnlyList<PrivacyAssessmentDto>> ListPrivacyAssessmentsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<PrivacyAssessmentDto>>([]);
+        public Task<Result<PrivacyAssessmentDto>> SavePrivacyAssessmentAsync(SavePrivacyAssessmentRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<IReadOnlyList<AiModelDto>> ListAiModelsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AiModelDto>>([]);
+        public Task<Result<AiModelDto>> SaveAiModelAsync(SaveAiModelRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<IReadOnlyList<PhishingCampaignDto>> ListPhishingCampaignsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<PhishingCampaignDto>>([]);
+        public Task<Result<PhishingCampaignDto>> CreatePhishingCampaignAsync(CreatePhishingCampaignRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<IReadOnlyList<AttackSurfaceAssetDto>> ListAttackSurfaceAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AttackSurfaceAssetDto>>([]);
+        public Task<Result<AttackSurfaceAssetDto>> SaveAttackSurfaceAssetAsync(SaveAttackSurfaceAssetRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<IReadOnlyList<AuditorFirmDto>> ListAuditorNetworkAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AuditorFirmDto>>([]);
+        public Task<Result<AuditorFirmDto>> InviteAuditorFirmAsync(Guid id, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<IReadOnlyList<RemediationPrDto>> ListRemediationPrsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<RemediationPrDto>>([]);
+        public Task<Result<RemediationPrDto>> CreateRemediationPrAsync(CreateRemediationPrRequest request, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<Result<TimeMachineComparison>> TimeMachineAsync(DateOnly? asOf, DateOnly? compareTo, CancellationToken cancellationToken) =>
+            Task.FromResult(Result<TimeMachineComparison>.Ok(EmptyTm));
     }
 }

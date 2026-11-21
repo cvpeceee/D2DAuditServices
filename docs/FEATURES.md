@@ -12,7 +12,7 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 2 | P0 | Framework readiness percent on the dashboard and framework pages, plus a one-page executive PDF | Done | https://github.com/cvpeceee/D2DAuditServices/pull/13 |
 | 3 | P0 | Security incident register, employee report on `/me`, and the test "incidents resolved within SLA" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/14 |
 | 4 | P0 | Change management from GitHub pull requests and Jira, with the test "production changes are reviewed" | Done | https://github.com/cvpeceee/D2DAuditServices/pull/15 |
-| 5 | P0 | Security questionnaire automation with a knowledge base, cited suggestions, review, and export | Faked-for-demo | https://github.com/cvpeceee/D2DAuditServices/pull/16 |
+| 5 | P0 | Security questionnaire automation with AI-powered `IAssistantProvider` (`GroundedQuestionnaireAssistant`), zero-hallucination cited knowledge-base anchor, review, and CSV export | Done | M10 |
 | 6 | P0 | SOC 2 system description drafted from tenant data, editable, and included in the audit package | Done | https://github.com/cvpeceee/D2DAuditServices/pull/17 |
 | 7 | P0 | Business continuity: impact analysis, plans, and exercise log linked to controls | Done | https://github.com/cvpeceee/D2DAuditServices/pull/18 |
 | 8 | P0 | Live AWS Inspector and GitHub Dependabot ingest when connected, plus pentest report tracking | Done | https://github.com/cvpeceee/D2DAuditServices/pull/19 |
@@ -20,12 +20,12 @@ Source of truth for the Nov 21, 2026 Harborline demo and the remaining competito
 | 10 | P1 | Real Jira, Linear, Slack, Microsoft Teams, Resend, and SMTP TLS automation delivery when configured (`ConfigurableIssueTracker`, `ConfigurableNotifier`) | Done | M7 |
 | 11 | P1 | PCI DSS 4.0, ISO 42001, NIST CSF 2.0, DORA, NIST AI RMF, EU AI Act, IEC 62443, custom framework upload & What-If Gap Simulator | Done | M9 |
 | 12 | P1 | Public REST API keys (`Bearer d2d_api_...` with runtime auth & scope enforcement), OpenAPI (`/openapi/v1.json`), and HMAC-SHA256 signed outbound webhooks (`IWebhookDispatcher`) | Done | M9 |
-| 13 | P1 | Checkr background checks and KnowBe4 training | Not started | |
-| 14 | P2 | Multi-entity workspaces inside one customer | Not started | |
+| 13 | P1 | Checkr background checks, KnowBe4 security awareness & phishing sync, and inbound SCIM 2.0 deprovisioning (`POST /api/v1/scim/v2/Users/{email}/deprovision`) | Done | M10 |
+| 14 | P2 | Multi-entity workspaces inside one customer (`organization_entities` + consolidated readiness rollup) | Done | M10 |
 | 15 | P2 | Trust Center v2 (real file upload/download, clickwrap NDA, buyer-verifiable Cryptographic Trust Receipts, Trust Center AI Q&A) | Done | M9 |
 | 16 | P2 | Grounded AI assistant over product docs and role-scoped tenant data (`IAssistantProvider` + live side panel) | Done | M9 |
-| 17 | P2 | Terraform for ECS Fargate, RDS, and S3 Object Lock, with an EU region option | Not started | |
-| 18 | P3 | RoPA and DPIA, AI governance registry, phishing simulations, attack surface monitoring, auditor network | Not started | |
+| 17 | P2 | Production Terraform for ECS Fargate, Multi-AZ RDS, and S3 Object Lock with EU (`eu-central-1`) data residency option + Render.com Blueprint (`render.yaml`) | Done | M10 |
+| 18 | P3 | RoPA and DPIA, AI governance registry, phishing simulations, external attack surface monitoring (ASM), verified auditor network, 1-Click Remediation PRs, and Audit Time Machine (`/governance-hub`) | Done | M10 |
 
 Harborline already shows fixture Azure, GCP, Inspector, and Dependabot data. Live Inspector and Dependabot ingest runs only for a connected workspace that is not the example fixture. Sync on Harborline leaves those rows in place.
 
@@ -69,6 +69,8 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/trust-center` | Publish the page, upload/edit document files, approve or deny NDA requests (issuing download tokens). | Save, upload document bytes, approve, deny. | Admin |
 | `/settings` | Members, SSO status, auditor grants, automation rules, and Developer Console (SHA-256 API keys & signed outbound webhooks with test delivery). | Invite, deactivate, save a rule, run due reviews, create/revoke API keys, create/test/delete webhooks. | Admin |
 | `/integrations` | Connect AWS, Google, Microsoft, GitHub, or load the example fixture. | Connect, collect. | Write roles |
+| `/governance-hub` | Multi-entity rollup, GDPR Art. 30/35 RoPA & DPIA, ISO 42001/EU AI Act model registry, Checkr & KnowBe4 phishing sync, SCIM 2.0 deprovisioning, external ASM, 1-Click Remediation PRs signed into `EvidenceChain`, Audit Time Machine, and Verified Auditor Network. | Add legal entities, log RoPA/DPIA & AI models, sync Checkr/KnowBe4, run SCIM 2.0 deprovision, generate Remediation PRs, diff Audit Time Machine dates, invite auditor firms. | Workspace members (Write roles mutate) |
+| `/tutorial` | 100% Super-App Completion Dashboard, embedded 1080p MP4 video + spoken English voiceover tutorial with 8 clickable chapters and WebVTT captions, and interactive animated architecture simulator. | Watch/download MP4, jump chapters, simulate packet-flow pipelines, open live modules. | All workspace roles |
 | `/activity` | Sign-in and product actions, including auditor access. | Read. | Admin |
 
 ## Background checks
@@ -109,7 +111,7 @@ A penetration-test upload takes `cve,severity,asset,title` and adds those rows w
 
 ## Questionnaires
 
-`/questionnaires` uploads a CSV or XLSX whose first column, or a column headed `question`, is the question list. The knowledge base is the workspace policies, controls, and recent evidence titles. `IQuestionnaireAssistant` is the boundary. The implementation in this release is deterministic: it scores word overlap and cites the closest item. It does not call a model. That is why the tracker row is Faked-for-demo. A person edits the answer, accepts it, and exports the sheet as CSV. Harborline already has the Northgate questionnaire, with the change-management question still open.
+`/questionnaires` uploads a CSV or XLSX whose first column, or a column headed `question`, is the question list. The knowledge base is the workspace policies, controls, and recent evidence titles. `IQuestionnaireAssistant` (`GroundedQuestionnaireAssistant`) injects `IAssistantProvider` (`ConfigurableAssistantProvider`): when an OpenAI-compatible LLM endpoint (`AI:Endpoint` + `AI:ApiKey` + `AI:Model`) is configured, it synthesizes concise answers grounded strictly in the workspace records while preserving the deterministic cited knowledge-base anchor (`Policy POL-...`, `Control CM-11`, `Evidence ...`); when no LLM endpoint is set, it falls back deterministically to zero-hallucination cited retrieval. A person edits the answer, accepts it, and exports the sheet as CSV. Harborline already has the Northgate questionnaire, with the change-management question still open.
 
 ## Automation and outbound webhooks
 
@@ -169,5 +171,8 @@ The manifest, integrity report, control matrix, and evidence files are unchanged
 | Role-scoped Grounded AI Assistant (`IAssistantProvider` / `ConfigurableAssistantProvider` + live side panel) | Built |
 | WorkOS sign-in | Built behind `IIdentityProvider`. Local identity in dev. |
 | Self-hosted open-source Jenkins CI/CD (`Jenkinsfile` + `ci/jenkins/`) with zero GitHub Actions auto-triggers | Built |
-| SCIM deprovisioning | Later. WorkOS can own it. The app records the membership. |
-| Production AWS deploy | Later. Terraform is a placeholder. |
+| SCIM 2.0 user deprovisioning (`POST /api/v1/scim/v2/Users/{email}/deprovision`), Checkr background-check sync, and KnowBe4 training & phishing sync | Built |
+| Production AWS Terraform (ECS Fargate, Multi-AZ RDS PostgreSQL 16, WORM S3 Object Lock, KMS, EU `eu-central-1` residency) & Render.com Blueprint (`render.yaml`) | Built |
+| Multi-entity legal subsidiary rollup (`organization_entities`), GDPR RoPA/DPIA, ISO 42001/EU AI Act model registry, external ASM, and Verified Auditor Network (`/governance-hub`) | Built |
+| 1-Click Remediation Pull Request Generator (signed into `EvidenceChain`) and Audit Time Machine point-in-time posture & chain comparison | Built |
+| 1080p MP4 Video + Spoken Audio Tutorial & Interactive Animated Architecture Tour (`/tutorial`) | Built |

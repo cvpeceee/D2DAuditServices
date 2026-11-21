@@ -522,3 +522,127 @@ classDiagram
     EnterprisePortal --> ApiKeyRecord
     EnterprisePortal --> WebhookSubscription
 ```
+
+## 7. Enterprise Governance Hub, SCIM 2.0, 1-Click Remediation PRs & Audit Time Machine (`D2DAudit.Domain` — M10)
+
+```mermaid
+classDiagram
+    class LegalEntityRecord {
+        +Guid Id
+        +string Code
+        +string Name
+        +string Jurisdiction
+        +string Region
+        +int Headcount
+        +int ControlsPassing
+        +int ControlsTotal
+        +string PrimaryFramework
+        +string Status
+    }
+    class PrivacyAssessment {
+        +Guid Id
+        +string Code
+        +string Kind
+        +string ActivityName
+        +string DataSubjects
+        +string LawfulBasis
+        +string TransferMechanism
+        +string RiskLevel
+        +string Status
+        +DateOnly ReviewDueOn
+    }
+    class AiModelRecord {
+        +Guid Id
+        +string Code
+        +string ModelName
+        +string Provider
+        +string EuAiActRiskTier
+        +string TrainingDataProvenance
+        +string Guardrails
+        +string RedTeamStatus
+        +string LinkedControlCode
+    }
+    class PhishingCampaign {
+        +Guid Id
+        +string Code
+        +string Name
+        +string Source
+        +int SentCount
+        +int ClickedCount
+        +int ReportedCount
+        +string RemedialTrainingStatus
+    }
+    class AttackSurfaceAsset {
+        +Guid Id
+        +string Hostname
+        +string IpAddress
+        +string Service
+        +int Port
+        +int TlsDaysRemaining
+        +bool ShadowIt
+        +string Severity
+        +string Status
+    }
+    class AuditorFirmRecord {
+        +Guid Id
+        +string Code
+        +string FirmName
+        +string Accreditation
+        +string Specialties
+        +string Regions
+        +string LeadAuditorEmail
+        +bool Invited
+    }
+    class RemediationPullRequest {
+        +Guid Id
+        +string ControlCode
+        +string TargetResource
+        +string Repository
+        +string BranchName
+        +string ArtifactType
+        +string UnifiedDiff
+        +int PrNumber
+        +string PrUrl
+        +Guid? EvidenceId
+        +string EvidenceSha256
+    }
+    class GovernanceHubCalculators {
+        <<static>>
+        +EntityRollupCalculator.Summarize() EntityRollupSummary
+        +PhishingMetrics.RatePercent() double
+        +RemediationPrBuilder.Generate() GeneratedRemediationPatch
+        +TimeMachineCalculator.Compare() TimeMachineComparison
+    }
+    class IGovernanceHub {
+        <<interface>>
+        +OverviewAsync()
+        +ListEntitiesAsync()
+        +SaveEntityAsync()
+        +SyncCheckrAsync()
+        +SyncKnowBe4Async()
+        +DeprovisionScimUserAsync()
+        +SavePrivacyAssessmentAsync()
+        +SaveAiModelAsync()
+        +CreatePhishingCampaignAsync()
+        +SaveAttackSurfaceAssetAsync()
+        +InviteAuditorFirmAsync()
+        +CreateRemediationPrAsync()
+        +TimeMachineAsync()
+    }
+    class GroundedQuestionnaireAssistant {
+        +Suggest()
+        +SuggestAsync()
+    }
+
+    IGovernanceHub <|.. GovernanceHubPortal
+    IQuestionnaireAssistant <|.. GroundedQuestionnaireAssistant
+    GroundedQuestionnaireAssistant --> IAssistantProvider
+    GovernanceHubPortal --> EvidenceWriter : signs Remediation PR receipts
+    GovernanceHubPortal --> LegalEntityRecord
+    GovernanceHubPortal --> PrivacyAssessment
+    GovernanceHubPortal --> AiModelRecord
+    GovernanceHubPortal --> PhishingCampaign
+    GovernanceHubPortal --> AttackSurfaceAsset
+    GovernanceHubPortal --> AuditorFirmRecord
+    GovernanceHubPortal --> RemediationPullRequest
+```
