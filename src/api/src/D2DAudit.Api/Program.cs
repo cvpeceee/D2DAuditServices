@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IJobNotifier, SignalRJobNotifier>();
+builder.Services.AddSingleton<INotificationPush, SignalRNotificationPush>();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(SessionAuthenticationHandler.SchemeName)
@@ -149,6 +150,7 @@ app.MapDeviceFleetEndpoints();
 app.MapCloudSecurityEndpoints();
 app.MapEnterpriseEndpoints();
 app.MapGovernanceHubEndpoints();
+app.MapInsightsEndpoints();
 app.MapHub<JobsHub>("/hubs/jobs");
 app.MapOpenApi();
 

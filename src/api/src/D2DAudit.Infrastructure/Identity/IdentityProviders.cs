@@ -7,6 +7,7 @@ using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -34,7 +35,8 @@ public sealed class LocalIdentityProvider(
     ControlPlaneDbContext db,
     PasswordHasher<UserAccount> passwords,
     LocalDummyPasswordHash dummyHash,
-    TimeProvider time) : IIdentityProvider
+    TimeProvider time,
+    ILogger<LocalIdentityProvider> logger) : IIdentityProvider
 {
     private readonly string _signingKey = DevOnlySigningKey.Resolve(
         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development",
@@ -94,7 +96,43 @@ public sealed class LocalIdentityProvider(
         SignedTokenValidator.ValidateAsync(token, SignedTokenValidator.LocalParameters(_signingKey));
 
     public Task<bool> RequestPasswordResetAsync(string email, CancellationToken cancellationToken) =>
-        Task.FromResult(false);
+        RequestLocalResetAsync(email, cancellationToken);
+
+    /// <summary>
+    /// Local mode has no mail provider, so the reset link is written to the development log instead.
+    /// Local identity mode only runs in Development and Testing.
+    /// </summary>
+    private async Task<bool> RequestLocalResetAsync(string email, CancellationToken cancellationToken)
+    {
+        var normalized = NormalizeEmail(email);
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, normalized), cancellationToken);
+        if (user?.PasswordHash is not null)
+        {
+            var token = LocalResetTokens.Create(_signingKey, user.Email, user.PasswordHash, time.GetUtcNow().AddMinutes(30));
+            logger.LogInformation("Local password reset link (development only): /reset-password?token={Token}", token);
+        }
+
+        return true;
+    }
+
+    public async Task<string> ConfirmPasswordResetAsync(string token, string newPassword, CancellationToken cancellationToken)
+    {
+        var email = LocalResetTokens.ReadEmail(token);
+        if (email is null)
+        {
+            return "invalid_token";
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, email), cancellationToken);
+        if (user?.PasswordHash is null || !LocalResetTokens.Validate(_signingKey, token, user.Email, user.PasswordHash, time.GetUtcNow()))
+        {
+            return "invalid_token";
+        }
+
+        user.PasswordHash = passwords.HashPassword(user, newPassword);
+        await db.SaveChangesAsync(cancellationToken);
+        return "reset";
+    }
 
     internal static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }
@@ -314,6 +352,21 @@ public sealed partial class WorkOsIdentityProvider(
         // A miss or a rejection must not reveal whether the mailbox exists. The caller shows one message.
         _ = response.IsSuccessStatusCode;
         return true;
+    }
+
+    public async Task<string> ConfirmPasswordResetAsync(string token, string newPassword, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint("/user_management/password_reset/confirm"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        request.Content = new StringContent(JsonSerializer.Serialize(new { token, new_password = newPassword }), Encoding.UTF8, "application/json");
+        using var response = await http.SendAsync(request, cancellationToken);
+        if (response.IsSuccessStatusCode)
+        {
+            return "reset";
+        }
+
+        var text = await response.Content.ReadAsStringAsync(cancellationToken);
+        return text.Contains("password_strength", StringComparison.OrdinalIgnoreCase) ? "weak_password" : "invalid_token";
     }
 
     private Task<AccessTokenIdentity?> ValidateWithKeysAsync(string token, IReadOnlyCollection<SecurityKey> keys)

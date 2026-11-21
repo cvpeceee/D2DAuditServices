@@ -15,6 +15,7 @@ public static class AuthEndpoints
         auth.MapPost("/callback", Callback).Produces<AuthBody>();
         auth.MapPost("/refresh", Refresh).Produces<AuthBody>();
         auth.MapPost("/forgot", Forgot);
+        auth.MapPost("/reset", Reset);
         auth.MapPost("/logout", Logout);
         app.MapGet("/api/v1/me", Me).RequireAuthorization().Produces<AuthBody>();
         return app;
@@ -81,6 +82,12 @@ public static class AuthEndpoints
     {
         var result = await auth.RequestPasswordResetAsync(body.Email, cancellationToken);
         return Results.Ok(new { result });
+    }
+
+    private static async Task<IResult> Reset(ResetPasswordBody body, IAuthService auth, CancellationToken cancellationToken)
+    {
+        var result = await auth.ConfirmPasswordResetAsync(body.Token ?? "", body.Password ?? "", cancellationToken);
+        return result == "reset" ? Results.Ok(new { result }) : Results.BadRequest(new { code = result });
     }
 
     private static IResult Logout(HttpContext http, IHostEnvironment environment)

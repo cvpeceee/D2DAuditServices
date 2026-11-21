@@ -2,6 +2,7 @@ using System.Text.Json;
 using D2DAudit.Application;
 using D2DAudit.Domain;
 using D2DAudit.Infrastructure.Evidence;
+using D2DAudit.Infrastructure.Insights;
 using D2DAudit.Infrastructure.Persistence;
 using D2DAudit.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,7 @@ public sealed class CollectionRunner(
     EvidenceWriter evidence,
     CollectionJobs jobs,
     IAutomationDispatcher automation,
+    InsightsEngine insights,
     TimeProvider time,
     ILogger<CollectionRunner> logger)
 {
@@ -190,6 +192,16 @@ public sealed class CollectionRunner(
             {
                 await automation.DispatchForTenantAsync(tenantId, tenant.DatabaseName, "ControlNotReady", controlItem.Code + " " + controlItem.Title, result.Detail, cancellationToken);
             }
+        }
+
+        try
+        {
+            var members = await InsightsEngine.MembersAsync(control, tenantId, cancellationToken);
+            await insights.RefreshAsync(tenantId, db, members, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            logger.LogWarning(exception, "Posture snapshot failed for tenant {TenantId}; collection results are kept.", tenantId);
         }
 
         await jobs.FinishAsync(jobId, !failed, failed ? "collection_incomplete" : null, cancellationToken);

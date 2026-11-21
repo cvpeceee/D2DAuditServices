@@ -15,6 +15,7 @@ using D2DAudit.Infrastructure.Program;
 using D2DAudit.Infrastructure.Evidence;
 using D2DAudit.Infrastructure.Identity;
 using D2DAudit.Infrastructure.Incidents;
+using D2DAudit.Infrastructure.Insights;
 using D2DAudit.Infrastructure.Integrations;
 using D2DAudit.Infrastructure.Operations;
 using D2DAudit.Infrastructure.Persistence;
@@ -121,6 +122,17 @@ public static class DependencyInjection
         services.AddScoped<IQuestionnaires, QuestionnairePortal>();
         services.AddScoped<ISystemDescription, SystemDescriptionPortal>();
         services.AddScoped<IContinuity, ContinuityPortal>();
+        services.TryAddSingleton<INotificationPush, NullNotificationPush>();
+        services.AddScoped<InsightsEngine>();
+        services.AddScoped<IInsights, InsightsPortal>();
+        services.AddScoped<INotificationCenter, NotificationCenter>();
+        services.AddScoped<IGlobalSearch, GlobalSearch>();
+        services.AddScoped<IReports, ReportsPortal>();
+        if (!environment.IsEnvironment("Testing"))
+        {
+            services.AddHostedService<InsightsDailyJob>();
+        }
+
         services.AddScoped<ICloudSecurity, CloudSecurityPortal>();
         services.AddHttpClient<IAssistantProvider, ConfigurableAssistantProvider>(client => client.Timeout = TimeSpan.FromSeconds(25));
         services.AddScoped<IEnterprisePortal, EnterprisePortal>();

@@ -99,6 +99,33 @@ public sealed class AuthService(
         }
     }
 
+    public async Task<string> ConfirmPasswordResetAsync(string token, string newPassword, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(token) || token.Length > 2048)
+        {
+            return "invalid_token";
+        }
+
+        if (string.IsNullOrEmpty(newPassword) || newPassword.Length is < 12 or > 200)
+        {
+            return "weak_password";
+        }
+
+        string result;
+        try
+        {
+            result = await identity.ConfirmPasswordResetAsync(token, newPassword, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Password reset confirm failed. {ExceptionType}", exception.GetType().Name);
+            result = "identity_provider_error";
+        }
+
+        await activity.WriteAsync(null, null, "auth.password_reset", result == "reset" ? "ok" : "failed", result, null, cancellationToken);
+        return result;
+    }
+
     private async Task<AuthSession> FinishAsync(
         IdentityLoginResult result,
         string? ip,
