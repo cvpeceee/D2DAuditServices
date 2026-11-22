@@ -25,8 +25,8 @@ flowchart LR
 
 | Store | What lives there | Why |
 |---|---|---|
-| Control plane (`ConnectionStrings:ControlPlane`) | Tenants, users, memberships, auditor grants, tenant domains, provider claims, jobs, activity (security audit) log | Data that must be read **before** a tenant is known (login, tenant switch, auditor grants) or that spans tenants (job tray, provider claim uniqueness). |
-| Tenant database (`t_<tenant-guid-N>`) | All customer business data: frameworks, controls, evidence metadata, evidence hash chain, policies, risks, people, vendors, vulnerabilities, incidents, … (~75 tables) | Hard isolation, per-tenant backup/restore/export/delete, per-tenant data residency, no `TenantId` predicate to forget. |
+| Control plane (`ConnectionStrings:ControlPlane`) | Tenants, users, memberships, auditor grants, tenant domains, provider claims, jobs, activity (security audit) log, signup/invites, onboarding, subscriptions/billing, security settings (15 tables) | Data that must be read **before** a tenant is known (login, tenant switch, auditor grants, signup/invites) or that spans tenants (job tray, provider claim uniqueness, billing). |
+| Tenant database (`t_<tenant-guid-N>`) | All customer business data: frameworks, controls, evidence metadata, evidence hash chain, policies, risks, people, vendors, vulnerabilities, incidents, insights, custom tests, evidence library, lifecycle, device agent, academy (99 tables) | Hard isolation, per-tenant backup/restore/export/delete, per-tenant data residency, no `TenantId` predicate to forget. |
 | Object storage | Evidence payloads (Parquet, original uploads), audit packages | Large immutable blobs; Object Lock (WORM) is mandatory in Production/Staging. The DB stores only keys + SHA-256 hashes. |
 
 ## 2. The two contexts and why

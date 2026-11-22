@@ -664,7 +664,7 @@ classDiagram
     }
     class INotificationCenter {
         <<interface>>
-        +ListAsync()
+        +FeedAsync()
         +MarkReadAsync()
         +PreferencesAsync()
     }
@@ -680,16 +680,17 @@ classDiagram
     class ICustomTestPortal {
         <<interface>>
         +ListAsync()
-        +SaveAsync()
+        +CreateAsync()
+        +UpdateAsync()
         +PreviewAsync()
         +SetStateAsync()
     }
     class IEvidenceLibraryPortal {
         <<interface>>
         +ListAsync()
-        +SaveAsync()
+        +CreateAsync()
         +LinkAsync()
-        +CreateRequestAsync()
+        +RequestAsync()
     }
     class ILifecycle {
         <<interface>>
@@ -701,13 +702,13 @@ classDiagram
     class IVendorRisk {
         <<interface>>
         +InventoryAsync()
-        +ScanDiscoveryAsync()
-        +SendAssessmentAsync()
+        +ScanAsync()
+        +SendAsync()
     }
     class IOnboarding {
         <<interface>>
         +GetAsync()
-        +SaveProfileAsync()
+        +SaveAsync()
         +GeneratePlanAsync()
     }
     class IBilling {
@@ -725,15 +726,15 @@ classDiagram
     }
     class IDeviceAgent {
         <<interface>>
-        +OverviewAsync()
+        +DevicesAsync()
         +CreateTokenAsync()
         +EnrollAsync()
-        +SubmitHeartbeatAsync()
+        +CheckInAsync()
     }
     class IAcademy {
         <<interface>>
         +OverviewAsync()
-        +SubmitQuizAsync()
+        +QuizAsync()
         +CertificateAsync()
     }
 
@@ -747,7 +748,7 @@ classDiagram
     ILifecycle <|.. LifecyclePortal
     IVendorRisk <|.. VendorRiskPortal
     IOnboarding <|.. OnboardingPortal
-    IBilling <|.. BillingService
+    IBilling <|.. BillingPortal
     IConnectorHub <|.. ConnectorHub
     IDeviceAgent <|.. DeviceAgentService
     IAcademy <|.. AcademyService
