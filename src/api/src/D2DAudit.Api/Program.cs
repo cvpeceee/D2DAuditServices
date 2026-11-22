@@ -36,7 +36,6 @@ builder.Services.AddD2DForwardedHeaders(builder.Configuration);
 builder.Services.AddD2DRateLimiting(builder.Configuration, builder.Environment);
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
 {
-<<<<<<< HEAD
     builder.Services.AddHsts(options =>
     {
         options.MaxAge = TimeSpan.FromDays(365);
@@ -44,41 +43,6 @@ if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("
     });
 }
 
-=======
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-});
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("auth", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1_000 : 20,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-    options.AddPolicy("public_trust", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1_000 : 10,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-    options.AddPolicy("signup", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1_000 : 10,
-                Window = TimeSpan.FromMinutes(10),
-                QueueLimit = 0,
-            }));
-});
->>>>>>> m11/onboarding
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());

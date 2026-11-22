@@ -36,6 +36,29 @@ flowchart LR
   jenkins -.->|build, test, gitleaks, pages artifact| pages
 ```
 
+## Milestone 11 Unified Platform Architecture (11 Integrated Workstreams)
+
+```mermaid
+flowchart LR
+  edge[EdgeProtection: Rate Limits, Kestrel, ForwardedHeaders, HSTS] --> auth[DistributedSessionGuard & Reset Confirm]
+  auth --> portals[M11 Portals: Insights, Assurance, Lifecycle, VendorRisk, Onboarding/Billing, Connectors, Agent/Academy]
+  portals --> cp[(ControlPlaneDbContext + M11Unified)]
+  portals --> tn[(TenantDbContext + M11Unified + Append-Only Triggers)]
+  agent[D2DAudit.Agent + OS Installers] -->|HMAC-SHA256 Signed Heartbeats| portals
+  hub[ConnectorHub: 60 Catalog Connectors] --> tn
+  tut[scripts/tutorial/build_tutorial.py: Playwright CDP + edge-tts] --> media[1080p Real-App MP4 + VTT + Manifest]
+```
+
+- **Edge & Session Security (`EdgeProtection`, `ISessionGuard` / `DistributedSessionGuard`)**: Layered global + named rate limiting (`auth`, `public_trust`, `public_assistant`, `assistant`, `export`, `signup`), single-hop reverse proxy `ForwardedHeaders`, Kestrel slowloris/body limits, production safety assertions, HSTS, distributed login lockout, access-token revocation on logout, and refresh-token reuse detection.
+- **Database Architecture Hardening (`DatabaseSettings`, `DbText`, `HardeningSql`, `M11DatabaseHardening`)**: PostgreSQL `d2d_append_only()` triggers on `evidence_chain` and `activity_events`, `EnableRetryOnFailure`, bounded per-tenant Npgsql pools, `xmin` optimistic concurrency on `tenants`/`risks`/`findings` (409 mapping), `jsonb` resource snapshots, `RESTRICT` on `evidence_items -> controls`, exact case-insensitive email matching, and LIKE wildcard escaping.
+- **Insights, Notifications, Search & Reports (`IInsights`, `INotificationCenter`, `IGlobalSearch`, `IReports`, `InsightsDailyJob`)**: Daily posture snapshots (`posture_snapshots`), idempotent role-scoped notifications with SignalR push (`user_notifications`, `notification_receipts`, `notification_preferences`), global Cmd/Ctrl+K search, scheduled CSV/PDF executive reports (`report_schedules`), and password reset confirmation (`POST /api/v1/auth/reset`).
+- **Custom Tests, Evidence Library & Policy Assurance (`ICustomTestPortal`, `IEvidenceLibraryPortal`, `IControlInsightPortal`, `IPolicyInsightPortal`)**: No-code condition builder (`custom_test_definitions`), test snooze/disable (`test_suppressions`), expiring multi-control evidence library & collection requests (`evidence_documents`, `evidence_document_links`, `evidence_requests`), control readiness profiles & versioned comments (`control_profiles`, `control_comments`, `control_comment_revisions`), and policy version diffs + attestation campaigns (`policy_attestation_campaigns`, `policy_attestations`).
+- **Employee Lifecycle & Vendor Risk (`ILifecycle`, `IAccessRevoker`, `IVendorRisk`, `IVendorPortal`, `IVendorDiscoverySource`)**: Group-based onboarding/offboarding checklists with SLA tracking and automated access revocation (`employee_groups`, `lifecycle_checklists`, `lifecycle_steps`), plus vendor discovery, tiering, tokenized public vendor questionnaire portal (`/vendor-portal/:token`), and document review sign-off.
+- **Self-Serve Onboarding, Billing, Invites & Risk Insights (`ISignupService`, `IOnboarding`, `IBilling`, `IFeatureGate`, `ITeamAccess`, `IRiskInsights`)**: Self-serve signup & email verification (`/signup`, `/signup/verify`), guided onboarding wizard (`/onboarding`), Stripe-ready billing & plan feature gating (`/settings/billing`), team invite links & SCIM/SSO security settings (`/invite/accept`), and risk heatmaps & acceptance workflows.
+- **60-Connector Integration Marketplace (`IConnectorRegistry`, `IConnectorHub`, `src/seed/connectors.json`)**: 45 new live/fixture connectors plus 15 built-in integrations across 13 categories with encrypted credential storage, connection testing, sync run history (`integration_sync_runs`), and 16 additional automated compliance checks.
+- **Cross-Platform Device Agent & Security Academy (`IDeviceAgent`, `IAcademy`, `src/agent/D2DAudit.Agent/`, `agent/windows/`, `agent/unix/`)**: Standalone `.NET` device posture agent + Windows PowerShell (`install.ps1`) and macOS/Linux (`install.sh`, `launchd`, `systemd`) installers authenticating via short-lived enrollment tokens and HMAC-SHA256 signed heartbeats, paired with a 7-course interactive Security Academy with quizzes, PDF certificates, and HR-06 evidence.
+- **Unified EF Core Schema (`20261122004719_M11Unified`, `20261122004744_M11Unified`)**: Single clean unified M11 migration pair covering all 6 new control-plane tables and 31 new tenant tables with zero pending model changes (`SchemaParityTests`), synchronized OpenAPI snapshot (`src/web/openapi/v1.json`), and generated TypeScript schema (`src/web/src/shared/api/schema.ts`).
+
 ## Enterprise Governance Hub, Differentiators, IaC & Interactive Tutorial (M10 — 100% Super-App Completion)
 
 ```mermaid

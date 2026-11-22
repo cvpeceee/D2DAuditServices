@@ -423,3 +423,15 @@ Use this checklist when adding a table (new M11 feature branches will be conform
 10. **Writes:** one `SaveChanges` per unit of work; if you need several, wrap them in `CreateExecutionStrategy().ExecuteAsync`. Human-edited records that can be edited concurrently get `Property<uint>("Version").IsRowVersion()`.
 11. **High-volume / append-only tables** (device check-ins, check results, trend snapshots, logs): plan retention up front (§10), add an append-only trigger via `HardeningSql.AppendOnly("table")` when the rows are audit evidence.
 12. **Migration:** generate with `dotnet ef migrations add` for the right context; `SchemaParityTests` must pass; no snapshot hand-edits.
+
+## 16. Unified M11 Schema Additions (`M11Unified`)
+
+Following `M11DatabaseHardening`, all M11 feature domains were unified into one migration pair (`20261122004719_M11Unified` for `ControlPlaneDbContext` and `20261122004744_M11Unified` for `TenantDbContext`) verified by `SchemaParityTests` (`HasPendingModelChanges() == false`):
+
+- **Control plane (`ControlPlaneDbContext`, +6 tables):** `signup_requests`, `member_invites`, `tenant_onboarding`, `tenant_subscriptions`, `tenant_security_settings`, `billing_events`.
+- **Tenant database (`TenantDbContext`, +31 tables + `risks` quantification/acceptance columns):**
+  - **Insights & Reporting (5):** `posture_snapshots`, `user_notifications`, `notification_receipts`, `notification_preferences`, `report_schedules`.
+  - **Assurance, Custom Tests & Evidence Library (10):** `custom_test_definitions`, `test_suppressions`, `evidence_documents`, `evidence_document_links`, `evidence_requests`, `control_profiles`, `control_comments`, `control_comment_revisions`, `policy_attestation_campaigns`, `policy_attestations`.
+  - **Employee Lifecycle & Vendor Risk (10):** `employee_groups`, `lifecycle_template_steps`, `lifecycle_settings`, `lifecycle_checklists`, `lifecycle_steps`, `vendor_profiles`, `vendor_discovery_suggestions`, `vendor_assessments`, `vendor_assessment_answers`, `vendor_review_documents`.
+  - **Integration Marketplace (1):** `integration_sync_runs`.
+  - **Device Agent & Security Academy (5):** `device_enrollment_tokens`, `device_credentials`, `device_posture_snapshots`, `academy_progress`, `academy_assignments`.

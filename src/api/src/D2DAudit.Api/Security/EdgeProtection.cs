@@ -34,6 +34,8 @@ public sealed class RateLimitSettings
 
     public int ExportPerMinute { get; set; } = 6;
 
+    public int SignupPerTenMinutes { get; set; } = 10;
+
     public static RateLimitSettings Relaxed() => new()
     {
         UserTokensPerMinute = 100_000,
@@ -45,6 +47,7 @@ public sealed class RateLimitSettings
         PublicAssistantPerMinute = 1_000,
         AssistantPerMinute = 1_000,
         ExportPerMinute = 1_000,
+        SignupPerTenMinutes = 1_000,
     };
 }
 
@@ -55,6 +58,7 @@ public static class RateLimitPolicies
     public const string PublicAssistant = "public_assistant";
     public const string Assistant = "assistant";
     public const string Export = "export";
+    public const string Signup = "signup";
 }
 
 public static class EdgeProtection
@@ -154,6 +158,7 @@ public static class EdgeProtection
             options.AddPolicy(RateLimitPolicies.PublicAssistant, context => Window(IpKey(context), Settings(context).PublicAssistantPerMinute));
             options.AddPolicy(RateLimitPolicies.Assistant, context => Window(CallerKey(context), Settings(context).AssistantPerMinute));
             options.AddPolicy(RateLimitPolicies.Export, context => Window(CallerKey(context), Settings(context).ExportPerMinute));
+            options.AddPolicy(RateLimitPolicies.Signup, context => Window(IpKey(context), Settings(context).SignupPerTenMinutes, TimeSpan.FromMinutes(10)));
         });
 
         services.AddRequestTimeouts(options =>
@@ -267,11 +272,11 @@ public static class EdgeProtection
         return string.IsNullOrWhiteSpace(hosts) || hosts.Trim() == "*";
     }
 
-    private static RateLimitPartition<string> Window(string key, int permits) =>
+    private static RateLimitPartition<string> Window(string key, int permits, TimeSpan? window = null) =>
         RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = Math.Max(1, permits),
-            Window = TimeSpan.FromMinutes(1),
+            Window = window ?? TimeSpan.FromMinutes(1),
             QueueLimit = 0,
         });
 

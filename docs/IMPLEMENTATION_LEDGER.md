@@ -178,3 +178,25 @@ Living architectural and engineering ledger tracking completed milestones, secur
 - **Frontend:** `features/insights/*` (trend charts), `features/notifications/*` (bell and `/notifications`), `features/reports/ReportsPage.tsx`, `features/auth/ResetPasswordPage.tsx`, `features/shell/{Breadcrumbs.tsx,globalSearch.ts}`, `shared/ui/states.tsx` (loading, empty, error), and edits to `AppShell`, `DashboardPage`, `App.tsx`, `icons.tsx`, `en.json`, `app.css`.
 - **Demo:** `demo/insights.ts` (90+ days of deterministic Harborline history, notifications, role-scoped search, reports, schedules, reset) wired into `demo/backend.ts`.
 - **Tests:** `InsightsRulesTests.cs` (snapshot calculation, search RBAC, notification generation), `demo/insights.test.ts`, `features/insights/TrendChart.test.tsx`, `features/shell/palette.test.tsx`.
+
+---
+
+## Milestone 11 (M11) — Unified Integration of All 11 Workstreams (`m11/*` -> `main`)
+
+### Workstreams Merged & Verified
+1. **`m11/jenkins` (`7bba286`)**: Jenkins-only CI/CD (native Windows + Docker Compose), `.github/workflows/*` deleted.
+2. **`m11/qa` (`1319bbf`)**: `ValidateOnBuild`, `scripts/start-local-postgres.ps1`, Playwright E2E smoke suite (`src/web/e2e/smoke.spec.ts`), Terraform lockfile, UI/a11y fixes.
+3. **`m11/dbarch` (`8d07920`)**: `docs/DATABASE_ARCHITECTURE.md`, `DatabaseSettings`, `DbText`, `HardeningSql`, `M11DatabaseHardening` migrations (append-only triggers, `xmin` concurrency, `jsonb`, indexes), `DatabaseHardeningTests`.
+4. **`m11/security` (`bfb0df4`)**: `EdgeProtection` (chained token-bucket + concurrency + named policies including `signup`, Kestrel limits, single-hop `ForwardedHeaders`, HSTS, production safety assertions), `ISessionGuard` / `DistributedSessionGuard` (lockout, logout token revocation, refresh-reuse revocation), endpoint & privacy hardening.
+5. **`m11/insights` (`b1eb222`)**: Posture trend snapshots, real-time SignalR notification center + preferences, role-scoped global search, scheduled CSV/PDF executive reports, breadcrumbs, password reset confirmation.
+6. **`m11/customtests` (`5511f45`)**: No-code Custom Test Builder (`ICustomTestPortal`), test snooze/disable, expiring Evidence Library & collection requests (`IEvidenceLibraryPortal`), control readiness & versioned comments (`IControlInsightPortal`), policy version diffs & attestation campaigns (`IPolicyInsightPortal`).
+7. **`m11/lifecycle` (`2e1eaae`)**: Employee onboarding/offboarding checklists, group rules, access-revocation SLAs (`ILifecycle`, `IAccessRevoker`), vendor discovery/tiering & tokenized external vendor questionnaire portal (`IVendorRisk`, `IVendorPortal`).
+8. **`m11/onboarding` (`36b5ead`)**: Self-serve signup & email verification (`ISignupService`), 6-step onboarding wizard (`IOnboarding`), Stripe/mock billing & feature gates (`IBilling`, `IFeatureGate`), team invite links & SSO/SCIM security settings (`ITeamAccess`, `IInviteAcceptance`), risk heatmaps & acceptance (`IRiskInsights`).
+9. **`m11/integrations` (`1abf85c`)**: 60-connector Integration Marketplace (`IConnectorRegistry`, `IConnectorHub`, 45 new + 15 built-in connectors across 13 categories, `src/seed/connectors.json`, `ConnectorAdapterTests`, `ConnectorCatalogTests`, +16 automated checks).
+10. **`m11/agent` (`cee6b3b`)**: Cross-platform `.NET` Device Agent (`src/agent/D2DAudit.Agent/`) + Windows/macOS/Linux installers (`agent/windows/`, `agent/unix/`), HMAC-SHA256 signed heartbeats (`IDeviceAgent`), and 7-course Security Academy with quizzes, PDF certificates, and HR-06 evidence (`IAcademy`).
+11. **`m11/tutorial` (`e8a7789`)**: Real-app Playwright CDP + neural TTS (`en-US-AndrewMultilingualNeural`) + ambient audio/SFX tutorial pipeline (`scripts/tutorial/build_tutorial.py`) + M11 `TutorialPage.tsx` chapter sync.
+
+### Unified Schema, Contracts & Verification
+- **Unified Migrations**: Generated `20261122004719_M11Unified` (`ControlPlaneDbContext`, +6 tables) and `20261122004744_M11Unified` (`TenantDbContext`, +31 tables + risk quantification/acceptance columns) on top of `M11DatabaseHardening`. Verified `SchemaParityTests` (`HasPendingModelChanges() == false`).
+- **OpenAPI & Types**: Regenerated `src/web/openapi/v1.json` via `UPDATE_OPENAPI_SNAPSHOT=1` and `src/web/src/shared/api/schema.ts` via `npm run openapi:types`.
+- **Verification**: `D2DAudit.Agent` & `D2DAudit.slnx` (0 warnings, 0 errors), `D2DAudit.UnitTests` (236/236 passed), live PostgreSQL `D2DAudit.Tests` (74/74 passed), ESLint (0 errors), Vitest (21 files / 71/71 passed), production & demo Vite builds, Playwright E2E smoke suite, and final real-app M1–M11 1080p MP4/VTT/JSON tutorial recording.

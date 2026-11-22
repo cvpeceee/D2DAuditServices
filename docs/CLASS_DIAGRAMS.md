@@ -646,3 +646,109 @@ classDiagram
     GovernanceHubPortal --> AuditorFirmRecord
     GovernanceHubPortal --> RemediationPullRequest
 ```
+
+## 8. Milestone 11 Platform Extensions (`D2DAudit.Application` & `D2DAudit.Infrastructure` — M11)
+
+```mermaid
+classDiagram
+    class ISessionGuard {
+        <<interface>>
+        +LoginLockAsync()
+        +RecordLoginFailureAsync()
+        +RevokeAccessTokenAsync()
+        +ConsumeRefreshTokenAsync()
+    }
+    class IInsights {
+        <<interface>>
+        +TrendsAsync()
+    }
+    class INotificationCenter {
+        <<interface>>
+        +ListAsync()
+        +MarkReadAsync()
+        +PreferencesAsync()
+    }
+    class IGlobalSearch {
+        <<interface>>
+        +SearchAsync()
+    }
+    class IReports {
+        <<interface>>
+        +ExportAsync()
+        +SchedulesAsync()
+    }
+    class ICustomTestPortal {
+        <<interface>>
+        +ListAsync()
+        +SaveAsync()
+        +PreviewAsync()
+        +SetStateAsync()
+    }
+    class IEvidenceLibraryPortal {
+        <<interface>>
+        +ListAsync()
+        +SaveAsync()
+        +LinkAsync()
+        +CreateRequestAsync()
+    }
+    class ILifecycle {
+        <<interface>>
+        +OverviewAsync()
+        +StartOnboardingAsync()
+        +StartOffboardingAsync()
+        +RevokeStepAsync()
+    }
+    class IVendorRisk {
+        <<interface>>
+        +InventoryAsync()
+        +ScanDiscoveryAsync()
+        +SendAssessmentAsync()
+    }
+    class IOnboarding {
+        <<interface>>
+        +GetAsync()
+        +SaveProfileAsync()
+        +GeneratePlanAsync()
+    }
+    class IBilling {
+        <<interface>>
+        +OverviewAsync()
+        +ChangePlanAsync()
+    }
+    class IConnectorHub {
+        <<interface>>
+        +CatalogAsync()
+        +ConnectAsync()
+        +TestAsync()
+        +SyncAsync()
+        +DisconnectAsync()
+    }
+    class IDeviceAgent {
+        <<interface>>
+        +OverviewAsync()
+        +CreateTokenAsync()
+        +EnrollAsync()
+        +SubmitHeartbeatAsync()
+    }
+    class IAcademy {
+        <<interface>>
+        +OverviewAsync()
+        +SubmitQuizAsync()
+        +CertificateAsync()
+    }
+
+    ISessionGuard <|.. DistributedSessionGuard
+    IInsights <|.. InsightsPortal
+    INotificationCenter <|.. NotificationCenter
+    IGlobalSearch <|.. GlobalSearch
+    IReports <|.. ReportsPortal
+    ICustomTestPortal <|.. CustomTestPortal
+    IEvidenceLibraryPortal <|.. EvidenceLibraryPortal
+    ILifecycle <|.. LifecyclePortal
+    IVendorRisk <|.. VendorRiskPortal
+    IOnboarding <|.. OnboardingPortal
+    IBilling <|.. BillingService
+    IConnectorHub <|.. ConnectorHub
+    IDeviceAgent <|.. DeviceAgentService
+    IAcademy <|.. AcademyService
+```

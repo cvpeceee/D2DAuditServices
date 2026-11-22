@@ -75,6 +75,12 @@ Roles: Admin, Control owner, Editor, Viewer, Employee, Auditor. Auditor is read-
 | `/notifications` | Inbox for failing tests, assigned tasks, policy acknowledgments, due reviews, auditor requests, and overdue vendor reviews; per-event in-app, email, and Slack preferences. The shell bell shows the unread count. Email digest and Slack are mocked until configured. | Mark read, mark all read, save preferences, send the digest (Admin). | All workspace roles |
 | `/reports` | Board, framework readiness, risk, vendor, and personnel reports. Scheduled delivery is mocked until a notifier is configured. | Export CSV or PDF, schedule delivery, send now. | Export: Admin, Control owner, Editor, Viewer. Schedule: Admin |
 | `/reset-password` | Confirm a password reset link through WorkOS (local mode logs the link). | Set a new password. | Anyone with the link |
+| `/signup` & `/signup/verify` | Self-serve workspace creation with work-email validation, region selection, and verification/provisioning progress. | Create workspace, verify email, launch onboarding. | Anonymous |
+| `/invite/accept` | One-time tokenized team invite acceptance flow. | Accept invite and join tenant workspace. | Invited user |
+| `/onboarding` | 6-step guided compliance setup wizard (company profile, recommended frameworks, integrations, team invites, policy templates, audit target readiness plan). | Recommend frameworks, pre-scope controls, generate milestones. | Write roles |
+| `/settings/billing` | Subscription plan management (Starter / Growth / Enterprise), usage metering against plan limits, Stripe/mock checkout, and invoice history. | Switch plan, inspect usage gates, view invoices. | Admin |
+| `/people/lifecycle` | Employee onboarding & offboarding checklists, employee group rules, access-revocation SLAs, and automated offboarding checks. | Sync HR dates, start onboarding/offboarding, revoke access, edit deadlines. | Write roles (employees see own tasks on `/me`) |
+| `/vendors/:id` & `/vendor-portal/:token` | Deep vendor risk workspace (tiering, inherent risk, discovery scan, security questionnaires, document review sign-off) plus tokenized external vendor portal. | Scan SSO/expense discovery, send expiring questionnaire link, review & approve vendor answers/docs. | Write roles / invited vendor contact |
 
 Ctrl/Cmd+K opens a command palette that searches pages, actions, and the workspace records the role can see. Every screen shows breadcrumbs, and on narrow screens the navigation is a drawer.
 
@@ -181,3 +187,10 @@ The manifest, integrity report, control matrix, and evidence files are unchanged
 | Multi-entity legal subsidiary rollup (`organization_entities`), GDPR RoPA/DPIA, ISO 42001/EU AI Act model registry, external ASM, and Verified Auditor Network (`/governance-hub`) | Built |
 | 1-Click Remediation Pull Request Generator (signed into `EvidenceChain`) and Audit Time Machine point-in-time posture & chain comparison | Built |
 | 1080p MP4 Video + Spoken Audio Tutorial & Interactive Animated Architecture Tour (`/tutorial`) | Built |
+| 60-Connector Integration Marketplace (45 new + 15 built-in across 13 categories), encrypted configs, test/sync lifecycle & 16 additional automated checks | Built |
+| No-code Custom Test Builder, Test Snooze/Disable, Expiring Evidence Library & Requests, Control Readiness/Comments & Policy Diff/Attestation Campaigns | Built |
+| Employee Lifecycle Onboarding/Offboarding Checklists & Access Revocation + Vendor Risk Discovery, Tiering & External Vendor Questionnaire Portal | Built |
+| Self-Serve Signup, Guided 6-Step Onboarding Wizard, Stripe/Mock Billing & Feature Gates, Tokenized Team Invites & Risk Heatmap/Acceptance | Built |
+| Cross-Platform `.NET` Device Agent (`D2DAudit.Agent`) + Windows/macOS/Linux Installers (HMAC-SHA256 Heartbeats) & 7-Course Security Academy with PDF Certificates | Built |
+| Compliance Posture Trends, In-App/Email/Slack Notification Center, Role-Scoped Global Command Palette Search & Scheduled CSV/PDF Reports | Built |
+| Edge & Session Security Hardening (`EdgeProtection`, `DistributedSessionGuard`) & PostgreSQL Hardening (`M11DatabaseHardening` append-only triggers, `xmin` concurrency, pool caps) | Built |
