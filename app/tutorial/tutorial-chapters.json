@@ -1,0 +1,82 @@
+{
+  "version": 2,
+  "title": "D2D Audit in 3 minutes",
+  "generatedAt": "2026-11-22T01:02:36Z",
+  "voice": "en-US-AndrewMultilingualNeural",
+  "resolution": "1920x1080",
+  "fps": 30,
+  "totalDurationSeconds": 212.65,
+  "videoFile": "d2d-super-app-tutorial.mp4",
+  "captionsFile": "d2d-super-app-tutorial.vtt",
+  "liveDemo": "https://d2d-audit-web.onrender.com/",
+  "tutorialsSite": "https://cvpeceee.github.io/D2DAudit-Tutorials/",
+  "chapters": [
+    {
+      "number": 1,
+      "id": "welcome",
+      "title": "Audit-ready in minutes",
+      "shortTitle": "Welcome",
+      "summary": "The audit pain, and a dashboard that tracks every framework in one place.",
+      "startTime": 0.0,
+      "route": "/",
+      "endTime": 37.79,
+      "duration": 37.79
+    },
+    {
+      "number": 2,
+      "id": "controls",
+      "title": "Map once, comply everywhere",
+      "shortTitle": "Controls & evidence",
+      "summary": "One control satisfies many frameworks; tests and tamper-evident evidence keep it proven.",
+      "startTime": 37.79,
+      "route": "/controls",
+      "endTime": 102.5,
+      "duration": 64.71
+    },
+    {
+      "number": 3,
+      "id": "risk",
+      "title": "See risk like an attacker",
+      "shortTitle": "Cloud risk",
+      "summary": "Exposure scanning with ready-to-paste fixes, and attack paths that show what really matters.",
+      "startTime": 102.5,
+      "route": "/exposure",
+      "endTime": 126.53,
+      "duration": 24.03
+    },
+    {
+      "number": 4,
+      "id": "audit",
+      "title": "Audit day, minus the panic",
+      "shortTitle": "Audit day",
+      "summary": "A dedicated auditor portal and an assistant that answers in plain English.",
+      "startTime": 126.53,
+      "route": "/auditor",
+      "endTime": 156.2,
+      "duration": 29.67
+    },
+    {
+      "number": 5,
+      "id": "trust",
+      "title": "Earn trust, faster",
+      "shortTitle": "Trust & governance",
+      "summary": "A public trust center buyers can verify, plus enterprise governance.",
+      "startTime": 156.2,
+      "route": "/trust/harborline",
+      "endTime": 204.29,
+      "duration": 48.09
+    },
+    {
+      "number": 6,
+      "id": "next",
+      "title": "Try it yourself",
+      "shortTitle": "Get started",
+      "summary": "Open the live demo and explore.",
+      "startTime": 204.29,
+      "route": null,
+      "endTime": 212.65,
+      "duration": 8.36
+    }
+  ],
+  "skippedScenes": []
+}
